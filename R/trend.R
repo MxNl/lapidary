@@ -1,9 +1,9 @@
 #' Non-parametric trend of groundwater time series
 #'
 #' Computes the Theil-Sen slope estimator together with the Mann-Kendall trend
-#' test (with tie and, optionally, autocorrelation correction) for each series.
-#' This is the method used in the KLIBIW low-water assessments and is robust to
-#' outliers and non-normal residuals.
+#' test (with tie correction) for each series. This non-parametric pairing is a
+#' standard choice for hydrological trend analysis: robust to outliers and
+#' making no assumption of normal residuals.
 #'
 #' Input is typically an annual series - e.g. the `mean_gwl` column of
 #' [lap_summarise_wells()] grouped by `c(well_id, year)` - but any regular-ish
