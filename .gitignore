@@ -23,6 +23,9 @@ renv/staging/
 /docs/_site/
 /scratch/
 
+# scratch / playground scripts (not part of the package)
+/playground*
+
 # OS
 .DS_Store
 Thumbs.db

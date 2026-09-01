@@ -1,6 +1,6 @@
 ^lapidary\.Rproj$
 ^\.Rproj\.user$
-^playground\.R$
+^playground.*
 ^_targets\.R$
 ^_targets$
 ^data-raw$
