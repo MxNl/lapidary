@@ -1,0 +1,101 @@
+---
+title: "Getting started with lapidary"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started with lapidary}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4)
+```
+
+```{r setup}
+library(lapidary)
+```
+
+`lapidary` has three layers: a **canonical data model**, **analysis
+primitives**, and a **shared visual style**. This vignette walks through them
+with the packaged sample of GEMS-GER (`?gems_ger_sample`), so nothing here
+needs the full download.
+
+## The data model
+
+Every source is normalised to two shapes:
+
+* `gwl_ts` — a tidy long tibble, one row per well × timestamp
+  (`well_id`, `date`, `gwl`, `variable`, `source`, optional `gwl_flag`);
+* `gwl_wells` — an `sf` POINT layer of well metadata in EPSG:25832.
+
+```{r}
+data(gems_ger_sample)
+gems_ger_sample
+
+validate_gwl_ts(gems_ger_sample)
+```
+
+`variable` records *what* `gwl` is (here `"gwl_m_asl"`, metres above sea
+level), so series with different datums never get mixed silently.
+
+To ingest the real dataset:
+
+```{r eval = FALSE}
+lap_gems_ger_download()                    # ~290 MB, once
+lap_gems_ger_build_parquet(meteo = FALSE)  # CSV -> Parquet, once
+gwl <- lap_read_gems_ger(date_range = c("2000-01-01", "2020-12-31"))
+```
+
+Adding another source means writing a reader that returns these shapes;
+`lap_read_correctiv()` is a worked second example.
+
+## Analysis primitives
+
+```{r}
+enriched <- gems_ger_sample |>
+  lap_use_water_year(start_month = 11) |>
+  lap_add_reference_period(periods = list(Z1 = c(1991, 2020)))
+
+annual <- lap_summarise_wells(enriched, by = c(well_id, year))
+head(annual)
+```
+
+Trends use the Theil–Sen slope with a Mann–Kendall significance test:
+
+```{r}
+trends <- lap_gw_trend(annual, value = mean_gwl, time = year)
+head(trends[order(trends$slope), c("well_id", "slope", "p_value", "direction")])
+```
+
+Normalisation makes wells comparable:
+
+```{r}
+sgi <- lap_normalise_gwl(gems_ger_sample, method = "sgi")
+range(sgi$gwl_norm, na.rm = TRUE)
+```
+
+## Spatial aggregation
+
+```{r}
+data(germany_hex_sample)
+germany_hex_sample
+```
+
+`germany_hex_sample` was built with `lap_aggregate_to_hex()` from the sample
+wells; with the full dataset the hexagons are densely populated.
+
+## Style
+
+```{r fig.height = 5}
+library(ggplot2)
+
+ggplot(subset(germany_hex_sample, n_wells > 0)) +
+  geom_sf(aes(fill = mean_gwl), colour = "white", linewidth = 0.1) +
+  scale_fill_lapidary_c("magnitude") +
+  theme_lapidary(variant = "light") +
+  labs(title = lap_tr("app_title"), fill = lap_tr("groundwater_level"))
+```
+
+Switch `variant = "dark"`, set `options(lapidary.lang = "de")`, and use
+`ggsave_lapidary(preset = "a1")` for print output. See
+`vignette("style", package = "lapidary")`.
