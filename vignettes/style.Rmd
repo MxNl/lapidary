@@ -1,0 +1,101 @@
+---
+title: "The lapidary style scheme"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{The lapidary style scheme}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4)
+```
+
+```{r setup}
+library(lapidary)
+library(ggplot2)
+```
+
+The visual style is one system with a light and a dark variant, driven by a
+single set of **design tokens**. Plot code reads tokens through
+`lap_tokens()` rather than hard-coding values, so a restyle happens in one
+place (see `docs/adr/0003`).
+
+## Tokens
+
+```{r}
+tk <- lap_tokens("light")
+str(tk, max.level = 1)
+tk$colour$recharge
+tk$colour$discharge
+```
+
+Type sizes are multipliers of a `base_size`, which is how the *same* plot
+scales from web to A0.
+
+## Theme and scales
+
+```{r}
+data(germany_hex_sample)
+hex <- subset(germany_hex_sample, n_wells > 0)
+
+p <- ggplot(hex) +
+  geom_sf(aes(fill = mean_gwl), colour = "white", linewidth = 0.1) +
+  scale_fill_lapidary_c("magnitude") +
+  labs(title = lap_tr("app_title"), fill = lap_tr("groundwater_level"))
+
+p + theme_lapidary("light")
+```
+
+```{r}
+p + theme_lapidary("dark")
+```
+
+Palette roles decouple intent from the underlying scico palette:
+
+```{r}
+lap_pal_roles()
+```
+
+* `months` – cyclic, for month-of-year / phase
+* `magnitude` / `magnitude_dark` – sequential
+* `density` – sequential greys, for counts
+* `anomaly` – divergent, for departures from a reference
+
+## Fonts
+
+`lap_fonts()` registers Oleo Script (titles) and Dosis (body) and enables
+`showtext`. If the fonts or packages are missing it is a no-op and the theme
+falls back to `serif` / `sans`, so headless rendering never breaks.
+
+```{r eval = FALSE}
+lap_fonts()
+```
+
+## Output presets
+
+```{r}
+lap_preset_names()
+lap_preset("a1")
+```
+
+`ggsave_lapidary()` applies a preset's width/height/dpi *and* sets
+`showtext`'s DPI to match, which is the difference between crisp and blurry
+poster text.
+
+```{r eval = FALSE}
+ggsave_lapidary(p + theme_lapidary("light", base_size = lap_preset("a1")$base_size),
+  "groundwater_a1.png",
+  preset = "a1"
+)
+```
+
+## Language
+
+```{r}
+lap_tr("groundwater_level", "en")
+lap_tr("groundwater_level", "de")
+```
+
+Set a session default with `options(lapidary.lang = "de")` or the
+`LAPIDARY_LANG` environment variable.

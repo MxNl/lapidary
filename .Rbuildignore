@@ -1,0 +1,15 @@
+^lapidary\.Rproj$
+^\.Rproj\.user$
+^playground\.R$
+^_targets\.R$
+^_targets$
+^data-raw$
+^docs$
+^\.github$
+^LICENSE\.md$
+^\.claude$
+^renv$
+^renv\.lock$
+^\.Rprofile$
+^README\.Rmd$
+^scratch$

@@ -1,0 +1,28 @@
+# R
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+
+# targets
+_targets/
+
+# renv
+renv/library/
+renv/local/
+renv/cellar/
+renv/lock/
+renv/python/
+renv/sandbox/
+renv/staging/
+
+# build artifacts
+/lapidary.Rcheck/
+*.tar.gz
+/docs/_site/
+/scratch/
+
+# OS
+.DS_Store
+Thumbs.db
