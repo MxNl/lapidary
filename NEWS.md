@@ -25,11 +25,17 @@ tidyselect helpers).
 
 ## Analysis primitives
 * `lap_add_reference_period()`, `lap_reference_periods()`, `lap_use_water_year()`.
-* `lap_summarise_wells()` (in-memory or pushed down to DuckDB), `lap_wells_with_coverage()`.
+* `lap_summarise_wells()` (in-memory or pushed down to DuckDB; `indicators=`
+  argument), `lap_wells_with_coverage()`.
 * `lap_normalise_gwl()` — `range`, `zscore`, `sgi`.
 * `lap_gw_trend()` — Theil–Sen slope + Mann–Kendall test.
 * `lap_make_hex_grid()`, `lap_aggregate_to_hex()`, `lap_circular_mean_month()`,
   `lap_germany_border()`.
+
+## Time-series indicators (see `docs/adr/0009`)
+* `lap_indicators()` collector + `lap_add_indicators()` for step-by-step
+  appending; `ind_`-prefixed output columns.
+* `lap_ind_amplitude()`, `lap_ind_extreme_months()`, `lap_ind_trend()`.
 
 ## Style scheme & i18n
 * `lap_tokens()`, `theme_lapidary()`, `scale_fill/colour_lapidary_c/d()`,

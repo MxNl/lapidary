@@ -9,7 +9,8 @@ lap_summarise_wells(
   by = c(well_id, year),
   value = gwl,
   expected_per_year = 52,
-  collect = TRUE
+  collect = TRUE,
+  indicators = NULL
 )
 }
 \arguments{
@@ -25,10 +26,16 @@ summarise. Defaults to \code{gwl}.}
 \item{expected_per_year}{Nominal observations per full year, for \code{coverage}.}
 
 \item{collect}{If \code{x} is lazy, whether to \code{\link[dplyr:compute]{dplyr::collect()}} the result.}
+
+\item{indicators}{Optional \verb{lap_ind_*()} function or list of them
+(\code{\link[=lap_indicators]{lap_indicators()}}) to compute from the same time series and join onto the
+result. Only valid for a well-level grouping (no \code{year} in \code{by}); forces an
+in-memory computation if \code{x} is lazy.}
 }
 \value{
 A tibble (or lazy tbl) with the grouping columns plus \code{min_gwl},
-\code{max_gwl}, \code{mean_gwl}, \code{median_gwl}, \code{sd_gwl}, \code{n_obs}, \code{coverage}.
+\code{max_gwl}, \code{mean_gwl}, \code{median_gwl}, \code{sd_gwl}, \code{n_obs}, \code{coverage}, and any
+\verb{ind_*} columns from \code{indicators}.
 }
 \description{
 Collapses a groundwater time series to one row per group, where the grouping
@@ -47,4 +54,8 @@ without a year component \code{coverage} is \code{NA}.
 data(gems_ger_sample, package = "lapidary", envir = environment())
 lap_summarise_wells(gems_ger_sample, by = c(well_id, year))
 lap_summarise_wells(gems_ger_sample, by = "well_id", value = gwl)
+lap_summarise_wells(
+  gems_ger_sample,
+  by = well_id, indicators = c(lap_ind_amplitude, lap_ind_trend)
+)
 }

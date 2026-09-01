@@ -67,6 +67,23 @@ trends <- lap_gw_trend(annual, value = mean_gwl, time = year)
 head(trends[order(trends$slope), c("well_id", "slope", "p_value", "direction")])
 ```
 
+### Time-series indicators
+
+Derived per-well metrics (`ind_*` columns) are computed straight from the time
+series. Pass `lap_ind_*()` functions to `lap_summarise_wells(indicators = )` for
+a single pass, or use `lap_indicators()` / `lap_add_indicators()` to build a set
+step by step.
+
+```{r}
+lap_summarise_wells(
+  gems_ger_sample,
+  by = well_id,
+  indicators = c(lap_ind_amplitude, lap_ind_extreme_months, lap_ind_trend)
+) |>
+  dplyr::select(well_id, mean_gwl, dplyr::starts_with("ind_")) |>
+  head()
+```
+
 Normalisation makes wells comparable:
 
 ```{r}
