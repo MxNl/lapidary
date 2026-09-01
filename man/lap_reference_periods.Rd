@@ -11,8 +11,9 @@ A named list of length-2 integer vectors.
 }
 \description{
 Named list of \code{c(start_year, end_year)} pairs. \code{Z1} (1991-2020) is the
-current WMO climate normal; \code{Z0} (1961-1990) and the KLIBIW-style
-\code{Z2}/\code{Z3} future slices are provided for convenience.
+current WMO climate normal; \code{Z0} (1961-1990) is the previous one, and
+\code{Z2} (2021-2050) / \code{Z3} (2071-2100) are the near- and far-future slices
+commonly used in climate-projection work.
 }
 \examples{
 lap_reference_periods()
