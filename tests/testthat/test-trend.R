@@ -34,6 +34,16 @@ test_that("short series yields NA row", {
   expect_equal(tr$n, NA_integer_)
 })
 
+test_that("lap_gw_trend warns when a group is larger than warn_n", {
+  weeks <- seq(as.Date("2000-01-01"), by = "1 week", length.out = 200)
+  df <- data.frame(well_id = "a", date = weeks, gwl = seq_along(weeks) * -0.001)
+  expect_warning(
+    lap_gw_trend(df, value = gwl, time = date, warn_n = 100),
+    "O\\(n\\^2\\)|annual"
+  )
+  expect_no_warning(lap_gw_trend(df, value = gwl, time = date, warn_n = 500))
+})
+
 test_that("Date time column is accepted", {
   d <- seq(as.Date("1991-01-01"), as.Date("2020-01-01"), by = "1 year")
   df <- data.frame(well_id = "a", t = d, v = seq_along(d) * -0.2 + 100)

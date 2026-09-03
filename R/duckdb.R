@@ -19,14 +19,21 @@ lap_duckdb_con <- function(dbdir = ":memory:", read_only = FALSE) {
 
 #' Close a DuckDB connection
 #'
-#' Accepts a connection or a lazy tbl produced by [lap_gwl_tbl()] (whose source
-#' connection is stored as an attribute).
+#' Accepts a connection, or a lazy `dplyr` table backed by one (including the
+#' result of [dplyr::filter()] etc. applied to a [lap_gwl_tbl()]). Idempotent.
 #'
-#' @param x A DBI connection or a `lap_gwl_tbl` result.
+#' @param x A DBI connection or a lazy `tbl`.
 #' @return `NULL`, invisibly.
 #' @export
 lap_disconnect <- function(x) {
-  con <- if (inherits(x, "DBIConnection")) x else attr(x, "gwl_con", exact = TRUE)
+  con <- if (inherits(x, "DBIConnection")) {
+    x
+  } else if (inherits(x, "tbl_sql")) {
+    # survives dplyr verbs, unlike a plain attribute
+    tryCatch(x$src$con, error = function(e) NULL)
+  } else {
+    NULL
+  }
   if (inherits(con, "DBIConnection") && DBI::dbIsValid(con)) {
     DBI::dbDisconnect(con, shutdown = TRUE)
   }
@@ -36,13 +43,43 @@ lap_disconnect <- function(x) {
 #' Directory holding a source's Parquet artifacts
 #'
 #' @param source Source key (e.g. `"gems-ger"`).
-#' @param version Version string, or `"latest"`.
-#' @param create Create the directory.
+#' @param version Version string, or `"latest"` (resolved to the newest built
+#'   version directory unless `create = TRUE`).
+#' @param create Create the directory. When `TRUE`, `"latest"` is *not*
+#'   resolved (there may be nothing to resolve yet) - pass a concrete version.
 #'
 #' @return A path string.
 #' @export
 lap_parquet_dir <- function(source, version = "latest", create = FALSE) {
+  if (!create) version <- resolve_parquet_version(source, version)
   lap_cache_source_dir(source, "parquet", version, create = create)
+}
+
+# Resolve `"latest"` to the newest version directory that actually holds a
+# built Parquet dataset for `source`. A concrete version is returned as-is.
+resolve_parquet_version <- function(source, version = "latest",
+                                    call = rlang::caller_env()) {
+  if (!identical(version, "latest")) {
+    return(version)
+  }
+  root <- lap_cache_source_dir(source, "parquet")
+  versions <- if (dir.exists(root)) {
+    basename(list.dirs(root, recursive = FALSE))
+  } else {
+    character()
+  }
+  versions <- versions[file.exists(file.path(root, versions, "gwl.parquet"))]
+  if (!length(versions)) {
+    cli::cli_abort(c(
+      "No built Parquet dataset for source {.val {source}}.",
+      i = "Build it first (e.g. {.run lapidary::lap_gems_ger_build_parquet()})."
+    ), call = call)
+  }
+  ord <- tryCatch(
+    order(numeric_version(versions), decreasing = TRUE),
+    error = function(e) order(versions, decreasing = TRUE)
+  )
+  versions[ord][[1]]
 }
 
 #' Lazy table over a source's groundwater Parquet dataset
@@ -53,13 +90,15 @@ lap_parquet_dir <- function(source, version = "latest", create = FALSE) {
 #' [lap_read_gwl()] which returns a validated `gwl_ts`.
 #'
 #' @param source Source key. Default `"gems-ger"`.
-#' @param version Version string or `"latest"`.
+#' @param version Version string, or `"latest"` (the newest built version).
 #' @param which One of `"gwl"` (core levels) or `"meteo"` (forcing variables).
 #' @param con Optional existing DuckDB connection. If `NULL` a fresh in-memory
-#'   connection is opened and attached to the result as `attr(x, "gwl_con")`;
-#'   remember to [lap_disconnect()] it.
+#'   connection is opened; close it afterwards with [lap_disconnect()] (which
+#'   also accepts the result of `dplyr` verbs applied to this table). For a
+#'   long-running app, open one connection yourself and pass it here. See also
+#'   [lap_gwl_query()] for one-shot lazy pipelines.
 #'
-#' @return A lazy `tbl` with an attached connection attribute.
+#' @return A lazy `tbl`.
 #' @export
 lap_gwl_tbl <- function(source = "gems-ger",
                     version = "latest",
@@ -69,18 +108,42 @@ lap_gwl_tbl <- function(source = "gems-ger",
   path <- file.path(lap_parquet_dir(source, version), paste0(which, ".parquet"))
   if (!file.exists(path)) {
     cli::cli_abort(c(
-      "No Parquet dataset for source {.val {source}} ({which}).",
+      "No {.file {which}.parquet} for source {.val {source}}.",
       i = "Expected {.path {path}}.",
       i = "Build it first, e.g. with {.run lapidary::lap_gems_ger_build_parquet()}."
     ))
   }
+  if (is.null(con)) con <- lap_duckdb_con()
+  dplyr::tbl(con, dplyr::sql(sprintf("SELECT * FROM read_parquet(%s)", dbq(path))))
+}
+
+#' Run a lazy query against a source and collect the result
+#'
+#' Opens a DuckDB connection (or uses `con`), hands the lazy [lap_gwl_tbl()] to
+#' `fn`, collects the result, and closes the connection if it opened one. This
+#' is the safe way to do a lazy filter/aggregate without managing the
+#' connection lifetime yourself.
+#'
+#' @param fn A function (or `\(tbl) ...` / `~ ...` formula) taking the lazy
+#'   table and returning a lazy or eager result.
+#' @inheritParams lap_gwl_tbl
+#'
+#' @return A tibble (the collected result).
+#' @export
+#' @examples
+#' \dontrun{
+#' lap_gwl_query("gems-ger", fn = \(t) dplyr::filter(t, well_id == "MW_1"))
+#' }
+lap_gwl_query <- function(fn, source = "gems-ger", version = "latest",
+                          which = c("gwl", "meteo"), con = NULL) {
+  fn <- rlang::as_function(fn)
   own_con <- is.null(con)
   if (own_con) con <- lap_duckdb_con()
-  view <- dplyr::tbl(con, dplyr::sql(sprintf(
-    "SELECT * FROM read_parquet(%s)", dbq(path)
-  )))
-  if (own_con) attr(view, "gwl_con") <- con
-  view
+  if (own_con) on.exit(lap_disconnect(con), add = TRUE)
+  tb <- lap_gwl_tbl(source = source, version = version, which = which, con = con)
+  res <- fn(tb)
+  if (inherits(res, "tbl_lazy")) res <- dplyr::collect(res)
+  tibble::as_tibble(res)
 }
 
 #' Read a validated groundwater time series from the Parquet cache
@@ -89,10 +152,11 @@ lap_gwl_tbl <- function(source = "gems-ger",
 #' the data into memory and returns a [new_gwl_ts()].
 #'
 #' @param source Source key. Default `"gems-ger"`.
-#' @param version Version string or `"latest"`.
+#' @param version Version string, or `"latest"` (the newest built version).
 #' @param wells Optional character vector of `well_id`s to keep.
 #' @param date_range Optional length-2 `Date` (or coercible) vector.
-#' @param vars Ignored placeholder for forward compatibility (`"gwl"`).
+#' @param variable Value passed to [new_gwl_ts()] for the `variable` column
+#'   (names the quantity + units, e.g. `"gwl_m_asl"`).
 #'
 #' @return A `gwl_ts`.
 #' @export
@@ -100,7 +164,7 @@ lap_read_gwl <- function(source = "gems-ger",
                      version = "latest",
                      wells = NULL,
                      date_range = NULL,
-                     vars = "gwl") {
+                     variable = "gwl_m_asl") {
   tb <- lap_gwl_tbl(source = source, version = version)
   on.exit(lap_disconnect(tb), add = TRUE)
   if (!is.null(wells)) {
@@ -116,7 +180,7 @@ lap_read_gwl <- function(source = "gems-ger",
   df <- dplyr::collect(tb)
   df[["date"]] <- as.Date(df[["date"]])
   df <- dplyr::arrange(df, .data$well_id, .data$date)
-  new_gwl_ts(df, source = source)
+  new_gwl_ts(df, variable = variable, source = source)
 }
 
 #' Write a groundwater data frame to the Parquet cache
@@ -125,15 +189,18 @@ lap_read_gwl <- function(source = "gems-ger",
 #'
 #' @param x A data frame (long, with at least `well_id`, `date`, `gwl`).
 #' @param source Source key.
-#' @param version Version string.
+#' @param version Concrete version string (not `"latest"`).
 #' @param which `"gwl"` or `"meteo"`.
 #' @param overwrite Overwrite an existing file.
 #'
 #' @return The Parquet file path, invisibly.
 #' @export
-lap_write_gwl_parquet <- function(x, source, version = "latest",
+lap_write_gwl_parquet <- function(x, source, version = "1.0",
                               which = c("gwl", "meteo"), overwrite = FALSE) {
   which <- rlang::arg_match(which)
+  if (identical(version, "latest")) {
+    cli::cli_abort("{.arg version} must be a concrete version string, not {.val latest}.")
+  }
   out_dir <- lap_parquet_dir(source, version, create = TRUE)
   path <- file.path(out_dir, paste0(which, ".parquet"))
   if (file.exists(path) && !overwrite) {

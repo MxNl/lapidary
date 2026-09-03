@@ -19,24 +19,48 @@
 #'   summarise. Defaults to `gwl`.
 #' @param expected_per_year Nominal observations per full year, for `coverage`.
 #' @param collect If `x` is lazy, whether to [dplyr::collect()] the result.
+#' @param indicators Optional `lap_ind_*()` function or list of them
+#'   ([lap_indicators()]) to compute from the same time series and join onto the
+#'   result. Only valid for a well-level grouping (no `year` in `by`); forces an
+#'   in-memory computation if `x` is lazy.
 #'
 #' @return A tibble (or lazy tbl) with the grouping columns plus `min_gwl`,
-#'   `max_gwl`, `mean_gwl`, `median_gwl`, `sd_gwl`, `n_obs`, `coverage`.
+#'   `max_gwl`, `mean_gwl`, `median_gwl`, `sd_gwl`, `n_obs`, `coverage`, and any
+#'   `ind_*` columns from `indicators`.
 #' @export
 #' @examples
 #' data(gems_ger_sample, package = "lapidary", envir = environment())
 #' lap_summarise_wells(gems_ger_sample, by = c(well_id, year))
 #' lap_summarise_wells(gems_ger_sample, by = "well_id", value = gwl)
+#' lap_summarise_wells(
+#'   gems_ger_sample,
+#'   by = well_id, indicators = c(lap_ind_amplitude, lap_ind_trend)
+#' )
 lap_summarise_wells <- function(x,
                             by = c(well_id, year),
                             value = gwl,
                             expected_per_year = 52,
-                            collect = TRUE) {
+                            collect = TRUE,
+                            indicators = NULL) {
   is_lazy <- inherits(x, "tbl_lazy") || inherits(x, "tbl_sql")
 
   by <- lap_eval_select(x, rlang::enquo(by), extra = "year", arg = "by")
   value <- lap_eval_select_one(x, rlang::enquo(value), arg = "value")
   has_year <- "year" %in% by
+
+  if (!is.null(indicators)) {
+    if (has_year) {
+      cli::cli_abort(c(
+        "{.arg indicators} needs a well-level grouping.",
+        i = "Drop {.field year} from {.arg by}: indicators are one value per well."
+      ))
+    }
+    if (is_lazy) {
+      cli::cli_inform("Collecting {.arg x} to compute indicators in memory.")
+      x <- dplyr::collect(x)
+      is_lazy <- FALSE
+    }
+  }
 
   if (has_year && !"year" %in% lap_col_vocab(x)) {
     if (!"date" %in% lap_col_vocab(x)) {
@@ -46,17 +70,30 @@ lap_summarise_wells <- function(x,
   }
 
   val <- rlang::sym(value)
-  out <- x |>
-    dplyr::group_by(dplyr::across(dplyr::all_of(by))) |>
-    dplyr::summarise(
-      min_gwl = min(!!val, na.rm = TRUE),
-      max_gwl = max(!!val, na.rm = TRUE),
-      mean_gwl = mean(!!val, na.rm = TRUE),
-      median_gwl = stats::median(!!val, na.rm = TRUE),
-      sd_gwl = stats::sd(!!val, na.rm = TRUE),
-      n_obs = dplyr::n(),
-      .groups = "drop"
-    )
+  summarise_grouped <- function() {
+    x |>
+      dplyr::group_by(dplyr::across(dplyr::all_of(by))) |>
+      dplyr::summarise(
+        min_gwl = min(!!val, na.rm = TRUE),
+        max_gwl = max(!!val, na.rm = TRUE),
+        mean_gwl = mean(!!val, na.rm = TRUE),
+        median_gwl = stats::median(!!val, na.rm = TRUE),
+        sd_gwl = stats::sd(!!val, na.rm = TRUE),
+        n_obs = dplyr::n(),
+        .groups = "drop"
+      )
+  }
+  # An all-NA group makes base `min()/max()` return +/-Inf with a warning
+  # (the DuckDB path already yields NULL). Muffle that specific warning here;
+  # the non-finite values are turned into NA below.
+  out <- withCallingHandlers(
+    summarise_grouped(),
+    warning = function(w) {
+      if (grepl("no non-missing arguments", conditionMessage(w), fixed = TRUE)) {
+        invokeRestart("muffleWarning")
+      }
+    }
+  )
 
   if (has_year) {
     out <- dplyr::mutate(
@@ -72,6 +109,17 @@ lap_summarise_wells <- function(x,
   }
   if (!is_lazy || collect) {
     out <- tibble::as_tibble(out)
+    # base min()/max()/sd() on all-NA groups -> Inf / -Inf / NaN; normalise to NA
+    stat_cols <- c("min_gwl", "max_gwl", "mean_gwl", "median_gwl", "sd_gwl")
+    out[stat_cols] <- lapply(out[stat_cols], function(v) {
+      v[!is.finite(v)] <- NA_real_
+      v
+    })
+  }
+
+  if (!is.null(indicators)) {
+    ind <- lap_indicators(x, .funs = indicators, by = dplyr::all_of(by), value = dplyr::all_of(value))
+    out <- dplyr::left_join(out, ind, by = by)
   }
   out
 }

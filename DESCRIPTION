@@ -2,7 +2,7 @@ Package: lapidary
 Title: Data Wrangling, Analysis and Styled Visualisation of German Groundwater-Level Time Series
 Version: 0.0.0.9000
 Authors@R:
-    person("Max", "Noelscher", , "trashmail.mn@posteo.de", role = c("aut", "cre"))
+    person("Max", "Nölscher", , "trashmail.mn@posteo.de", role = c("aut", "cre"))
 Description: Tools to ingest, normalise and analyse groundwater-level time
     series for Germany (starting with the GEMS-GER benchmark dataset) and to
     produce a shared, poster- and web-ready ggplot2 style scheme. The package
@@ -30,7 +30,6 @@ Imports:
     tools
 Suggests:
     arrow,
-    duckplyr,
     geomtextpath,
     ggfx,
     ggplot2,

@@ -19,6 +19,9 @@
 #'   Default `well_id`.
 #' @param min_n Minimum number of finite observations required per group.
 #' @param conf_level Confidence level for the slope confidence interval.
+#' @param warn_n Warn when any group has more than this many rows: the pairwise
+#'   Theil-Sen estimator is O(n^2), so this function expects an *annual* series
+#'   (summarise first, or use [lap_ind_trend()]).
 #'
 #' @return A tibble with one row per group: `n`, `slope` (value units per year),
 #'   `slope_lower`, `slope_upper`, `intercept`, `tau`, `p_value`,
@@ -40,13 +43,22 @@ lap_gw_trend <- function(x,
                      time = year,
                      by = well_id,
                      min_n = 10L,
-                     conf_level = 0.95) {
+                     conf_level = 0.95,
+                     warn_n = 1000L) {
   value <- lap_eval_select_one(x, rlang::enquo(value), arg = "value")
   time <- lap_eval_select_one(x, rlang::enquo(time), arg = "time")
   by <- lap_eval_select(x, rlang::enquo(by), arg = "by")
   x <- tibble::as_tibble(x)
   grp <- interaction(x[by], drop = TRUE, lex.order = TRUE)
   splits <- split(x, grp)
+
+  n_big <- sum(vapply(splits, nrow, integer(1)) > warn_n)
+  if (n_big > 0) {
+    cli::cli_warn(c(
+      "{.fn lap_gw_trend} is O(n^2) per group; {n_big} group{?s} exceed{?s/} {warn_n} rows.",
+      i = "It expects an annual series: {.fn lap_summarise_wells} first, or use {.fn lap_ind_trend}."
+    ))
+  }
   rows <- lapply(splits, function(part) {
     tt <- part[[time]]
     if (inherits(tt, "Date")) {

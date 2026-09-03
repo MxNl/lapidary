@@ -17,7 +17,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Max Noelscher \email{trashmail.mn@posteo.de}
+\strong{Maintainer}: Max Nölscher \email{trashmail.mn@posteo.de}
 
 }
 \keyword{internal}

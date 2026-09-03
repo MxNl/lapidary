@@ -17,6 +17,19 @@ test_that("grouping by well only yields NA coverage and one row per well", {
   expect_true(all(is.na(s$coverage)))
 })
 
+test_that("an all-NA group gives NA stats (not Inf) and no warning", {
+  x <- new_gwl_ts(data.frame(
+    well_id = c("a", "a", "b"),
+    date = as.Date("2020-01-01") + 0:2,
+    gwl = c(NA_real_, NA_real_, 5)
+  ))
+  expect_no_warning(s <- lap_summarise_wells(x, by = "well_id"))
+  a <- s[s$well_id == "a", ]
+  expect_true(is.na(a$min_gwl) && is.na(a$max_gwl) && is.na(a$mean_gwl))
+  expect_equal(a$n_obs, 2L)
+  expect_equal(s$mean_gwl[s$well_id == "b"], 5)
+})
+
 test_that("in-memory and DuckDB paths agree", {
   skip_if_not_installed("duckdb")
   x <- new_gwl_ts(make_ts_fixture(1991:1993))

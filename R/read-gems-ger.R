@@ -181,14 +181,13 @@ lap_gems_ger_build_parquet <- function(version = "latest",
 #' @inheritParams lap_read_gwl
 #' @return A `gwl_ts` (`variable` = `"gwl_m_asl"`, `source` = `"gems-ger"`).
 #' @export
-lap_read_gems_ger <- function(version = "latest", wells = NULL, date_range = NULL,
-                          vars = "gwl") {
-  out <- lap_read_gwl(
-    source = "gems-ger", version = resolve_gems_version(version),
-    wells = wells, date_range = date_range, vars = vars
+lap_read_gems_ger <- function(version = "latest", wells = NULL,
+                              date_range = NULL) {
+  lap_read_gwl(
+    source = "gems-ger", version = version,
+    wells = wells, date_range = date_range,
+    variable = lap_gems_ger_meta(version)$variable
   )
-  out[["variable"]] <- lap_gems_ger_meta(version)$variable
-  out
 }
 
 #' Read GEMS-GER well metadata as a `gwl_wells` layer
@@ -210,7 +209,7 @@ lap_read_gems_ger_wells <- function(version = "latest", attributes = "core") {
       pattern = "\\.csv$", full.names = TRUE
     )[[1]]
   }
-  raw <- utils::read.csv(csv, check.names = FALSE)
+  raw <- utils::read.csv(csv, check.names = FALSE, encoding = "UTF-8")
   raw <- raw[, names(raw) != "", drop = FALSE]
 
   core <- c(
@@ -232,7 +231,7 @@ lap_read_gems_ger_wells <- function(version = "latest", attributes = "core") {
   }
   for (col in keep) {
     nm <- names(core)[match(col, core)]
-    if (is.na(nm)) nm <- janitor_name(col)
+    if (is.na(nm)) nm <- to_snake_case(col)
     df[[nm]] <- raw[[col]]
   }
 
@@ -240,7 +239,7 @@ lap_read_gems_ger_wells <- function(version = "latest", attributes = "core") {
 }
 
 # Minimal snake_case cleaner (avoids a janitor dependency).
-janitor_name <- function(x) {
+to_snake_case <- function(x) {
   x <- gsub("\\(EPSG:[0-9]+\\)", "", x)
   x <- trimws(x)
   x <- gsub("[^A-Za-z0-9]+", "_", x)

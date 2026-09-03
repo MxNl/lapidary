@@ -8,7 +8,9 @@ lap_normalise_gwl(
   x,
   method = c("range", "zscore", "sgi"),
   value = gwl,
-  group = well_id
+  group = well_id,
+  date = "date",
+  into = NULL
 )
 }
 \arguments{
@@ -21,9 +23,14 @@ normalise. Default \code{gwl}.}
 
 \item{group}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> columns identifying
 an independent series. Default \code{well_id}.}
+
+\item{date}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> the date column, used
+only by \code{"sgi"} (to deseasonalise). Default \code{date}.}
+
+\item{into}{Name of the column to add. Default \code{"<value>_norm"}.}
 }
 \value{
-\code{x} with a \code{gwl_norm} column added.
+\code{x} with the \code{into} column added.
 }
 \description{
 Absolute groundwater levels (m above sea level, or depth below ground) are

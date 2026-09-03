@@ -42,3 +42,25 @@ test_that("lap_aggregate_to_hex returns one row per hex and counts wells", {
   expect_true(all(is.na(hex$level[hex$n_wells == 0])))
   expect_true(all(!is.na(hex$level[hex$n_wells > 0])))
 })
+
+test_that("lap_aggregate_to_hex averages a `circular` month column on the circle", {
+  set.seed(2)
+  region <- sf::st_sf(geometry = sf::st_sfc(
+    sf::st_polygon(list(rbind(
+      c(4e6, 3e6), c(4.2e6, 3e6), c(4.2e6, 3.2e6), c(4e6, 3.2e6), c(4e6, 3e6)
+    ))),
+    crs = 3035
+  ))
+  grid <- lap_make_hex_grid(region, cellsize = 2e6, clip = FALSE)[1, ] # 1 hex
+  pts <- sf::st_transform(sf::st_sample(sf::st_geometry(grid), 6), 25832)
+  wells <- sf::st_sf(well_id = paste0("w", seq_along(pts)), geometry = pts)
+  # months around the Dec/Jan wrap: naive mean ~ 8.3, circular mean ~ Dec/Jan
+  vals <- data.frame(well_id = wells$well_id, min_month = c(12, 12, 1, 1, 12, 1))
+
+  hex <- lap_aggregate_to_hex(wells, values = vals, grid = grid, circular = min_month)
+  cm <- hex$min_month[hex$n_wells > 0]
+  expect_length(cm, 1L)
+  expect_true(cm > 11.5 || cm < 1.5) # circular mean sits at the Dec/Jan wrap
+  # ... whereas the plain arithmetic mean of {12,12,1,1,12,1} lands mid-year
+  expect_equal(mean(vals$min_month), 6.5)
+})

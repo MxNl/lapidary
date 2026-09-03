@@ -7,12 +7,12 @@
 lap_disconnect(x)
 }
 \arguments{
-\item{x}{A DBI connection or a \code{lap_gwl_tbl} result.}
+\item{x}{A DBI connection or a lazy \code{tbl}.}
 }
 \value{
 \code{NULL}, invisibly.
 }
 \description{
-Accepts a connection or a lazy tbl produced by \code{\link[=lap_gwl_tbl]{lap_gwl_tbl()}} (whose source
-connection is stored as an attribute).
+Accepts a connection, or a lazy \code{dplyr} table backed by one (including the
+result of \code{\link[dplyr:filter]{dplyr::filter()}} etc. applied to a \code{\link[=lap_gwl_tbl]{lap_gwl_tbl()}}). Idempotent.
 }
