@@ -215,6 +215,8 @@ Parquet-artifact / DuckDB-engine backend and the dataset readers.
   : Tag rows with a reference-period label
 - [`lap_reference_periods()`](https://mxnl.github.io/lapidary/reference/lap_reference_periods.md)
   : Standard climate reference periods
+- [`lap_period_windows()`](https://mxnl.github.io/lapidary/reference/lap_period_windows.md)
+  : Derive comparison windows from a record's date range
 - [`lap_use_water_year()`](https://mxnl.github.io/lapidary/reference/lap_use_water_year.md)
   : Add hydrological (water) year and month columns
 - [`lap_summarise_wells()`](https://mxnl.github.io/lapidary/reference/lap_summarise_wells.md)

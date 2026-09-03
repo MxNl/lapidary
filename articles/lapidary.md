@@ -190,6 +190,32 @@ lap_indicator_delta(chg, from = "reference", to = "recent") |>
 #> # ℹ 1 more variable: ind_max_month_change <dbl>
 ```
 
+[`lap_period_windows()`](https://mxnl.github.io/lapidary/reference/lap_period_windows.md)
+derives the `periods` list from the record itself, so you do not
+hand-write year pairs:
+
+``` r
+
+lap_period_windows(gems_ger_sample, "first_vs_last_decade")
+#> $first
+#> [1] 1991 2000
+#> 
+#> $last
+#> [1] 2013 2022
+lap_period_windows(gems_ger_sample, "decade_per_decade")
+#> $`1991-2000`
+#> [1] 1991 2000
+#> 
+#> $`2001-2010`
+#> [1] 2001 2010
+#> 
+#> $`2011-2020`
+#> [1] 2011 2020
+#> 
+#> $`2021-2022`
+#> [1] 2021 2022
+```
+
 Drought indicators expect a standardised index — add one first:
 
 ``` r
@@ -285,7 +311,7 @@ ggplot(subset(germany_hex_sample, n_wells > 0)) +
   labs(title = lap_tr("app_title"), fill = lap_tr("groundwater_level"))
 ```
 
-![](lapidary_files/figure-html/unnamed-chunk-13-1.png)
+![](lapidary_files/figure-html/unnamed-chunk-14-1.png)
 
 Switch `variant = "dark"`, set `options(lapidary.lang = "de")`, and use
 `ggsave_lapidary(preset = "a1")` for print output. See

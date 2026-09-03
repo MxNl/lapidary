@@ -237,8 +237,29 @@ the change between two of them.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> MW_1268               -<span style="color: #BB0000;">0.004</span><span style="color: #BB0000; text-decoration: underline;">37</span>                    -<span style="color: #BB0000;">0.108</span>                -<span style="color: #BB0000;">0.468</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ abbreviated name: ¹​ind_seasonal_amplitude_change</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: ind_max_month_change &lt;dbl&gt;</span></span></span></code></pre></div>
-<p>Drought indicators expect a standardised index — add one first:</p>
+<p><code><a href="../reference/lap_period_windows.html">lap_period_windows()</a></code> derives the <code>periods</code>
+list from the record itself, so you do not hand-write year pairs:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/lap_period_windows.html">lap_period_windows</a></span><span class="op">(</span><span class="va">gems_ger_sample</span>, <span class="st">"first_vs_last_decade"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $first</span></span>
+<span><span class="co">#&gt; [1] 1991 2000</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $last</span></span>
+<span><span class="co">#&gt; [1] 2013 2022</span></span>
+<span><span class="fu"><a href="../reference/lap_period_windows.html">lap_period_windows</a></span><span class="op">(</span><span class="va">gems_ger_sample</span>, <span class="st">"decade_per_decade"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $`1991-2000`</span></span>
+<span><span class="co">#&gt; [1] 1991 2000</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $`2001-2010`</span></span>
+<span><span class="co">#&gt; [1] 2001 2010</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $`2011-2020`</span></span>
+<span><span class="co">#&gt; [1] 2011 2020</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $`2021-2022`</span></span>
+<span><span class="co">#&gt; [1] 2021 2022</span></span></code></pre></div>
+<p>Drought indicators expect a standardised index — add one first:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gems_ger_sample</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/lap_normalise_gwl.html">lap_normalise_gwl</a></span><span class="op">(</span><span class="st">"sgi"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/lap_indicators.html">lap_indicators</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"drought"</span>, <span class="st">"drought_recovery"</span><span class="op">)</span>, value <span class="op">=</span> <span class="va">gwl_norm</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -264,7 +285,7 @@ the change between two of them.</p>
 meteorological forcings, and <code>climate_signal</code> then separates
 the climate-driven variation from the residual (often anthropogenic)
 long-term trend:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/lap_read_gems_ger.html">lap_read_gems_ger</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/lap_join_meteo.html">lap_join_meteo</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>precip <span class="op">=</span> <span class="st">"HYRAS_pr"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/lap_normalise_gwl.html">lap_normalise_gwl</a></span><span class="op">(</span><span class="st">"sgi"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
@@ -274,7 +295,7 @@ definition, interpretation and citation — including how
 <code>memory</code>, <code>climate_signal</code> and
 <code>recession</code> capture three different aquifer timescales.</p>
 <p>Normalisation makes wells comparable:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sgi</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/lap_normalise_gwl.html">lap_normalise_gwl</a></span><span class="op">(</span><span class="va">gems_ger_sample</span>, method <span class="op">=</span> <span class="st">"sgi"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">sgi</span><span class="op">$</span><span class="va">gwl_norm</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] -2.460124  2.460124</span></span></code></pre></div>
@@ -283,7 +304,7 @@ definition, interpretation and citation — including how
 <div class="section level2">
 <h2 id="spatial-aggregation">Spatial aggregation<a class="anchor" aria-label="anchor" href="#spatial-aggregation"></a>
 </h2>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">germany_hex_sample</span><span class="op">)</span></span>
 <span><span class="va">germany_hex_sample</span></span>
 <span><span class="co">#&gt; Simple feature collection with 747 features and 4 fields</span></span>
@@ -310,7 +331,7 @@ dataset the hexagons are densely populated.</p>
 <div class="section level2">
 <h2 id="style">Style<a class="anchor" aria-label="anchor" href="#style"></a>
 </h2>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">germany_hex_sample</span>, <span class="va">n_wells</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -318,7 +339,7 @@ dataset the hexagons are densely populated.</p>
 <span>  <span class="fu"><a href="../reference/scale_lapidary.html">scale_fill_lapidary_c</a></span><span class="op">(</span><span class="st">"magnitude"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/theme_lapidary.html">theme_lapidary</a></span><span class="op">(</span>variant <span class="op">=</span> <span class="st">"light"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="fu"><a href="../reference/lap_tr.html">lap_tr</a></span><span class="op">(</span><span class="st">"app_title"</span><span class="op">)</span>, fill <span class="op">=</span> <span class="fu"><a href="../reference/lap_tr.html">lap_tr</a></span><span class="op">(</span><span class="st">"groundwater_level"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="lapidary_files/figure-html/unnamed-chunk-13-1.png" class="r-plt" alt="" width="672"></p>
+<p><img src="lapidary_files/figure-html/unnamed-chunk-14-1.png" class="r-plt" alt="" width="672"></p>
 <p>Switch <code>variant = "dark"</code>, set
 <code>options(lapidary.lang = "de")</code>, and use
 <code>ggsave_lapidary(preset = "a1")</code> for print output. See

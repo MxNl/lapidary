@@ -57,6 +57,14 @@ strings, or tidyselect helpers).
 - [`lap_add_reference_period()`](https://mxnl.github.io/lapidary/reference/lap_add_reference_period.md),
   [`lap_reference_periods()`](https://mxnl.github.io/lapidary/reference/lap_reference_periods.md),
   [`lap_use_water_year()`](https://mxnl.github.io/lapidary/reference/lap_use_water_year.md).
+- [`lap_period_windows()`](https://mxnl.github.io/lapidary/reference/lap_period_windows.md)
+  derives a `periods` list from a record’s date range
+  (`first_vs_last_decade`, `first_vs_last_half`, `decade_per_decade`, or
+  from a `c(first_year, last_year)` vector) to feed
+  [`lap_indicator_change()`](https://mxnl.github.io/lapidary/reference/lap_indicator_change.md)
+  /
+  [`lap_add_reference_period()`](https://mxnl.github.io/lapidary/reference/lap_add_reference_period.md)
+  without hand-writing year pairs.
 - [`lap_summarise_wells()`](https://mxnl.github.io/lapidary/reference/lap_summarise_wells.md)
   (in-memory or pushed down to DuckDB),
   [`lap_wells_with_coverage()`](https://mxnl.github.io/lapidary/reference/lap_wells_with_coverage.md).
