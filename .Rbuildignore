@@ -5,6 +5,8 @@
 ^_targets$
 ^data-raw$
 ^docs$
+^_pkgdown\.yml$
+^pkgdown$
 ^\.github$
 ^LICENSE\.md$
 ^\.claude$

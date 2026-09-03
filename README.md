@@ -1,7 +1,11 @@
 # lapidary
 
 <!-- badges: start -->
+[![pkgdown](https://github.com/MxNl/lapidary/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/MxNl/lapidary/actions/workflows/pkgdown.yaml)
 <!-- badges: end -->
+
+Documentation site: <https://mxnl.github.io/lapidary/> — including
+`vignette("indicators")`, the long-form guide to every time-series indicator.
 
 **lapidary** turns German groundwater-level time series into insightful,
 poster- and web-ready graphics. It owns the *data wrangling, analysis and the

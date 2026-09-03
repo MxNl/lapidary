@@ -1,0 +1,101 @@
+url: https://mxnl.github.io/lapidary/
+
+destination: docs/_site
+
+template:
+  bootstrap: 5
+
+articles:
+- title: Guides
+  navbar: ~
+  contents:
+  - lapidary
+  - indicators
+  - style
+
+reference:
+- title: Data model
+  desc: Canonical `gwl_ts` / `gwl_wells` shapes, constructors and validators.
+  contents:
+  - new_gwl_ts
+  - as_gwl_ts
+  - validate_gwl_ts
+  - check_gwl_ts
+  - new_gwl_wells
+  - check_gwl_wells
+
+- title: Ingest & caching
+  desc: Parquet-artifact / DuckDB-engine backend and the dataset readers.
+  contents:
+  - lap_read_gwl
+  - lap_gwl_tbl
+  - lap_gwl_query
+  - lap_write_gwl_parquet
+  - lap_csvs_to_parquet
+  - lap_read_gems_ger
+  - lap_read_gems_ger_wells
+  - lap_gems_ger_download
+  - lap_gems_ger_build_parquet
+  - lap_gems_ger_meta
+  - lap_join_meteo
+  - lap_read_correctiv
+  - lap_read_correctiv_wells
+  - lap_correctiv_download
+  - lap_correctiv_build_parquet
+  - lap_correctiv_meta
+  - lap_cache_dir
+  - lap_cache_info
+  - lap_parquet_dir
+  - lap_duckdb_con
+  - lap_disconnect
+
+- title: Analysis primitives
+  contents:
+  - lap_add_reference_period
+  - lap_reference_periods
+  - lap_use_water_year
+  - lap_summarise_wells
+  - lap_wells_with_coverage
+  - lap_normalise_gwl
+  - lap_gw_trend
+  - lap_circular_mean_month
+
+- title: Time-series indicators
+  desc: >
+    Per-well metrics computed from the hydrograph. See `vignette("indicators")`
+    for the long-form guide.
+  contents:
+  - lap_indicators
+  - lap_add_indicators
+  - lap_indicator_registry
+  - lap_indicator_change
+  - lap_indicator_delta
+  - starts_with("lap_ind_")
+
+- title: Spatial aggregation
+  contents:
+  - lap_make_hex_grid
+  - lap_aggregate_to_hex
+  - lap_germany_border
+
+- title: Style scheme & i18n
+  contents:
+  - theme_lapidary
+  - starts_with("scale_")
+  - lap_tokens
+  - lap_pal_roles
+  - lap_accents
+  - lap_fonts
+  - lap_font_families
+  - ggsave_lapidary
+  - lap_preset
+  - lap_preset_names
+  - lap_tr
+  - lap_lang
+  - lap_langs
+
+- title: Datasets
+  contents:
+  - gems_ger_sample
+  - gems_ger_wells_sample
+  - germany_hex_sample
