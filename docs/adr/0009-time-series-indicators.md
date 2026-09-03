@@ -60,13 +60,13 @@ should be a deliberate choice) and accepts:
 `lap_indicator_registry()` (a small introspection helper, like
 `lap_pal_roles()`) returns `key | columns | needs_date | description` so callers
 never have to memorise the `lap_ind_*` names. The catalogue itself is the
-internal `lap_ind_registry()` - a function returning `list(fn, columns,
+internal `indicator_catalog()` - a function returning `list(fn, columns,
 needs_date, description)` per key; adding an indicator = one new `lap_ind_*()` +
-one registry entry.
+one `indicator_catalog()` entry.
 
 ## Consequences
 
-- Adding a metric = one new `lap_ind_*()` function + one `lap_ind_registry()`
+- Adding a metric = one new `lap_ind_*()` function + one `indicator_catalog()`
   entry (key, emitted columns, `needs_date`, description).
 - `lap_gw_trend()` (full trend table with CIs) and `lap_ind_trend()` (trend as
   an indicator column) share the internal `theil_sen_mann_kendall()`.

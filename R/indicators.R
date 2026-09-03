@@ -72,7 +72,7 @@ lap_indicators <- function(x, .funs, by = well_id, value = gwl, date = "date") {
 
 # The indicator catalogue. A function (not a top-level list) so the `lap_ind_*`
 # closures already exist when it runs. Add an entry when you add an indicator.
-lap_ind_registry <- function() {
+indicator_catalog <- function() {
   list(
     amplitude = list(
       fn = lap_ind_amplitude,
@@ -106,7 +106,7 @@ lap_ind_registry <- function() {
 #' @examples
 #' lap_indicator_registry()
 lap_indicator_registry <- function() {
-  reg <- lap_ind_registry()
+  reg <- indicator_catalog()
   tibble::tibble(
     key = names(reg),
     columns = vapply(reg, function(e) toString(e$columns), character(1)),
@@ -117,7 +117,7 @@ lap_indicator_registry <- function() {
 
 # Resolve the `.funs` argument to a list of indicator functions.
 resolve_ind_funs <- function(.funs, call = rlang::caller_env()) {
-  reg <- lap_ind_registry()
+  reg <- indicator_catalog()
   if (is.null(.funs)) {
     cli::cli_abort(c(
       "{.arg .funs} is required.",
