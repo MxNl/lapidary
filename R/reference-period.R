@@ -18,6 +18,113 @@ lap_reference_periods <- function() {
   )
 }
 
+#' Derive comparison windows from a record's date range
+#'
+#' Builds a named `periods` list (the shape [lap_indicator_change()] and
+#' [lap_add_reference_period()] expect) from the span of a groundwater record,
+#' so you do not have to write year pairs by hand. Unlike
+#' [lap_reference_periods()] (fixed WMO climate normals), these windows adapt to
+#' the data.
+#'
+#' @param x A data frame with a date column, or a length-2 numeric vector
+#'   `c(first_year, last_year)`.
+#' @param scheme One of:
+#'   \itemize{
+#'     \item `"first_vs_last_decade"` - the first and last `width` years;
+#'     \item `"first_vs_last_half"` - the record split at its midpoint;
+#'     \item `"decade_per_decade"` - one window per 10-year block from the first
+#'       year of the record, the last block clipped to the end. Names are the
+#'       actual spans, e.g. `"1991-2000"`.
+#'   }
+#' @param date <[`tidy-select`][dplyr::dplyr_tidy_select]> the date column used
+#'   to derive the year range when `x` is a data frame. Default `date`.
+#' @param width Window length in years for `"first_vs_last_decade"`. Default 10.
+#'
+#' @return A named list of `c(start_year, end_year)` integer pairs in
+#'   chronological order (`first` before `last`), validated for
+#'   [lap_indicator_change()] (overlaps allowed).
+#'
+#' @details `"decade_per_decade"` can return more than two windows; pass any two
+#'   of its labels to [lap_indicator_delta()]. The non-overlapping schemes
+#'   (`"first_vs_last_half"` and `"decade_per_decade"`) also work as the
+#'   `periods` argument of [lap_add_reference_period()].
+#'
+#' @seealso [lap_reference_periods()], [lap_indicator_change()],
+#'   [lap_add_reference_period()]
+#' @export
+#' @examples
+#' data(gems_ger_sample, package = "lapidary", envir = environment())
+#' lap_period_windows(gems_ger_sample, "first_vs_last_decade")
+#' lap_period_windows(c(1991, 2022), "decade_per_decade")
+#' lap_indicator_change(
+#'   gems_ger_sample, c("amplitude", "trend"),
+#'   periods = lap_period_windows(gems_ger_sample, "first_vs_last_half")
+#' )
+lap_period_windows <- function(x,
+                               scheme = c(
+                                 "first_vs_last_decade",
+                                 "first_vs_last_half",
+                                 "decade_per_decade"
+                               ),
+                               date = "date",
+                               width = 10L) {
+  scheme <- rlang::arg_match(scheme)
+  yr <- period_window_year_range(x, rlang::enquo(date))
+  y0 <- yr[[1]]
+  y1 <- yr[[2]]
+
+  periods <- switch(scheme,
+    first_vs_last_decade = {
+      w <- as.integer(width)
+      if (length(w) != 1L || is.na(w) || w < 1L) {
+        cli::cli_abort("{.arg width} must be a positive number of years.")
+      }
+      if (y1 - y0 + 1L < 2L * w) {
+        cli::cli_inform(c(
+          i = "Record spans {y1 - y0 + 1L} yr; {.val first} and {.val last} \\
+               windows overlap."
+        ))
+      }
+      list(first = c(y0, y0 + w - 1L), last = c(y1 - w + 1L, y1))
+    },
+    first_vs_last_half = {
+      mid <- (y0 + y1) %/% 2L
+      list(first = c(y0, mid), last = c(mid + 1L, y1))
+    },
+    decade_per_decade = {
+      starts <- seq(y0, y1, by = 10L)
+      wins <- lapply(starts, function(s) c(s, min(s + 9L, y1)))
+      nm <- vapply(wins, function(w) paste(w[[1]], w[[2]], sep = "-"), character(1))
+      stats::setNames(wins, nm)
+    }
+  )
+  validate_periods(periods, allow_overlap = TRUE)
+}
+
+# c(first_year, last_year) from a data frame's date column, or a length-2
+# numeric vector passed straight through.
+period_window_year_range <- function(x, date_quo, call = rlang::caller_env()) {
+  if (is.numeric(x) && !is.data.frame(x)) {
+    if (length(x) != 2L || anyNA(x) || x[[1]] > x[[2]]) {
+      cli::cli_abort(
+        "A numeric {.arg x} must be {.code c(first_year, last_year)} with first <= last.",
+        call = call
+      )
+    }
+    return(as.integer(x))
+  }
+  date_col <- lap_eval_select_one(x, date_quo, arg = "date", call = call)
+  yr <- as.integer(format(as.Date(x[[date_col]]), "%Y"))
+  yr <- yr[!is.na(yr)]
+  if (!length(yr)) {
+    cli::cli_abort(
+      "{.arg date} column {.val {date_col}} has no non-missing years.",
+      call = call
+    )
+  }
+  range(yr)
+}
+
 #' Tag rows with a reference-period label
 #'
 #' Adds a `reference_period` column marking which configured period each
