@@ -8,22 +8,27 @@
 #  * Each `lap_ind_*()` is a pure function of a time-series slice for ONE
 #    series. It returns a one-row tibble whose columns are prefixed `ind_`.
 #    It never sees a summary table.
-#  * `lap_indicators()` is the collector: it takes the time series once, a set
-#    of `lap_ind_*` functions, and returns one row per well.
-#  * `lap_summarise_wells(indicators = ...)` folds the collector into the same
-#    grouped pass, so the common case is a single call with a single data frame.
-#  * `lap_add_indicators()` is the only helper that takes both a well-level
-#    table and the time series - for appending indicators step by step - and it
-#    is an explicit, key-checked left join.
+#  * `lap_indicators()` is the collector: time series in once, a selection of
+#    indicators (`"all"`, registry keys, or `lap_ind_*` functions), one row per
+#    well out. `lap_indicator_registry()` lists what is available.
+#  * `lap_add_indicators()` takes a well-level table + the time series and
+#    left-joins the indicators on - for building a feature table step by step.
+#  * Per-well-year summaries (`lap_summarise_wells()`) and per-well indicators
+#    are deliberately separate tables; join them on `well_id` when you want both.
 
 #' Compute time-series indicators per well
 #'
-#' Applies one or more `lap_ind_*()` functions to each series in `x` and
-#' column-binds the results into a well-level table.
+#' Applies a selection of `lap_ind_*()` indicator functions to each series in
+#' `x` and column-binds the results into a well-level table.
 #'
 #' @param x A `gwl_ts` / data frame of time series (one row per well x date).
-#' @param .funs A `lap_ind_*` function, or a list/vector of them
-#'   (e.g. `c(lap_ind_amplitude, lap_ind_trend)`).
+#' @param .funs Which indicators to compute. Required. One of:
+#'   \itemize{
+#'     \item `"all"` - every indicator in [lap_indicator_registry()];
+#'     \item a character vector of registry keys, e.g. `c("amplitude", "trend")`;
+#'     \item one or more `lap_ind_*` functions, e.g. `c(lap_ind_amplitude, lap_ind_trend)`;
+#'     \item a mix of keys and functions.
+#'   }
 #' @param by <[`tidy-select`][dplyr::dplyr_tidy_select]> the series-identifying
 #'   column(s). Default `well_id`.
 #' @param value <[`tidy-select`][dplyr::dplyr_tidy_select]> the level column.
@@ -33,17 +38,17 @@
 #'
 #' @return A tibble: the `by` column(s) plus one column per indicator output
 #'   (all `ind_`-prefixed).
-#' @seealso [lap_summarise_wells()] (`indicators=` argument),
-#'   [lap_add_indicators()]
+#' @seealso [lap_indicator_registry()], [lap_add_indicators()]
 #' @export
 #' @examples
 #' data(gems_ger_sample, package = "lapidary", envir = environment())
-#' lap_indicators(gems_ger_sample, c(lap_ind_amplitude, lap_ind_extreme_months))
+#' lap_indicators(gems_ger_sample, "all")
+#' lap_indicators(gems_ger_sample, c("amplitude", "extreme_months"))
 lap_indicators <- function(x, .funs, by = well_id, value = gwl, date = "date") {
+  funs <- resolve_ind_funs(if (missing(.funs)) NULL else .funs)
   by <- lap_eval_select(x, rlang::enquo(by), arg = "by")
   value <- lap_eval_select_one(x, rlang::enquo(value), arg = "value")
   date_col <- lap_eval_select_one(x, rlang::enquo(date), arg = "date", null_ok = TRUE)
-  funs <- as_ind_funs(.funs)
 
   x <- tibble::as_tibble(x)
   grp <- interaction(x[by], drop = TRUE, lex.order = TRUE)
@@ -65,13 +70,84 @@ lap_indicators <- function(x, .funs, by = well_id, value = gwl, date = "date") {
   out
 }
 
-as_ind_funs <- function(.funs, call = rlang::caller_env()) {
-  if (is.function(.funs)) .funs <- list(.funs)
-  .funs <- as.list(.funs)
-  if (!length(.funs) || !all(vapply(.funs, is.function, logical(1)))) {
-    cli::cli_abort("{.arg .funs} must be a {.fn lap_ind_*} function or a list of them.", call = call)
+# The indicator catalogue. A function (not a top-level list) so the `lap_ind_*`
+# closures already exist when it runs. Add an entry when you add an indicator.
+lap_ind_registry <- function() {
+  list(
+    amplitude = list(
+      fn = lap_ind_amplitude,
+      columns = "ind_amplitude",
+      needs_date = FALSE,
+      description = "max - min of the level over the whole record"
+    ),
+    extreme_months = list(
+      fn = lap_ind_extreme_months,
+      columns = c("ind_min_month", "ind_max_month"),
+      needs_date = TRUE,
+      description = "circular-mean month of the annual minimum / maximum level"
+    ),
+    trend = list(
+      fn = lap_ind_trend,
+      columns = c("ind_trend_slope", "ind_trend_p_value", "ind_trend_significant"),
+      needs_date = TRUE,
+      description = "Theil-Sen slope + Mann-Kendall test on annual mean levels"
+    )
+  )
+}
+
+#' The available time-series indicators
+#'
+#' Lists what [lap_indicators()] can compute, so you do not have to memorise the
+#' `lap_ind_*` function names.
+#'
+#' @return A tibble with one row per indicator: `key` (use it in `.funs`),
+#'   `columns` (the `ind_*` columns it emits), `needs_date` and `description`.
+#' @export
+#' @examples
+#' lap_indicator_registry()
+lap_indicator_registry <- function() {
+  reg <- lap_ind_registry()
+  tibble::tibble(
+    key = names(reg),
+    columns = vapply(reg, function(e) toString(e$columns), character(1)),
+    needs_date = vapply(reg, function(e) e$needs_date, logical(1)),
+    description = vapply(reg, function(e) e$description, character(1))
+  )
+}
+
+# Resolve the `.funs` argument to a list of indicator functions.
+resolve_ind_funs <- function(.funs, call = rlang::caller_env()) {
+  reg <- lap_ind_registry()
+  if (is.null(.funs)) {
+    cli::cli_abort(c(
+      "{.arg .funs} is required.",
+      i = 'Use {.val all}, a subset of {.code lap_indicator_registry()$key}, \\
+           or {.fn lap_ind_*} functions.'
+    ), call = call)
   }
-  .funs
+  if (identical(.funs, "all")) {
+    return(lapply(reg, `[[`, "fn"))
+  }
+  items <- if (is.function(.funs)) list(.funs) else as.list(.funs)
+  lapply(items, function(it) {
+    if (is.function(it)) {
+      return(it)
+    }
+    if (is.character(it) && length(it) == 1L) {
+      entry <- reg[[it]]
+      if (is.null(entry)) {
+        cli::cli_abort(c(
+          "Unknown indicator key {.val {it}}.",
+          i = "Keys: {.val {names(reg)}} (or {.val all})."
+        ), call = call)
+      }
+      return(entry$fn)
+    }
+    cli::cli_abort(
+      "{.arg .funs} entries must be indicator keys or {.fn lap_ind_*} functions.",
+      call = call
+    )
+  })
 }
 
 #' Append time-series indicators to a well-level table
@@ -83,7 +159,7 @@ as_ind_funs <- function(.funs, call = rlang::caller_env()) {
 #' @param data A well-level table (e.g. from [lap_summarise_wells()] grouped by
 #'   `well_id`, or a `gwl_wells` layer).
 #' @param x The time series the indicators are computed from.
-#' @param .funs A `lap_ind_*` function or a list of them.
+#' @param .funs Which indicators to compute; see [lap_indicators()].
 #' @param by <[`tidy-select`][dplyr::dplyr_tidy_select]> join key(s), present in
 #'   both `data` and `x`. Default `well_id`.
 #' @param value,date Passed to [lap_indicators()].
@@ -92,16 +168,14 @@ as_ind_funs <- function(.funs, call = rlang::caller_env()) {
 #' @export
 #' @examples
 #' data(gems_ger_sample, package = "lapidary", envir = environment())
-#' base <- lap_summarise_wells(gems_ger_sample, by = well_id)
-#' base |>
-#'   lap_add_indicators(gems_ger_sample, lap_ind_amplitude) |>
-#'   lap_add_indicators(gems_ger_sample, lap_ind_trend)
+#' lap_summarise_wells(gems_ger_sample, by = well_id) |>
+#'   lap_add_indicators(gems_ger_sample, "all")
 lap_add_indicators <- function(data, x, .funs, by = well_id,
                                value = gwl, date = "date") {
   by_nm <- lap_eval_select(data, rlang::enquo(by), arg = "by")
   ind <- lap_indicators(
     x,
-    .funs = .funs, by = dplyr::all_of(by_nm),
+    .funs = if (missing(.funs)) NULL else .funs, by = dplyr::all_of(by_nm),
     value = {{ value }}, date = {{ date }}
   )
   is_sf <- inherits(data, "sf")
