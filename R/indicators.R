@@ -35,6 +35,8 @@
 #'   Default `gwl`.
 #' @param date <[`tidy-select`][dplyr::dplyr_tidy_select]> the date column, or
 #'   `NULL` for a series with no dates. Default `date`.
+#' @param ... Extra arguments forwarded to every `lap_ind_*()` (e.g.
+#'   `threshold`, `min_len`, `driver`). Indicators ignore what they do not use.
 #'
 #' @return A tibble: the `by` column(s) plus one column per indicator output
 #'   (all `ind_`-prefixed).
@@ -44,7 +46,7 @@
 #' data(gems_ger_sample, package = "lapidary", envir = environment())
 #' lap_indicators(gems_ger_sample, "all")
 #' lap_indicators(gems_ger_sample, c("amplitude", "extreme_months"))
-lap_indicators <- function(x, .funs, by = well_id, value = gwl, date = "date") {
+lap_indicators <- function(x, .funs, by = well_id, value = gwl, date = "date", ...) {
   funs <- resolve_ind_funs(if (missing(.funs)) NULL else .funs)
   by <- lap_eval_select(x, rlang::enquo(by), arg = "by")
   value <- lap_eval_select_one(x, rlang::enquo(value), arg = "value")
@@ -54,15 +56,18 @@ lap_indicators <- function(x, .funs, by = well_id, value = gwl, date = "date") {
   grp <- interaction(x[by], drop = TRUE, lex.order = TRUE)
   parts <- split(x, grp, drop = TRUE)
 
+  one_indicator <- function(f, part, ...) {
+    # inject `value` / `date` as string literals so each indicator's tidy-select
+    # sees a plain column name, not an external vector
+    out <- rlang::inject(f(part, value = !!value, date = !!date_col, ...))
+    if (!is.data.frame(out) || nrow(out) != 1L) {
+      cli::cli_abort("Every {.fn lap_ind_*} must return a one-row data frame.")
+    }
+    out
+  }
   rows <- lapply(parts, function(part) {
     key <- part[1, by, drop = FALSE]
-    vals <- lapply(funs, function(f) {
-      out <- f(part, value = value, date = date_col)
-      if (!is.data.frame(out) || nrow(out) != 1L) {
-        cli::cli_abort("Every {.fn lap_ind_*} must return a one-row data frame.")
-      }
-      out
-    })
+    vals <- lapply(funs, one_indicator, part = part, ...)
     dplyr::bind_cols(key, !!!vals)
   })
   out <- tibble::as_tibble(do.call(rbind, rows))
@@ -82,58 +87,69 @@ lap_indicators <- function(x, .funs, by = well_id, value = gwl, date = "date") {
 #   delta_kind - per output column, how lap_indicator_delta() differences it:
 #                "diff" (b - a), "circular" (signed month diff), "none" (skip)
 #   description
+#   reference  - short literature citation for the metric (surfaced in the
+#                registry; the long form is vignette("indicators"))
 indicator_catalog <- function() {
   d <- function(cols, kind = "diff") stats::setNames(rep(kind, length(cols)), cols)
   list(
     amplitude = list(
       fn = lap_ind_amplitude, columns = "ind_amplitude",
       needs_date = FALSE, in_all = TRUE, delta_kind = d("ind_amplitude"),
-      description = "max - min of the level over the slice"
+      description = "max - min of the level over the slice",
+      reference = "descriptive"
     ),
     seasonal_amplitude = list(
       fn = lap_ind_seasonal_amplitude, columns = "ind_seasonal_amplitude",
       needs_date = TRUE, in_all = TRUE, delta_kind = d("ind_seasonal_amplitude"),
-      description = "mean over years of the annual (max - min)"
+      description = "mean over years of the annual (max - min)",
+      reference = "descriptive"
     ),
     seasonality_strength = list(
       fn = lap_ind_seasonality_strength, columns = "ind_seasonality_strength",
       needs_date = TRUE, in_all = TRUE, delta_kind = d("ind_seasonality_strength"),
-      description = "STL variance ratio in [0, 1] on monthly means"
+      description = "STL variance ratio in [0, 1] on monthly means",
+      reference = "Wang, Smith & Hyndman (2006) Data Min. Knowl. Discov. 13, 335"
     ),
     recharge_discharge = list(
       fn = lap_ind_recharge_discharge,
       columns = c("ind_recharge_months", "ind_discharge_months"),
       needs_date = TRUE, in_all = TRUE,
       delta_kind = d(c("ind_recharge_months", "ind_discharge_months")),
-      description = "length of the mean rising vs falling limb, in months"
+      description = "length of the mean rising vs falling limb, in months",
+      reference = "descriptive"
     ),
     phase_regularity = list(
       fn = lap_ind_phase_regularity, columns = "ind_min_month_sd",
       needs_date = TRUE, in_all = TRUE, delta_kind = d("ind_min_month_sd"),
-      description = "circular SD (months) of the annual-minimum month"
+      description = "circular SD (months) of the annual-minimum month",
+      reference = "Mardia & Jupp (2000) Directional Statistics"
     ),
     extreme_months = list(
       fn = lap_ind_extreme_months, columns = c("ind_min_month", "ind_max_month"),
       needs_date = TRUE, in_all = TRUE,
       delta_kind = d(c("ind_min_month", "ind_max_month"), "circular"),
-      description = "circular-mean month of the annual minimum / maximum level"
+      description = "circular-mean month of the annual minimum / maximum level",
+      reference = "Mardia & Jupp (2000) Directional Statistics"
     ),
     flashiness = list(
       fn = lap_ind_flashiness, columns = "ind_flashiness",
       needs_date = FALSE, in_all = TRUE, delta_kind = d("ind_flashiness"),
-      description = "sum(|diff(level)|) / range - path length per span"
+      description = "sum(|diff(level)|) / range - path length per span",
+      reference = "Baker et al. (2004) J. Am. Water Resour. Assoc. 40, 503"
     ),
     memory = list(
       fn = lap_ind_memory, columns = c("ind_acf1", "ind_memory_weeks"),
       needs_date = TRUE, in_all = TRUE,
       delta_kind = d(c("ind_acf1", "ind_memory_weeks")),
-      description = "lag-1 autocorr + e-folding lag of the deseasonalised series"
+      description = "lag-1 autocorr + e-folding lag of the deseasonalised series",
+      reference = "Rinaldo et al. (2015); Barker et al. (2016) HESS 20, 2483"
     ),
     rise_fall = list(
       fn = lap_ind_rise_fall, columns = c("ind_rise_rate", "ind_fall_rate"),
       needs_date = FALSE, in_all = TRUE,
       delta_kind = d(c("ind_rise_rate", "ind_fall_rate")),
-      description = "median rate of rising vs falling steps"
+      description = "median rate of rising vs falling steps",
+      reference = "descriptive (cf. hydrograph rise/recession analysis)"
     ),
     trend = list(
       fn = lap_ind_trend,
@@ -143,14 +159,16 @@ indicator_catalog <- function() {
         ind_trend_slope = "diff", ind_trend_p_value = "none",
         ind_trend_significant = "none"
       ),
-      description = "Theil-Sen slope + Mann-Kendall test on annual mean levels"
+      description = "Theil-Sen slope + Mann-Kendall test on annual mean levels",
+      reference = "Sen (1968) JASA 63, 1379; Mann (1945); Kendall (1975)"
     ),
     trend_extremes = list(
       fn = lap_ind_trend_extremes,
       columns = c("ind_trend_min_slope", "ind_trend_max_slope"),
       needs_date = TRUE, in_all = TRUE,
       delta_kind = d(c("ind_trend_min_slope", "ind_trend_max_slope")),
-      description = "Theil-Sen slope of the annual minima / maxima"
+      description = "Theil-Sen slope of the annual minima / maxima",
+      reference = "Sen (1968) JASA 63, 1379"
     ),
     step_change = list(
       fn = lap_ind_step_change,
@@ -160,25 +178,63 @@ indicator_catalog <- function() {
         ind_step_year = "none", ind_step_magnitude = "diff",
         ind_step_p_value = "none"
       ),
-      description = "Pettitt change-point year + magnitude on annual means"
+      description = "Pettitt change-point year + magnitude on annual means",
+      reference = "Pettitt (1979) J. R. Stat. Soc. C 28, 126"
     ),
     trend_acceleration = list(
       fn = lap_ind_trend_acceleration, columns = "ind_trend_accel",
       needs_date = TRUE, in_all = TRUE, delta_kind = d("ind_trend_accel"),
-      description = "Sen slope(2nd half) - Sen slope(1st half) of annual means"
+      description = "Sen slope(2nd half) - Sen slope(1st half) of annual means",
+      reference = "descriptive (piecewise Theil-Sen)"
     ),
     drought = list(
       fn = lap_ind_drought,
       columns = c(
-        "ind_drought_frequency", "ind_drought_max_weeks",
-        "ind_index_min", "ind_frac_below_normal"
+        "ind_drought_frequency", "ind_frac_below_normal", "ind_index_min",
+        "ind_drought_n_events", "ind_drought_duration_weeks",
+        "ind_drought_max_weeks", "ind_drought_severity", "ind_drought_intensity"
       ),
       needs_date = FALSE, in_all = FALSE,
       delta_kind = d(c(
-        "ind_drought_frequency", "ind_drought_max_weeks",
-        "ind_index_min", "ind_frac_below_normal"
+        "ind_drought_frequency", "ind_frac_below_normal", "ind_index_min",
+        "ind_drought_n_events", "ind_drought_duration_weeks",
+        "ind_drought_max_weeks", "ind_drought_severity", "ind_drought_intensity"
       )),
-      description = "drought stats from a standardised index (needs an SGI column)"
+      description = "run-theory drought stats from a standardised index (needs an SGI column)",
+      reference = "Bloomfield & Marchant (2013) HESS 17, 4769; Yevjevich (1967); Ebeling et al. (2025) HESS 29, 2925"
+    ),
+    drought_recovery = list(
+      fn = lap_ind_drought_recovery,
+      columns = c("ind_drought_recovery_weeks", "ind_drought_n_unrecovered"),
+      needs_date = FALSE, in_all = FALSE,
+      delta_kind = d(c("ind_drought_recovery_weeks", "ind_drought_n_unrecovered")),
+      description = "recovery time from drought minima on a standardised index (needs an SGI column)",
+      reference = "Peterson, Saft & Peel (2021) Nature 591, 597"
+    ),
+    climate_signal = list(
+      fn = lap_ind_climate_signal,
+      columns = c(
+        "ind_accum_months", "ind_climate_lag_months", "ind_response_months",
+        "ind_climate_cc", "ind_residual_trend_slope",
+        "ind_residual_trend_p_value", "ind_residual_trend_significant"
+      ),
+      needs_date = TRUE, in_all = FALSE,
+      delta_kind = c(
+        ind_accum_months = "diff", ind_climate_lag_months = "diff",
+        ind_response_months = "diff", ind_climate_cc = "diff",
+        ind_residual_trend_slope = "diff", ind_residual_trend_p_value = "none",
+        ind_residual_trend_significant = "none"
+      ),
+      description = "climate response time + climate-removed trend (needs an SGI column and a driver)",
+      reference = "Ebeling et al. (2025) HESS 29, 2925; Retike et al. (2020) HESS 24, 501"
+    ),
+    recession = list(
+      fn = lap_ind_recession,
+      columns = c("ind_recession_weeks", "ind_recession_n_segments"),
+      needs_date = FALSE, in_all = TRUE,
+      delta_kind = d(c("ind_recession_weeks", "ind_recession_n_segments")),
+      description = "master-recession-curve e-folding time from falling segments",
+      reference = "Posavec, Bacani & Nakic (2006) Ground Water 44, 764; Fiorillo (2014) Water Resour. Manag. 28, 1919"
     )
   )
 }
@@ -190,7 +246,8 @@ indicator_catalog <- function() {
 #'
 #' @return A tibble with one row per indicator: `key` (use it in `.funs`),
 #'   `columns` (the `ind_*` columns it emits), `needs_date`, `in_all` (whether
-#'   `.funs = "all"` includes it) and `description`.
+#'   `.funs = "all"` includes it), `description` and `reference` (a short
+#'   citation; the long form is `vignette("indicators")`).
 #' @export
 #' @examples
 #' lap_indicator_registry()
@@ -201,7 +258,8 @@ lap_indicator_registry <- function() {
     columns = vapply(reg, function(e) toString(e$columns), character(1)),
     needs_date = vapply(reg, function(e) e$needs_date, logical(1)),
     in_all = vapply(reg, function(e) e$in_all, logical(1)),
-    description = vapply(reg, function(e) e$description, character(1))
+    description = vapply(reg, function(e) e$description, character(1)),
+    reference = vapply(reg, function(e) e$reference %||% NA_character_, character(1))
   )
 }
 
@@ -263,6 +321,8 @@ resolve_ind_funs <- function(.funs, call = rlang::caller_env()) {
 #' @param by <[`tidy-select`][dplyr::dplyr_tidy_select]> join key(s), present in
 #'   both `data` and `x`. Default `well_id`.
 #' @param value,date Passed to [lap_indicators()].
+#' @param ... Extra arguments forwarded to each `lap_ind_*()` (e.g. `threshold`,
+#'   `driver`).
 #'
 #' @return `data` with the indicator columns added.
 #' @export
@@ -271,12 +331,12 @@ resolve_ind_funs <- function(.funs, call = rlang::caller_env()) {
 #' lap_summarise_wells(gems_ger_sample, by = well_id) |>
 #'   lap_add_indicators(gems_ger_sample, "all")
 lap_add_indicators <- function(data, x, .funs, by = well_id,
-                               value = gwl, date = "date") {
+                               value = gwl, date = "date", ...) {
   by_nm <- lap_eval_select(data, rlang::enquo(by), arg = "by")
   ind <- lap_indicators(
     x,
     .funs = if (missing(.funs)) NULL else .funs, by = dplyr::all_of(by_nm),
-    value = {{ value }}, date = {{ date }}
+    value = {{ value }}, date = {{ date }}, ...
   )
   is_sf <- inherits(data, "sf")
   out <- dplyr::left_join(
@@ -309,6 +369,9 @@ slice_years <- function(x, date_col, range) {
 #' @inheritParams lap_indicators
 #' @param periods A **named** list of `c(start_year, end_year)` pairs, e.g.
 #'   `list(reference = c(1991, 2010), recent = c(2011, 2022))`.
+#' @param ... Extra arguments forwarded to each `lap_ind_*()` (e.g. `threshold`,
+#'   `driver`). For `climate_signal` the driver column must already be in `x`
+#'   (join it with [lap_join_meteo()] before slicing into periods).
 #'
 #' @return A long tibble: the `by` column(s), a `period` **ordered factor**
 #'   (levels in the order of `periods`), and the `ind_*` columns.
@@ -322,7 +385,7 @@ slice_years <- function(x, date_col, range) {
 #'   periods = list(reference = c(1991, 2010), recent = c(2011, 2022))
 #' )
 lap_indicator_change <- function(x, .funs, periods, by = well_id,
-                                 value = gwl, date = "date") {
+                                 value = gwl, date = "date", ...) {
   funs <- resolve_ind_funs(if (missing(.funs)) NULL else .funs)
   periods <- validate_periods(periods, allow_overlap = TRUE)
   date_col <- lap_eval_select_one(x, rlang::enquo(date), arg = "date")
@@ -333,10 +396,10 @@ lap_indicator_change <- function(x, .funs, periods, by = well_id,
     if (!nrow(sl)) {
       return(NULL)
     }
-    res <- lap_indicators(
+    res <- rlang::inject(lap_indicators(
       sl,
-      .funs = funs, by = {{ by }}, value = {{ value }}, date = date_col
-    )
+      .funs = funs, by = {{ by }}, value = {{ value }}, date = !!date_col, ...
+    ))
     res[["period"]] <- factor(nm, levels = names(periods), ordered = TRUE)
     res
   })

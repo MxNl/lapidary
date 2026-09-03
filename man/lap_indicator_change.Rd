@@ -10,7 +10,8 @@ lap_indicator_change(
   periods,
   by = well_id,
   value = gwl,
-  date = "date"
+  date = "date",
+  ...
 )
 }
 \arguments{
@@ -35,6 +36,10 @@ Default \code{gwl}.}
 
 \item{date}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> the date column, or
 \code{NULL} for a series with no dates. Default \code{date}.}
+
+\item{...}{Extra arguments forwarded to each \verb{lap_ind_*()} (e.g. \code{threshold},
+\code{driver}). For \code{climate_signal} the driver column must already be in \code{x}
+(join it with \code{\link[=lap_join_meteo]{lap_join_meteo()}} before slicing into periods).}
 }
 \value{
 A long tibble: the \code{by} column(s), a \code{period} \strong{ordered factor}

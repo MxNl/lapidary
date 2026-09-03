@@ -2,9 +2,9 @@
 % Please edit documentation in R/ind-catalog.R
 \name{lap_ind_drought}
 \alias{lap_ind_drought}
-\title{Drought statistics from a standardised index}
+\title{Drought characterisation from a standardised index}
 \usage{
-lap_ind_drought(data, value = gwl_norm, date = "date", threshold = -1)
+lap_ind_drought(data, value = gwl_norm, date = "date", threshold = -1, ...)
 }
 \arguments{
 \item{data}{A one-series data frame.}
@@ -15,30 +15,48 @@ lap_ind_drought(data, value = gwl_norm, date = "date", threshold = -1)
 (used only to order the series).}
 
 \item{threshold}{Drought threshold on the index. Default \code{-1}.}
+
+\item{...}{Ignored (uniform indicator signature).}
 }
 \value{
-A one-row tibble with the four columns above.
+A one-row tibble with the columns above.
 }
 \description{
 Expects \code{value} to be an approximately standard-normal index such as the SGI
 (add one with \code{\link[=lap_normalise_gwl]{lap_normalise_gwl()}} \code{method = "sgi"} and pass
 \code{value = gwl_norm}). Errors if the column does not look standardised.
+A \strong{drought event} is a maximal run of \code{value < threshold} (run theory,
+Yevjevich 1967).
 }
 \details{
 \describe{
 \item{\code{ind_drought_frequency}}{fraction of timesteps below \code{threshold}}
-\item{\code{ind_drought_max_weeks}}{longest consecutive run below \code{threshold}}
-\item{\code{ind_index_min}}{the most negative value in the slice}
 \item{\code{ind_frac_below_normal}}{fraction of timesteps below 0}
+\item{\code{ind_index_min}}{the most negative value in the slice}
+\item{\code{ind_drought_n_events}}{number of drought events}
+\item{\code{ind_drought_duration_weeks}}{mean event duration (timesteps)}
+\item{\code{ind_drought_max_weeks}}{longest single event}
+\item{\code{ind_drought_severity}}{mean cumulative deficit per event (sum of
+\code{-value} over the event)}
+\item{\code{ind_drought_intensity}}{mean deficit per timestep (severity /
+duration)}
 }
+}
+\references{
+Bloomfield, J.P. & Marchant, B.P. (2013) \emph{HESS} 17, 4769.
+Yevjevich, V. (1967) \emph{Hydrol. Pap.} 23, Colorado State Univ.
+Ebeling, P. et al. (2025) \emph{HESS} 29, 2925.
 }
 \seealso{
 Other indicators: 
 \code{\link{lap_ind_amplitude}()},
+\code{\link{lap_ind_climate_signal}()},
+\code{\link{lap_ind_drought_recovery}()},
 \code{\link{lap_ind_extreme_months}()},
 \code{\link{lap_ind_flashiness}()},
 \code{\link{lap_ind_memory}()},
 \code{\link{lap_ind_phase_regularity}()},
+\code{\link{lap_ind_recession}()},
 \code{\link{lap_ind_recharge_discharge}()},
 \code{\link{lap_ind_rise_fall}()},
 \code{\link{lap_ind_seasonal_amplitude}()},

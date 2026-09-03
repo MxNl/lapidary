@@ -202,3 +202,65 @@ test_that("lap_ind_drought counts runs below the threshold on a standardised ind
   expect_equal(out$ind_frac_below_normal, 0.5, tolerance = 0.1)
   expect_lt(out$ind_index_min, -4)
 })
+
+test_that("lap_ind_drought run-theory columns describe an injected event", {
+  set.seed(11)
+  wk <- seq(as.Date("2000-01-07"), as.Date("2015-12-28"), by = "1 week")
+  idx <- rnorm(length(wk), 0, 0.3) # too small to cross the -1 threshold on its own
+  idx[100:159] <- -3 # one clean 60-week event, severity ~ 60 * 3
+  s <- data.frame(well_id = "a", date = wk, gwl_norm = idx)
+  out <- lap_ind_drought(s, value = gwl_norm)
+  expect_equal(out$ind_drought_n_events, 1)
+  expect_equal(out$ind_drought_max_weeks, 60)
+  expect_equal(out$ind_drought_duration_weeks, 60)
+  expect_equal(out$ind_drought_severity, 180, tolerance = 0.02)
+  expect_equal(out$ind_drought_intensity, 3, tolerance = 0.02)
+})
+
+test_that("lap_ind_drought_recovery: finite recovery, and counts an unrecovered tail", {
+  wk <- seq(as.Date("2000-01-07"), as.Date("2015-12-28"), by = "1 week")
+  idx <- rep(0.2, length(wk))
+  idx[100:159] <- -2 # recovers (back to >= 0 afterwards)
+  idx[(length(wk) - 40):length(wk)] <- -2 # never recovers within the slice
+  s <- data.frame(well_id = "a", date = wk, gwl_norm = idx)
+  out <- lap_ind_drought_recovery(s, value = gwl_norm)
+  expect_true(is.finite(out$ind_drought_recovery_weeks))
+  expect_gte(out$ind_drought_n_unrecovered, 1)
+})
+
+test_that("lap_ind_recession recovers the e-folding time of an exponential decay", {
+  wk <- seq(as.Date("2001-01-07"), as.Date("2016-12-28"), by = "1 week")
+  tau <- 12 # weeks
+  # cycles of 40 weeks: a 2-week recharge ramp, then a 38-week exponential recession
+  ph <- (seq_along(wk) - 1L) %% 40L
+  v <- ifelse(ph < 2L, 10 + 2.5 * (ph + 1), 10 + 5 * exp(-(ph - 1L) / tau))
+  s <- data.frame(well_id = "a", date = wk, gwl = v)
+  out <- lap_ind_recession(s)
+  expect_gt(out$ind_recession_n_segments, 3)
+  expect_equal(out$ind_recession_weeks, tau, tolerance = 1)
+})
+
+test_that("lap_ind_climate_signal recovers a known lag and residual trend", {
+  set.seed(5)
+  mo <- seq(as.Date("1985-01-01"), as.Date("2020-12-01"), by = "month")
+  n <- length(mo)
+  driver <- rnorm(n) # monthly standardised-ish forcing
+  lag <- 3L
+  # SGI = lagged driver + a small imposed linear (anthropogenic) decline + noise
+  sgi <- c(rep(0, lag), driver[seq_len(n - lag)]) -
+    0.02 * (seq_len(n) / 12) + rnorm(n, 0, 0.2)
+  sgi <- (sgi - mean(sgi)) / sd(sgi)
+  s <- data.frame(well_id = "a", date = mo, gwl_norm = sgi, precip = driver)
+  out <- lap_ind_climate_signal(s, value = gwl_norm, driver = precip, max_acc = 6L)
+  expect_equal(out$ind_climate_lag_months, lag, tolerance = 1)
+  expect_gt(out$ind_climate_cc, 0.5)
+  expect_lt(out$ind_residual_trend_slope, 0)
+})
+
+test_that("lap_indicator_registry carries a reference column for every entry", {
+  reg <- lap_indicator_registry()
+  expect_true("reference" %in% names(reg))
+  expect_equal(nrow(reg), 17L)
+  expect_true(all(nzchar(reg$reference)))
+  expect_true(all(c("drought_recovery", "climate_signal", "recession") %in% reg$key))
+})

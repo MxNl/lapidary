@@ -4,7 +4,15 @@
 \alias{lap_add_indicators}
 \title{Append time-series indicators to a well-level table}
 \usage{
-lap_add_indicators(data, x, .funs, by = well_id, value = gwl, date = "date")
+lap_add_indicators(
+  data,
+  x,
+  .funs,
+  by = well_id,
+  value = gwl,
+  date = "date",
+  ...
+)
 }
 \arguments{
 \item{data}{A well-level table (e.g. from \code{\link[=lap_summarise_wells]{lap_summarise_wells()}} grouped by
@@ -18,6 +26,9 @@ lap_add_indicators(data, x, .funs, by = well_id, value = gwl, date = "date")
 both \code{data} and \code{x}. Default \code{well_id}.}
 
 \item{value, date}{Passed to \code{\link[=lap_indicators]{lap_indicators()}}.}
+
+\item{...}{Extra arguments forwarded to each \verb{lap_ind_*()} (e.g. \code{threshold},
+\code{driver}).}
 }
 \value{
 \code{data} with the indicator columns added.

@@ -110,9 +110,26 @@ Drought indicators expect a standardised index — add one first:
 ```{r}
 gems_ger_sample |>
   lap_normalise_gwl("sgi") |>
-  lap_indicators("drought", value = gwl_norm) |>
+  lap_indicators(c("drought", "drought_recovery"), value = gwl_norm) |>
   head()
 ```
+
+### Climate coupling & anthropogenic signal
+
+`lap_join_meteo()` attaches GEMS-GER's co-located meteorological forcings, and
+`climate_signal` then separates the climate-driven variation from the residual
+(often anthropogenic) long-term trend:
+
+```{r eval = FALSE}
+lap_read_gems_ger() |>
+  lap_join_meteo(c(precip = "HYRAS_pr")) |>
+  lap_normalise_gwl("sgi") |>
+  lap_indicators("climate_signal", value = gwl_norm, driver = precip)
+```
+
+`vignette("indicators")` explains every catalogue key — definition,
+interpretation and citation — including how `memory`, `climate_signal` and
+`recession` capture three different aquifer timescales.
 
 Normalisation makes wells comparable:
 

@@ -4,7 +4,7 @@
 \alias{lap_ind_step_change}
 \title{Step change (Pettitt change-point)}
 \usage{
-lap_ind_step_change(data, value = gwl, date = "date", min_years = 10L)
+lap_ind_step_change(data, value = gwl, date = "date", min_years = 10L, ...)
 }
 \arguments{
 \item{data}{A one-series data frame.}
@@ -14,6 +14,9 @@ lap_ind_step_change(data, value = gwl, date = "date", min_years = 10L)
 \item{date}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> date column.}
 
 \item{min_years}{Minimum number of years; below this the outputs are \code{NA}.}
+
+\item{...}{Ignored; absorbs arguments forwarded to other indicators by
+\code{\link[=lap_indicators]{lap_indicators()}}.}
 }
 \value{
 A one-row tibble: \code{ind_step_year}, \code{ind_step_magnitude},
@@ -28,11 +31,14 @@ the abrupt post-drought regime shifts (e.g. 2003, 2018).
 \seealso{
 Other indicators: 
 \code{\link{lap_ind_amplitude}()},
+\code{\link{lap_ind_climate_signal}()},
 \code{\link{lap_ind_drought}()},
+\code{\link{lap_ind_drought_recovery}()},
 \code{\link{lap_ind_extreme_months}()},
 \code{\link{lap_ind_flashiness}()},
 \code{\link{lap_ind_memory}()},
 \code{\link{lap_ind_phase_regularity}()},
+\code{\link{lap_ind_recession}()},
 \code{\link{lap_ind_recharge_discharge}()},
 \code{\link{lap_ind_rise_fall}()},
 \code{\link{lap_ind_seasonal_amplitude}()},
