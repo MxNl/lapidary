@@ -21,10 +21,7 @@ renv/staging/
 /lapidary.Rcheck/
 *.tar.gz
 /scratch/
-
-# pkgdown builds the site into docs/ on CI; keep only the tracked ADRs
-/docs/*
-!/docs/adr/
+/pkgdown-site/
 
 # scratch / playground scripts (not part of the package)
 /playground*

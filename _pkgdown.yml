@@ -1,5 +1,8 @@
 url: https://mxnl.github.io/lapidary/
 
+# kept out of docs/ so it never clashes with the tracked docs/adr/
+destination: pkgdown-site
+
 template:
   bootstrap: 5
 
