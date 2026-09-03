@@ -238,6 +238,84 @@ lap_read_gems_ger_wells <- function(version = "latest", attributes = "core") {
   new_gwl_wells(df, coords = c("easting", "northing"), crs = lap_gems_ger_meta(version)$crs)
 }
 
+#' Join GEMS-GER meteorological forcings onto a groundwater series
+#'
+#' Reads the requested forcing columns from `meteo.parquet` (build it with
+#' [lap_gems_ger_build_parquet()] `meteo = TRUE`) and left-joins them onto a
+#' GEMS-GER `gwl_ts` by `well_id` and `date`. The result is still a `gwl_ts`;
+#' the joined columns are what [lap_ind_climate_signal()] needs as its `driver`.
+#'
+#' @param x A `gwl_ts` from [lap_read_gems_ger()] (its `source` must be
+#'   `"gems-ger"`).
+#' @param vars Forcing columns to join. Either `"all"`, or a character vector of
+#'   names from `gems_ger_meteo_cols` (`HYRAS_pr`, `DWD_evapo_p`, ...),
+#'   optionally **named** to rename on join, e.g.
+#'   `c(precip = "HYRAS_pr", pet = "DWD_evapo_p")`.
+#' @param version Version key or `"latest"`.
+#'
+#' @return `x` with the forcing columns added (a `gwl_ts`).
+#' @seealso [lap_ind_climate_signal()], [lap_gems_ger_build_parquet()]
+#' @export
+#' @examples
+#' \dontrun{
+#' lap_read_gems_ger() |>
+#'   lap_join_meteo(c(precip = "HYRAS_pr")) |>
+#'   lap_normalise_gwl("sgi") |>
+#'   lap_indicators("climate_signal", value = gwl_norm, driver = precip)
+#' }
+lap_join_meteo <- function(x, vars = "all", version = "latest") {
+  check_gwl_ts(x)
+  src <- unique(stats::na.omit(as.character(x[["source"]])))
+  if (!identical(src, "gems-ger")) {
+    cli::cli_abort(c(
+      "{.arg x} must be a GEMS-GER series (from {.fn lap_read_gems_ger}).",
+      i = "Its {.field source} is {.val {src}}."
+    ))
+  }
+  map <- resolve_meteo_vars(vars)
+  cols <- unname(map)
+  wells <- unique(as.character(x[["well_id"]]))
+  dr <- range(as.Date(x[["date"]]), na.rm = TRUE)
+  lo <- format(dr[[1]])
+  hi <- format(dr[[2]])
+
+  m <- lap_gwl_query(
+    function(t) {
+      t <- dplyr::filter(
+        t, .data$well_id %in% !!wells,
+        .data$date >= !!lo, .data$date <= !!hi
+      )
+      dplyr::select(t, dplyr::all_of(c("well_id", "date", cols)))
+    },
+    source = "gems-ger", version = version, which = "meteo"
+  )
+  m[["date"]] <- as.Date(m[["date"]])
+  names(m)[match(cols, names(m))] <- names(map)
+
+  out <- dplyr::left_join(tibble::as_tibble(x), m, by = c("well_id", "date"))
+  new_gwl_ts(out)
+}
+
+# Validate / normalise the `vars` argument of lap_join_meteo() to a named
+# character vector `new_name = source_column`.
+resolve_meteo_vars <- function(vars, call = rlang::caller_env()) {
+  if (identical(vars, "all")) {
+    return(stats::setNames(gems_ger_meteo_cols, gems_ger_meteo_cols))
+  }
+  nms <- names(vars)
+  vars <- as.character(vars)
+  if (is.null(nms)) nms <- rep("", length(vars))
+  nms[!nzchar(nms)] <- vars[!nzchar(nms)]
+  bad <- setdiff(vars, gems_ger_meteo_cols)
+  if (length(bad)) {
+    cli::cli_abort(c(
+      "Unknown forcing column{?s} {.val {bad}}.",
+      i = "Available: {.val {gems_ger_meteo_cols}}."
+    ), call = call)
+  }
+  stats::setNames(vars, nms)
+}
+
 # Minimal snake_case cleaner (avoids a janitor dependency).
 to_snake_case <- function(x) {
   x <- gsub("\\(EPSG:[0-9]+\\)", "", x)

@@ -103,6 +103,139 @@ run_length_max <- function(x) {
   max(r$lengths[!is.na(r$values) & r$values])
 }
 
+# Abort unless `x` looks like an approximately standard-normal index (SGI etc.).
+check_standardised <- function(x, value, call = rlang::caller_env()) {
+  sdv <- stats::sd(x, na.rm = TRUE)
+  if (abs(stats::median(x, na.rm = TRUE)) > 0.75 || !is.finite(sdv) ||
+    sdv < 0.4 || sdv > 2.5) {
+    cli::cli_abort(c(
+      "{.arg value} ({.field {value}}) does not look like a standardised index.",
+      i = 'Add one first: {.code lap_normalise_gwl("sgi")}, then {.code value = gwl_norm}.'
+    ), call = call)
+  }
+  invisible(TRUE)
+}
+
+# Run theory (Yevjevich 1967) on a standardised index `x`: one row per maximal
+# run of `x < threshold`. `severity` is the cumulative deficit (sum of -x over
+# the run); `recovery` is the number of steps from the run's minimum forward to
+# the first `x >= 0` (NA if the series ends first).
+drought_runs <- function(x, threshold = -1) {
+  below <- !is.na(x) & x < threshold
+  r <- rle(below)
+  ends <- cumsum(r$lengths)
+  starts <- ends - r$lengths + 1L
+  ev <- which(r$values)
+  if (!length(ev)) {
+    return(data.frame(
+      start = integer(), end = integer(), len = integer(),
+      severity = numeric(), i_min = integer(),
+      recovery = numeric(), recovered = logical()
+    ))
+  }
+  do.call(rbind, lapply(ev, function(k) {
+    ix <- starts[k]:ends[k]
+    i_min <- ix[which.min(x[ix])]
+    fwd <- which(!is.na(x[i_min:length(x)]) & x[i_min:length(x)] >= 0)
+    data.frame(
+      start = starts[k], end = ends[k], len = length(ix),
+      severity = sum(-x[ix]), i_min = i_min,
+      recovery = if (length(fwd)) fwd[[1]] - 1L else NA_real_,
+      recovered = length(fwd) > 0
+    )
+  }))
+}
+
+# Segments of sustained recession (falling/flat), each >= `min_len` steps, single
+# up-steps tolerated. Returns start/end index pairs.
+recession_segments <- function(v, min_len = 8L, up_tol = 1L) {
+  n <- length(v)
+  if (n < min_len + 1L) {
+    return(list())
+  }
+  rising <- c(FALSE, diff(v) > 0)
+  # a segment breaks only after `up_tol` consecutive up-steps
+  up_run <- 0L
+  seg_id <- integer(n)
+  cur <- 1L
+  for (i in seq_len(n)) {
+    if (rising[i]) {
+      up_run <- up_run + 1L
+      if (up_run > up_tol) {
+        cur <- cur + 1L
+        up_run <- 0L
+      }
+    } else {
+      up_run <- 0L
+    }
+    seg_id[i] <- cur
+  }
+  segs <- split(seq_len(n), seg_id)
+  segs <- segs[vapply(segs, function(ix) {
+    length(ix) >= min_len && v[ix[1]] - v[ix[length(ix)]] > 0
+  }, logical(1))]
+  unname(segs)
+}
+
+# Master-recession e-folding time (weeks) from `recession_segments`: per segment
+# fit log(v - asymptote) ~ step; e-folding = -1 / slope for a decaying fit.
+recession_efold <- function(v, min_len = 8L) {
+  segs <- recession_segments(v, min_len = min_len)
+  taus <- vapply(segs, function(ix) {
+    y <- v[ix]
+    asym <- min(y) - 0.01 * (max(y) - min(y)) - 1e-9
+    fit <- stats::lm(log(y - asym) ~ seq_along(y))
+    b <- stats::coef(fit)[[2]]
+    if (is.finite(b) && b < 0) -1 / b else NA_real_
+  }, numeric(1))
+  taus <- taus[is.finite(taus)]
+  list(tau = if (length(taus)) stats::median(taus) else NA_real_, n = length(taus))
+}
+
+# Aggregate a daily/weekly series to a regular monthly series (mean per calendar
+# month), returning the values and their month-of-year.
+to_monthly <- function(v, dd) {
+  ym <- format(dd, "%Y-%m")
+  m <- tapply(v, ym, mean, na.rm = TRUE)
+  grid <- format(
+    seq(as.Date(paste0(min(ym), "-01")), as.Date(paste0(max(ym), "-01")), by = "month"),
+    "%Y-%m"
+  )
+  vals <- as.numeric(m[grid])
+  list(v = vals, mo = as.integer(substr(grid, 6, 7)), ym = grid)
+}
+
+# Cross-correlation search of SGI (monthly) against an accumulated, standardised
+# climate driver. Returns the accumulation / lag of maximum positive correlation
+# plus the aligned SPI-analog series and the SGI series.
+climate_coupling <- function(sgi_v, drv_v, dd, max_acc = 48L, max_lag = 24L) {
+  sm <- to_monthly(sgi_v, dd)
+  dm <- to_monthly(drv_v, dd)
+  n <- length(sm$v)
+  na_out <- list(acc = NA_real_, lag = NA_real_, cc = NA_real_, spi = NULL, sgi = sm$v)
+  if (n < 60L || all(is.na(dm$v))) {
+    return(na_out)
+  }
+  best <- na_out
+  for (acc in seq_len(min(max_acc, n - 1L))) {
+    ad <- as.numeric(stats::filter(dm$v, rep(1 / acc, acc), sides = 1))
+    spi <- ave_by(ad, factor(dm$mo), normal_scores)
+    for (lag in 0:min(max_lag, n - 1L)) {
+      a <- sm$v[(lag + 1L):n]
+      b <- spi[1:(n - lag)]
+      ok <- is.finite(a) & is.finite(b)
+      if (sum(ok) < 36L) next
+      cc <- suppressWarnings(stats::cor(a[ok], b[ok]))
+      if (is.finite(cc) && (is.na(best$cc) || cc > best$cc)) {
+        aligned <- rep(NA_real_, n)
+        aligned[(lag + 1L):n] <- spi[1:(n - lag)]
+        best <- list(acc = acc, lag = lag, cc = cc, spi = aligned, sgi = sm$v)
+      }
+    }
+  }
+  best
+}
+
 
 # --- A. Seasonality & phase ------------------------------------------------
 
@@ -113,11 +246,13 @@ run_length_max <- function(x) {
 #' @param data A one-series data frame.
 #' @param value <[`tidy-select`][dplyr::dplyr_tidy_select]> level column.
 #' @param date Unused; present for a uniform indicator signature.
+#' @param ... Ignored; absorbs arguments forwarded to other indicators by
+#'   [lap_indicators()].
 #'
 #' @return A one-row tibble: `ind_amplitude`.
 #' @family indicators
 #' @export
-lap_ind_amplitude <- function(data, value = gwl, date = "date") {
+lap_ind_amplitude <- function(data, value = gwl, date = "date", ...) {
   value <- lap_eval_select_one(data, rlang::enquo(value), arg = "value")
   v <- data[[value]]
   tibble::tibble(
@@ -136,7 +271,7 @@ lap_ind_amplitude <- function(data, value = gwl, date = "date") {
 #' @return A one-row tibble: `ind_seasonal_amplitude`.
 #' @family indicators
 #' @export
-lap_ind_seasonal_amplitude <- function(data, value = gwl, date = "date") {
+lap_ind_seasonal_amplitude <- function(data, value = gwl, date = "date", ...) {
   value <- lap_eval_select_one(data, rlang::enquo(value), arg = "value")
   date <- lap_eval_select_one(data, rlang::enquo(date), arg = "date")
   s <- ind_series(data, value, date)
@@ -161,7 +296,7 @@ lap_ind_seasonal_amplitude <- function(data, value = gwl, date = "date") {
 #' @return A one-row tibble: `ind_seasonality_strength`.
 #' @family indicators
 #' @export
-lap_ind_seasonality_strength <- function(data, value = gwl, date = "date") {
+lap_ind_seasonality_strength <- function(data, value = gwl, date = "date", ...) {
   value <- lap_eval_select_one(data, rlang::enquo(value), arg = "value")
   date <- lap_eval_select_one(data, rlang::enquo(date), arg = "date")
   s <- ind_series(data, value, date)
@@ -179,7 +314,7 @@ lap_ind_seasonality_strength <- function(data, value = gwl, date = "date") {
 #' @return A one-row tibble: `ind_recharge_months`, `ind_discharge_months`.
 #' @family indicators
 #' @export
-lap_ind_recharge_discharge <- function(data, value = gwl, date = "date") {
+lap_ind_recharge_discharge <- function(data, value = gwl, date = "date", ...) {
   value <- lap_eval_select_one(data, rlang::enquo(value), arg = "value")
   date <- lap_eval_select_one(data, rlang::enquo(date), arg = "date")
   s <- ind_series(data, value, date)
@@ -210,7 +345,7 @@ lap_ind_recharge_discharge <- function(data, value = gwl, date = "date") {
 #' @return A one-row tibble: `ind_min_month_sd`.
 #' @family indicators
 #' @export
-lap_ind_phase_regularity <- function(data, value = gwl, date = "date") {
+lap_ind_phase_regularity <- function(data, value = gwl, date = "date", ...) {
   value <- lap_eval_select_one(data, rlang::enquo(value), arg = "value")
   date <- lap_eval_select_one(data, rlang::enquo(date), arg = "date")
   s <- ind_series(data, value, date)
@@ -236,7 +371,7 @@ lap_ind_phase_regularity <- function(data, value = gwl, date = "date") {
 #' @return A one-row tibble: `ind_min_month`, `ind_max_month`.
 #' @family indicators
 #' @export
-lap_ind_extreme_months <- function(data, value = gwl, date = "date") {
+lap_ind_extreme_months <- function(data, value = gwl, date = "date", ...) {
   value <- lap_eval_select_one(data, rlang::enquo(value), arg = "value")
   date <- lap_eval_select_one(data, rlang::enquo(date), arg = "date")
   s <- ind_series(data, value, date)
@@ -265,7 +400,7 @@ lap_ind_extreme_months <- function(data, value = gwl, date = "date") {
 #' @return A one-row tibble: `ind_flashiness`.
 #' @family indicators
 #' @export
-lap_ind_flashiness <- function(data, value = gwl, date = "date") {
+lap_ind_flashiness <- function(data, value = gwl, date = "date", ...) {
   value <- lap_eval_select_one(data, rlang::enquo(value), arg = "value")
   date <- lap_eval_select_one(data, rlang::enquo(date), arg = "date", null_ok = TRUE)
   s <- ind_series(data, value, date)
@@ -286,7 +421,7 @@ lap_ind_flashiness <- function(data, value = gwl, date = "date") {
 #' @return A one-row tibble: `ind_acf1`, `ind_memory_weeks`.
 #' @family indicators
 #' @export
-lap_ind_memory <- function(data, value = gwl, date = "date") {
+lap_ind_memory <- function(data, value = gwl, date = "date", ...) {
   value <- lap_eval_select_one(data, rlang::enquo(value), arg = "value")
   date <- lap_eval_select_one(data, rlang::enquo(date), arg = "date")
   s <- ind_series(data, value, date)
@@ -321,7 +456,7 @@ lap_ind_memory <- function(data, value = gwl, date = "date") {
 #' @return A one-row tibble: `ind_rise_rate`, `ind_fall_rate`.
 #' @family indicators
 #' @export
-lap_ind_rise_fall <- function(data, value = gwl, date = "date") {
+lap_ind_rise_fall <- function(data, value = gwl, date = "date", ...) {
   value <- lap_eval_select_one(data, rlang::enquo(value), arg = "value")
   date <- lap_eval_select_one(data, rlang::enquo(date), arg = "date", null_ok = TRUE)
   s <- ind_series(data, value, date)
@@ -351,7 +486,7 @@ lap_ind_rise_fall <- function(data, value = gwl, date = "date") {
 #' @family indicators
 #' @export
 lap_ind_trend <- function(data, value = gwl, date = "date",
-                          min_years = 10L, alpha = 0.05) {
+                          min_years = 10L, alpha = 0.05, ...) {
   value <- lap_eval_select_one(data, rlang::enquo(value), arg = "value")
   date <- lap_eval_select_one(data, rlang::enquo(date), arg = "date")
   s <- ind_series(data, value, date)
@@ -389,7 +524,7 @@ lap_ind_trend <- function(data, value = gwl, date = "date",
 #' @family indicators
 #' @export
 lap_ind_trend_extremes <- function(data, value = gwl, date = "date",
-                                   min_years = 10L) {
+                                   min_years = 10L, ...) {
   value <- lap_eval_select_one(data, rlang::enquo(value), arg = "value")
   date <- lap_eval_select_one(data, rlang::enquo(date), arg = "date")
   s <- ind_series(data, value, date)
@@ -417,7 +552,7 @@ lap_ind_trend_extremes <- function(data, value = gwl, date = "date",
 #' @family indicators
 #' @export
 lap_ind_step_change <- function(data, value = gwl, date = "date",
-                                min_years = 10L) {
+                                min_years = 10L, ...) {
   value <- lap_eval_select_one(data, rlang::enquo(value), arg = "value")
   date <- lap_eval_select_one(data, rlang::enquo(date), arg = "date")
   s <- ind_series(data, value, date)
@@ -455,7 +590,7 @@ lap_ind_step_change <- function(data, value = gwl, date = "date",
 #' @family indicators
 #' @export
 lap_ind_trend_acceleration <- function(data, value = gwl, date = "date",
-                                       min_years = 16L) {
+                                       min_years = 16L, ...) {
   value <- lap_eval_select_one(data, rlang::enquo(value), arg = "value")
   date <- lap_eval_select_one(data, rlang::enquo(date), arg = "date")
   s <- ind_series(data, value, date)
@@ -482,49 +617,223 @@ lap_ind_trend_acceleration <- function(data, value = gwl, date = "date",
 
 # --- D. Drought / low-water --------------------------------------------
 
-#' Drought statistics from a standardised index
+#' Drought characterisation from a standardised index
 #'
 #' Expects `value` to be an approximately standard-normal index such as the SGI
 #' (add one with [lap_normalise_gwl()] `method = "sgi"` and pass
 #' `value = gwl_norm`). Errors if the column does not look standardised.
+#' A **drought event** is a maximal run of `value < threshold` (run theory,
+#' Yevjevich 1967).
 #'
 #' \describe{
 #'   \item{`ind_drought_frequency`}{fraction of timesteps below `threshold`}
-#'   \item{`ind_drought_max_weeks`}{longest consecutive run below `threshold`}
-#'   \item{`ind_index_min`}{the most negative value in the slice}
 #'   \item{`ind_frac_below_normal`}{fraction of timesteps below 0}
+#'   \item{`ind_index_min`}{the most negative value in the slice}
+#'   \item{`ind_drought_n_events`}{number of drought events}
+#'   \item{`ind_drought_duration_weeks`}{mean event duration (timesteps)}
+#'   \item{`ind_drought_max_weeks`}{longest single event}
+#'   \item{`ind_drought_severity`}{mean cumulative deficit per event (sum of
+#'     `-value` over the event)}
+#'   \item{`ind_drought_intensity`}{mean deficit per timestep (severity /
+#'     duration)}
 #' }
 #'
 #' @inheritParams lap_ind_flashiness
 #' @param threshold Drought threshold on the index. Default `-1`.
-#' @return A one-row tibble with the four columns above.
+#' @param ... Ignored (uniform indicator signature).
+#' @return A one-row tibble with the columns above.
+#' @references Bloomfield, J.P. & Marchant, B.P. (2013) *HESS* 17, 4769.
+#'   Yevjevich, V. (1967) *Hydrol. Pap.* 23, Colorado State Univ.
+#'   Ebeling, P. et al. (2025) *HESS* 29, 2925.
 #' @family indicators
 #' @export
-lap_ind_drought <- function(data, value = gwl_norm, date = "date", threshold = -1) {
+lap_ind_drought <- function(data, value = gwl_norm, date = "date",
+                            threshold = -1, ...) {
   value <- lap_eval_select_one(data, rlang::enquo(value), arg = "value")
   date <- lap_eval_select_one(data, rlang::enquo(date), arg = "date", null_ok = TRUE)
-  s <- ind_series(data, value, date)
-  x <- s$v
+  x <- ind_series(data, value, date)$v
   na_row <- tibble::tibble(
-    ind_drought_frequency = NA_real_, ind_drought_max_weeks = NA_real_,
-    ind_index_min = NA_real_, ind_frac_below_normal = NA_real_
+    ind_drought_frequency = NA_real_, ind_frac_below_normal = NA_real_,
+    ind_index_min = NA_real_, ind_drought_n_events = NA_real_,
+    ind_drought_duration_weeks = NA_real_, ind_drought_max_weeks = NA_real_,
+    ind_drought_severity = NA_real_, ind_drought_intensity = NA_real_
   )
   if (length(x) < 12) {
     return(na_row)
   }
-  sdv <- stats::sd(x, na.rm = TRUE)
-  if (abs(stats::median(x, na.rm = TRUE)) > 0.75 || !is.finite(sdv) ||
-    sdv < 0.4 || sdv > 2.5) {
-    cli::cli_abort(c(
-      "{.arg value} ({.field {value}}) does not look like a standardised index.",
-      i = 'Add one first: {.code lap_normalise_gwl("sgi")}, then {.code value = gwl_norm}.'
-    ))
-  }
-  below <- x < threshold
+  check_standardised(x, value)
+  ev <- drought_runs(x, threshold)
   tibble::tibble(
-    ind_drought_frequency = mean(below),
-    ind_drought_max_weeks = run_length_max(below),
+    ind_drought_frequency = mean(x < threshold),
+    ind_frac_below_normal = mean(x < 0),
     ind_index_min = min(x),
-    ind_frac_below_normal = mean(x < 0)
+    ind_drought_n_events = nrow(ev),
+    ind_drought_duration_weeks = if (nrow(ev)) mean(ev$len) else NA_real_,
+    ind_drought_max_weeks = if (nrow(ev)) max(ev$len) else 0,
+    ind_drought_severity = if (nrow(ev)) mean(ev$severity) else NA_real_,
+    ind_drought_intensity = if (nrow(ev)) mean(ev$severity / ev$len) else NA_real_
   )
+}
+
+#' Recovery from groundwater drought
+#'
+#' On a standardised index (see [lap_ind_drought()]): for each drought event
+#' (run of `value < threshold`), the number of timesteps from the event's
+#' minimum forward to the first `value >= 0`.
+#'
+#' \describe{
+#'   \item{`ind_drought_recovery_weeks`}{mean recovery time over events that do
+#'     recover}
+#'   \item{`ind_drought_n_unrecovered`}{number of events whose recovery is not
+#'     completed within the slice}
+#' }
+#'
+#' @inheritParams lap_ind_drought
+#' @return A one-row tibble with the two columns above.
+#' @references Peterson, T.J. et al. (2021) *Nature* 591, 597 (groundwater
+#'   drought that may not recover). USGS groundwater-drought metrics.
+#' @family indicators
+#' @export
+lap_ind_drought_recovery <- function(data, value = gwl_norm, date = "date",
+                                     threshold = -1, ...) {
+  value <- lap_eval_select_one(data, rlang::enquo(value), arg = "value")
+  date <- lap_eval_select_one(data, rlang::enquo(date), arg = "date", null_ok = TRUE)
+  x <- ind_series(data, value, date)$v
+  na_row <- tibble::tibble(
+    ind_drought_recovery_weeks = NA_real_, ind_drought_n_unrecovered = NA_real_
+  )
+  if (length(x) < 12) {
+    return(na_row)
+  }
+  check_standardised(x, value)
+  ev <- drought_runs(x, threshold)
+  rec <- ev$recovery[ev$recovered]
+  tibble::tibble(
+    ind_drought_recovery_weeks = if (length(rec)) mean(rec) else NA_real_,
+    ind_drought_n_unrecovered = sum(!ev$recovered)
+  )
+}
+
+
+# --- F+G. Climate coupling & anthropogenic imprint --------------------
+
+#' Climate response time and the climate-removed (anthropogenic) trend
+#'
+#' Cross-correlates the well's SGI (`value`, standardised - see
+#' [lap_ind_drought()]) against a co-located climate `driver` (precipitation,
+#' or P - PET), standardised as an SPI/SPEI-analog over accumulation windows.
+#' Add the driver with [lap_join_meteo()].
+#'
+#' \describe{
+#'   \item{`ind_accum_months`}{driver accumulation window of maximum correlation}
+#'   \item{`ind_climate_lag_months`}{lag at maximum correlation}
+#'   \item{`ind_response_months`}{`ind_accum_months / 2 + ind_climate_lag_months`
+#'     - the "peak-to-peak" propagation delay (Ebeling et al. 2025)}
+#'   \item{`ind_climate_cc`}{that maximum cross-correlation - how climate-driven
+#'     the well is}
+#'   \item{`ind_residual_trend_slope`, `ind_residual_trend_p_value`,
+#'     `ind_residual_trend_significant`}{Theil-Sen slope + Mann-Kendall test on
+#'     the annual-mean residual of `lm(SGI ~ SPI)` - the long-term change *not*
+#'     explained by climate. Compare with `ind_trend_slope`.}
+#' }
+#'
+#' @inheritParams lap_ind_drought
+#' @param driver <[`tidy-select`][dplyr::dplyr_tidy_select]> the climate driver
+#'   column (e.g. precipitation).
+#' @param max_acc,max_lag Largest accumulation window / lag to search, in months.
+#' @param alpha Significance level for `ind_residual_trend_significant`.
+#' @return A one-row tibble with the seven columns above.
+#' @references Ebeling, P. et al. (2025) *HESS* 29, 2925. Retike, K. et al.
+#'   (2020) *HESS* 24, 501 (residual screening for anthropogenic effects).
+#' @family indicators
+#' @export
+lap_ind_climate_signal <- function(data, value = gwl_norm, date = "date",
+                                   driver = precip, max_acc = 48L, max_lag = 24L,
+                                   alpha = 0.05, ...) {
+  value <- lap_eval_select_one(data, rlang::enquo(value), arg = "value")
+  date <- lap_eval_select_one(data, rlang::enquo(date), arg = "date")
+  driver <- lap_eval_select_one(data, rlang::enquo(driver), arg = "driver")
+  na_row <- tibble::tibble(
+    ind_accum_months = NA_real_, ind_climate_lag_months = NA_real_,
+    ind_response_months = NA_real_, ind_climate_cc = NA_real_,
+    ind_residual_trend_slope = NA_real_, ind_residual_trend_p_value = NA_real_,
+    ind_residual_trend_significant = NA
+  )
+  keep <- !is.na(data[[value]]) & !is.na(data[[date]]) & !is.na(data[[driver]])
+  d <- data[keep, , drop = FALSE]
+  if (nrow(d) < 60) {
+    return(na_row)
+  }
+  dd <- as.Date(d[[date]])
+  o <- order(dd)
+  fit <- climate_coupling(
+    d[[value]][o], d[[driver]][o], dd[o],
+    max_acc = max_acc, max_lag = max_lag
+  )
+  if (is.na(fit$cc)) {
+    return(na_row)
+  }
+  ok <- is.finite(fit$sgi) & is.finite(fit$spi)
+  res_trend <- na_row[, c(
+    "ind_residual_trend_slope", "ind_residual_trend_p_value",
+    "ind_residual_trend_significant"
+  )]
+  if (sum(ok) >= 36) {
+    resid <- fit$sgi[ok] - stats::fitted(stats::lm(fit$sgi[ok] ~ fit$spi[ok]))
+    # annual-mean the residuals by 12-month blocks -> Theil-Sen slope per year
+    blk <- ((seq_along(fit$sgi) - 1L) %/% 12L)[ok]
+    am <- tapply(resid, blk, mean)
+    if (length(am) >= 10) {
+      tk <- theil_sen_mann_kendall(as.numeric(names(am)), as.numeric(am))
+      res_trend <- tibble::tibble(
+        ind_residual_trend_slope = tk$slope,
+        ind_residual_trend_p_value = tk$p_value,
+        ind_residual_trend_significant = isTRUE(tk$p_value < alpha)
+      )
+    }
+  }
+  tibble::tibble(
+    ind_accum_months = fit$acc,
+    ind_climate_lag_months = fit$lag,
+    ind_response_months = fit$acc / 2 + fit$lag,
+    ind_climate_cc = fit$cc,
+    ind_residual_trend_slope = res_trend$ind_residual_trend_slope,
+    ind_residual_trend_p_value = res_trend$ind_residual_trend_p_value,
+    ind_residual_trend_significant = res_trend$ind_residual_trend_significant
+  )
+}
+
+
+# --- H. Aquifer physics ------------------------------------------------
+
+#' Master-recession-curve e-folding time
+#'
+#' Identifies sustained recession segments (falling / flat runs of at least
+#' `min_len` steps, tolerating a single up-step), fits `log(level - asymptote)`
+#' against time per segment and reports the median e-folding time. Short for
+#' fast, unconfined systems; long (many months) for slow, confined ones. Can
+#' lengthen as storage is depleted.
+#'
+#' \describe{
+#'   \item{`ind_recession_weeks`}{median segment e-folding time}
+#'   \item{`ind_recession_n_segments`}{number of segments that contributed}
+#' }
+#'
+#' @inheritParams lap_ind_flashiness
+#' @param min_len Minimum recession-segment length, in timesteps.
+#' @return A one-row tibble with the two columns above.
+#' @references Posavec, K. et al. (2017) *Groundwater* 55, 891 (master recession
+#'   curve). Fiorillo, F. (2014) *Water Resour. Manag.* 28, 1919.
+#' @family indicators
+#' @export
+lap_ind_recession <- function(data, value = gwl, date = "date",
+                              min_len = 8L, ...) {
+  value <- lap_eval_select_one(data, rlang::enquo(value), arg = "value")
+  date <- lap_eval_select_one(data, rlang::enquo(date), arg = "date", null_ok = TRUE)
+  s <- ind_series(data, value, date)
+  if (length(s$v) < 3L * min_len) {
+    return(tibble::tibble(ind_recession_weeks = NA_real_, ind_recession_n_segments = 0))
+  }
+  r <- recession_efold(s$v, min_len = min_len)
+  tibble::tibble(ind_recession_weeks = r$tau, ind_recession_n_segments = r$n)
 }

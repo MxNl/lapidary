@@ -59,20 +59,37 @@ should be a deliberate choice) and accepts:
 - one or more `lap_ind_*` functions, or a mix of keys and functions.
 
 `lap_indicator_registry()` (a small introspection helper, like
-`lap_pal_roles()`) returns `key | columns | needs_date | in_all | description`
-so callers never have to memorise the `lap_ind_*` names. The catalogue itself is
-the internal `indicator_catalog()` - a function returning `list(fn, columns,
-needs_date, in_all, delta_kind, description)` per key; adding an indicator = one
-new `lap_ind_*()` + one `indicator_catalog()` entry.
+`lap_pal_roles()`) returns `key | columns | needs_date | in_all | description |
+reference` so callers never have to memorise the `lap_ind_*` names. The
+catalogue itself is the internal `indicator_catalog()` - a function returning
+`list(fn, columns, needs_date, in_all, delta_kind, description, reference)` per
+key; adding an indicator = one new `lap_ind_*()` + one `indicator_catalog()`
+entry.
 
 `delta_kind` (a per-output-column character vector, `"diff"` / `"circular"` /
 `"none"`) tells `lap_indicator_delta()` how to difference each column between two
 periods - see ADR-0010.
 
+`reference` is a short literature citation surfaced in the registry; every
+`lap_ind_*()` also carries a roxygen `@references` block, and
+`vignette("indicators")` gives the long form (definition, formula,
+interpretation, hydrogeological meaning) per indicator.
+
+### Tunable arguments: `...` forwarding
+
+`lap_indicators()` / `lap_add_indicators()` / `lap_indicator_change()` forward
+`...` to every `lap_ind_*()` call (each `lap_ind_*()` ends its signature with
+`...` to swallow the rest). So `threshold`, `min_len`, `driver`, `max_acc` etc.
+are passable through a batch run, e.g.
+`lap_indicators(sgi, "climate_signal", value = gwl_norm, driver = precip)`.
+
 The catalogue as of this milestone: `amplitude`, `seasonal_amplitude`,
 `seasonality_strength`, `recharge_discharge`, `phase_regularity`,
 `extreme_months`, `flashiness`, `memory`, `rise_fall`, `trend`,
-`trend_extremes`, `step_change`, `trend_acceleration`, and (opt-in) `drought`.
+`trend_extremes`, `step_change`, `trend_acceleration`, `recession`
+(master-recession e-folding time), and (opt-in, need an SGI column) `drought`
+(run-theory event structure), `drought_recovery`, `climate_signal`
+(climate coupling + climate-removed trend - see ADR-0011).
 
 ## Consequences
 

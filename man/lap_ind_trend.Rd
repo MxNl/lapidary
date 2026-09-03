@@ -4,7 +4,14 @@
 \alias{lap_ind_trend}
 \title{Long-term trend (mean level)}
 \usage{
-lap_ind_trend(data, value = gwl, date = "date", min_years = 10L, alpha = 0.05)
+lap_ind_trend(
+  data,
+  value = gwl,
+  date = "date",
+  min_years = 10L,
+  alpha = 0.05,
+  ...
+)
 }
 \arguments{
 \item{data}{A one-series data frame.}
@@ -16,6 +23,9 @@ lap_ind_trend(data, value = gwl, date = "date", min_years = 10L, alpha = 0.05)
 \item{min_years}{Minimum number of years; below this the outputs are \code{NA}.}
 
 \item{alpha}{Significance level for \code{ind_trend_significant}.}
+
+\item{...}{Ignored; absorbs arguments forwarded to other indicators by
+\code{\link[=lap_indicators]{lap_indicators()}}.}
 }
 \value{
 A one-row tibble: \code{ind_trend_slope}, \code{ind_trend_p_value},
@@ -29,11 +39,14 @@ Theil-Sen slope + Mann-Kendall test on the annual-mean series (see
 \seealso{
 Other indicators: 
 \code{\link{lap_ind_amplitude}()},
+\code{\link{lap_ind_climate_signal}()},
 \code{\link{lap_ind_drought}()},
+\code{\link{lap_ind_drought_recovery}()},
 \code{\link{lap_ind_extreme_months}()},
 \code{\link{lap_ind_flashiness}()},
 \code{\link{lap_ind_memory}()},
 \code{\link{lap_ind_phase_regularity}()},
+\code{\link{lap_ind_recession}()},
 \code{\link{lap_ind_recharge_discharge}()},
 \code{\link{lap_ind_rise_fall}()},
 \code{\link{lap_ind_seasonal_amplitude}()},

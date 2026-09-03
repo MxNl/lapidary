@@ -34,20 +34,34 @@ tidyselect helpers).
 * `lap_make_hex_grid()`, `lap_aggregate_to_hex()`, `lap_circular_mean_month()`,
   `lap_germany_border()`.
 
-## Time-series indicators (see `docs/adr/0009`, `docs/adr/0010`)
+## Time-series indicators (see `docs/adr/0009`, `docs/adr/0010`, `docs/adr/0011`)
 * `lap_indicators()` collector + `lap_add_indicators()` for step-by-step
   appending; `ind_`-prefixed output columns. Per-well indicators and
   per-well-year summaries are separate tables (no `indicators=` on
   `lap_summarise_wells()`).
 * `.funs` selects indicators by `"all"`, registry key(s) (`c("amplitude",
-  "trend")`) or `lap_ind_*` functions, and is required.
+  "trend")`) or `lap_ind_*` functions, and is required. `...` on
+  `lap_indicators()` / `lap_add_indicators()` / `lap_indicator_change()` is
+  forwarded to every `lap_ind_*()` (`threshold`, `min_len`, `driver`, ...).
 * `lap_indicator_registry()` lists the catalogue (`key`, `columns`,
-  `needs_date`, `in_all`, `description`).
+  `needs_date`, `in_all`, `description`, `reference`). Each `lap_ind_*()` also
+  carries `@references`; `vignette("indicators")` is the long-form guide.
 * Catalogue: `amplitude`, `seasonal_amplitude`, `seasonality_strength`,
   `recharge_discharge`, `phase_regularity`, `extreme_months`, `flashiness`,
   `memory` (autocorrelation / e-folding), `rise_fall`, `trend`,
   `trend_extremes` (Sen slope of annual minima / maxima), `step_change`
-  (Pettitt), `trend_acceleration`, and (opt-in, needs an SGI column) `drought`.
+  (Pettitt), `trend_acceleration`, `recession` (master-recession e-folding
+  time), and (opt-in, need an SGI column) `drought` (run-theory event
+  structure: frequency, count, duration, severity, intensity),
+  `drought_recovery` (recovery time from drought minima), `climate_signal`.
+* `climate_signal` (needs an SGI column and a climate driver from
+  `lap_join_meteo()`): SPI/SPEI-analog cross-correlation gives the driver
+  accumulation, lag, `ind_response_months` and `ind_climate_cc`; the residual
+  of `lm(SGI ~ SPI)` gives a climate-removed (anthropogenic) trend
+  (`ind_residual_trend_slope` / `_p_value` / `_significant`).
+* `lap_join_meteo(x, vars, version)` left-joins GEMS-GER `meteo.parquet`
+  forcing columns (`HYRAS_pr`, `DWD_evapo_p`, ..., optionally renamed) onto a
+  GEMS-GER `gwl_ts`.
 * `lap_indicator_change(x, .funs, periods)` computes any indicator over several
   (possibly overlapping) year windows -> long `well_id | period | ind_*`.
   `lap_indicator_delta(change, from, to)` -> one row per well with

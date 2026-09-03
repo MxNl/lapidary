@@ -4,7 +4,7 @@
 \alias{lap_ind_recharge_discharge}
 \title{Length of the annual recharge and discharge periods}
 \usage{
-lap_ind_recharge_discharge(data, value = gwl, date = "date")
+lap_ind_recharge_discharge(data, value = gwl, date = "date", ...)
 }
 \arguments{
 \item{data}{A one-series data frame.}
@@ -12,6 +12,9 @@ lap_ind_recharge_discharge(data, value = gwl, date = "date")
 \item{value}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> level column.}
 
 \item{date}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> date column.}
+
+\item{...}{Ignored; absorbs arguments forwarded to other indicators by
+\code{\link[=lap_indicators]{lap_indicators()}}.}
 }
 \value{
 A one-row tibble: \code{ind_recharge_months}, \code{ind_discharge_months}.
@@ -25,11 +28,14 @@ for a series with no discernible annual cycle.
 \seealso{
 Other indicators: 
 \code{\link{lap_ind_amplitude}()},
+\code{\link{lap_ind_climate_signal}()},
 \code{\link{lap_ind_drought}()},
+\code{\link{lap_ind_drought_recovery}()},
 \code{\link{lap_ind_extreme_months}()},
 \code{\link{lap_ind_flashiness}()},
 \code{\link{lap_ind_memory}()},
 \code{\link{lap_ind_phase_regularity}()},
+\code{\link{lap_ind_recession}()},
 \code{\link{lap_ind_rise_fall}()},
 \code{\link{lap_ind_seasonal_amplitude}()},
 \code{\link{lap_ind_seasonality_strength}()},

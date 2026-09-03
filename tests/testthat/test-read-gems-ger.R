@@ -56,6 +56,36 @@ test_that("lap_read_gems_ger_wells returns a projected gwl_wells layer", {
   expect_true(all(c("surface_elevation", "aquifer_medium") %in% names(w)))
 })
 
+test_that("lap_join_meteo left-joins forcing columns onto a GEMS-GER gwl_ts", {
+  local_gems_fixture_cache()
+  lap_gems_ger_build_parquet(meteo = FALSE, overwrite = TRUE)
+  x <- lap_read_gems_ger()
+
+  # a minimal meteo.parquet (only HYRAS_pr, as in the fixtures)
+  meteo <- data.frame(
+    well_id = x$well_id, date = x$date,
+    HYRAS_pr = 3 + (as.integer(x$date) %% 11)
+  )
+  lap_write_gwl_parquet(meteo, "gems-ger", "1.0", which = "meteo", overwrite = TRUE)
+
+  j <- lap_join_meteo(x, c(precip = "HYRAS_pr"))
+  expect_s3_class(j, "gwl_ts")
+  expect_true("precip" %in% names(j))
+  expect_false("HYRAS_pr" %in% names(j))
+  expect_equal(nrow(j), nrow(x))
+  expect_false(anyNA(j$precip))
+
+  # unnamed vars keep their source name
+  expect_true("HYRAS_pr" %in% names(lap_join_meteo(x, "HYRAS_pr")))
+
+  expect_error(lap_join_meteo(x, "NOPE"), "Unknown forcing column")
+  not_gems <- new_gwl_ts(
+    data.frame(well_id = "w", date = as.Date("2000-01-01"), gwl = 1),
+    source = "correctiv"
+  )
+  expect_error(lap_join_meteo(not_gems, "HYRAS_pr"), "GEMS-GER")
+})
+
 test_that("lap_gems_ger_meta carries citation and licence", {
   m <- lap_gems_ger_meta()
   expect_match(m$licence, "CC-BY-NC-ND")

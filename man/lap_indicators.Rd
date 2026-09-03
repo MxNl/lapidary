@@ -4,7 +4,7 @@
 \alias{lap_indicators}
 \title{Compute time-series indicators per well}
 \usage{
-lap_indicators(x, .funs, by = well_id, value = gwl, date = "date")
+lap_indicators(x, .funs, by = well_id, value = gwl, date = "date", ...)
 }
 \arguments{
 \item{x}{A \code{gwl_ts} / data frame of time series (one row per well x date).}
@@ -25,6 +25,9 @@ Default \code{gwl}.}
 
 \item{date}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> the date column, or
 \code{NULL} for a series with no dates. Default \code{date}.}
+
+\item{...}{Extra arguments forwarded to every \verb{lap_ind_*()} (e.g.
+\code{threshold}, \code{min_len}, \code{driver}). Indicators ignore what they do not use.}
 }
 \value{
 A tibble: the \code{by} column(s) plus one column per indicator output
