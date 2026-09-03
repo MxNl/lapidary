@@ -39,10 +39,10 @@
 #' @examples
 #' data(gems_ger_sample, package = "lapidary", envir = environment())
 #' lap_indicators(gems_ger_sample, c(lap_ind_amplitude, lap_ind_extreme_months))
-lap_indicators <- function(x, .funs, by = well_id, value = gwl, date = date) {
+lap_indicators <- function(x, .funs, by = well_id, value = gwl, date = "date") {
   by <- lap_eval_select(x, rlang::enquo(by), arg = "by")
   value <- lap_eval_select_one(x, rlang::enquo(value), arg = "value")
-  date <- lap_eval_select_one(x, rlang::enquo(date), arg = "date", null_ok = TRUE)
+  date_col <- lap_eval_select_one(x, rlang::enquo(date), arg = "date", null_ok = TRUE)
   funs <- as_ind_funs(.funs)
 
   x <- tibble::as_tibble(x)
@@ -52,7 +52,7 @@ lap_indicators <- function(x, .funs, by = well_id, value = gwl, date = date) {
   rows <- lapply(parts, function(part) {
     key <- part[1, by, drop = FALSE]
     vals <- lapply(funs, function(f) {
-      out <- f(part, value = value, date = date)
+      out <- f(part, value = value, date = date_col)
       if (!is.data.frame(out) || nrow(out) != 1L) {
         cli::cli_abort("Every {.fn lap_ind_*} must return a one-row data frame.")
       }
@@ -97,7 +97,7 @@ as_ind_funs <- function(.funs, call = rlang::caller_env()) {
 #'   lap_add_indicators(gems_ger_sample, lap_ind_amplitude) |>
 #'   lap_add_indicators(gems_ger_sample, lap_ind_trend)
 lap_add_indicators <- function(data, x, .funs, by = well_id,
-                               value = gwl, date = date) {
+                               value = gwl, date = "date") {
   by_nm <- lap_eval_select(data, rlang::enquo(by), arg = "by")
   ind <- lap_indicators(
     x,
@@ -118,7 +118,7 @@ lap_add_indicators <- function(data, x, .funs, by = well_id,
 
 # --- indicator functions --------------------------------------------------
 #
-# Contract: `lap_ind_<name>(data, value = gwl, date = date, ...)` where `data`
+# Contract: `lap_ind_<name>(data, value = gwl, date = "date", ...)` where `data`
 # is a one-series slice. Return a one-row tibble with `ind_`-prefixed columns.
 # `value` / `date` are tidy-select (bare name, string, or a name held in a
 # variable - which is how `lap_indicators()` forwards them).
@@ -134,7 +134,7 @@ lap_add_indicators <- function(data, x, .funs, by = well_id,
 #' @return A one-row tibble: `ind_amplitude`.
 #' @family indicators
 #' @export
-lap_ind_amplitude <- function(data, value = gwl, date = date) {
+lap_ind_amplitude <- function(data, value = gwl, date = "date") {
   value <- lap_eval_select_one(data, rlang::enquo(value), arg = "value")
   v <- data[[value]]
   amp <- if (all(is.na(v))) NA_real_ else diff(range(v, na.rm = TRUE))
@@ -156,7 +156,7 @@ lap_ind_amplitude <- function(data, value = gwl, date = date) {
 #' @return A one-row tibble: `ind_min_month`, `ind_max_month`.
 #' @family indicators
 #' @export
-lap_ind_extreme_months <- function(data, value = gwl, date = date) {
+lap_ind_extreme_months <- function(data, value = gwl, date = "date") {
   value <- lap_eval_select_one(data, rlang::enquo(value), arg = "value")
   date <- lap_eval_select_one(data, rlang::enquo(date), arg = "date")
   d <- data[!is.na(data[[value]]) & !is.na(data[[date]]), , drop = FALSE]
@@ -193,7 +193,7 @@ lap_ind_extreme_months <- function(data, value = gwl, date = date) {
 #'   `ind_trend_significant`.
 #' @family indicators
 #' @export
-lap_ind_trend <- function(data, value = gwl, date = date,
+lap_ind_trend <- function(data, value = gwl, date = "date",
                           min_years = 10L, alpha = 0.05) {
   value <- lap_eval_select_one(data, rlang::enquo(value), arg = "value")
   date <- lap_eval_select_one(data, rlang::enquo(date), arg = "date")

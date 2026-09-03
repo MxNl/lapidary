@@ -9,9 +9,11 @@ lap_parquet_dir(source, version = "latest", create = FALSE)
 \arguments{
 \item{source}{Source key (e.g. \code{"gems-ger"}).}
 
-\item{version}{Version string, or \code{"latest"}.}
+\item{version}{Version string, or \code{"latest"} (resolved to the newest built
+version directory unless \code{create = TRUE}).}
 
-\item{create}{Create the directory.}
+\item{create}{Create the directory. When \code{TRUE}, \code{"latest"} is \emph{not}
+resolved (there may be nothing to resolve yet) - pass a concrete version.}
 }
 \value{
 A path string.

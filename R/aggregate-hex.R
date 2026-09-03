@@ -40,10 +40,11 @@ lap_aggregate_to_hex <- function(wells,
       cli::cli_abort("{.arg values} must have a {.field well_id} column.")
     }
     values[["well_id"]] <- as.character(values[["well_id"]])
-    wells <- merge(
-      wells[, "well_id"], values,
-      by = "well_id", all.x = FALSE
-    )
+    # inner join: wells absent from `values` are dropped from the aggregation
+    wells <- sf::st_as_sf(dplyr::inner_join(
+      wells["well_id"], values,
+      by = "well_id"
+    ))
   }
 
   flat <- sf::st_drop_geometry(wells)
@@ -77,7 +78,7 @@ lap_aggregate_to_hex <- function(wells,
   joined <- joined[!is.na(joined[["hex_id"]]), , drop = FALSE]
 
   parts <- split(joined, joined[["hex_id"]])
-  agg <- lapply(parts, function(part) {
+  agg <- dplyr::bind_rows(lapply(parts, function(part) {
     row <- list(hex_id = part[["hex_id"]][[1]], n_wells = nrow(part))
     for (col in cols) {
       row[[col]] <- if (col %in% circular) {
@@ -86,11 +87,10 @@ lap_aggregate_to_hex <- function(wells,
         mean(part[[col]], na.rm = TRUE)
       }
     }
-    as.data.frame(row, stringsAsFactors = FALSE)
-  })
-  agg <- do.call(rbind, agg)
+    tibble::as_tibble(row)
+  }))
 
-  out <- merge(grid, agg, by = "hex_id", all.x = TRUE)
+  out <- dplyr::left_join(sf::st_drop_geometry(grid), agg, by = "hex_id")
   out[["n_wells"]][is.na(out[["n_wells"]])] <- 0L
-  out
+  sf::st_sf(out, geometry = sf::st_geometry(grid))
 }

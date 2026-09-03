@@ -10,7 +10,8 @@ new_gwl_ts(x, variable = "gwl_m_asl", source = NA_character_)
 \arguments{
 \item{x}{A data frame / tibble with the required columns.}
 
-\item{variable}{Default value for the \code{variable} column when \code{x} lacks one.}
+\item{variable}{Value for the \code{variable} column when \code{x} lacks one (see
+Details for known values).}
 
 \item{source}{Default value for the \code{source} column when \code{x} lacks one.}
 }
@@ -20,11 +21,19 @@ A \code{gwl_ts} object (a classed tibble).
 \description{
 A \code{gwl_ts} is a \link[tibble:tibble]{tibble} with at least the columns
 \code{well_id} (character), \code{date} (\link[lubridate:date_utils]{lubridate::Date}), \code{gwl} (numeric), \code{variable}
-(character, naming the quantity and its units, e.g. \code{"gwl_m_asl"}) and
-\code{source} (character). An optional \code{gwl_flag} factor distinguishes
-\code{"observed"} from \code{"imputed"} values. Extra columns (for example
-meteorological forcing variables) are carried through untouched and ignored
-by the analysis functions.
+(character) and \code{source} (character). An optional \code{gwl_flag} factor
+distinguishes \code{"observed"} from \code{"imputed"} values. Extra columns (for
+example meteorological forcing variables) are carried through untouched;
+the analysis functions act only on the column you point them at.
+}
+\details{
+\code{variable} names \emph{what} \code{gwl} is, including its datum and units, so series
+with different conventions are never mixed silently. Known values:
+\describe{
+\item{\code{"gwl_m_asl"}}{groundwater level, metres above sea level (GEMS-GER)}
+\item{\code{"gwl_m_bgl"}}{depth to water, metres below ground level}
+\item{\code{"gwl_m"}}{level in metres, datum per source (CORRECTIV)}
+}
 }
 \examples{
 df <- data.frame(

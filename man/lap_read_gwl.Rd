@@ -9,19 +9,20 @@ lap_read_gwl(
   version = "latest",
   wells = NULL,
   date_range = NULL,
-  vars = "gwl"
+  variable = "gwl_m_asl"
 )
 }
 \arguments{
 \item{source}{Source key. Default \code{"gems-ger"}.}
 
-\item{version}{Version string or \code{"latest"}.}
+\item{version}{Version string, or \code{"latest"} (the newest built version).}
 
 \item{wells}{Optional character vector of \code{well_id}s to keep.}
 
 \item{date_range}{Optional length-2 \code{Date} (or coercible) vector.}
 
-\item{vars}{Ignored placeholder for forward compatibility (\code{"gwl"}).}
+\item{variable}{Value passed to \code{\link[=new_gwl_ts]{new_gwl_ts()}} for the \code{variable} column
+(names the quantity + units, e.g. \code{"gwl_m_asl"}).}
 }
 \value{
 A \code{gwl_ts}.

@@ -91,15 +91,14 @@ lap_correctiv_build_parquet <- function(overwrite = FALSE,
 #' Read CORRECTIV groundwater levels as a `gwl_ts`
 #'
 #' @inheritParams lap_read_gwl
-#' @return A `gwl_ts` (`source` = `"correctiv"`).
+#' @return A `gwl_ts` (`source` = `"correctiv"`, `variable` = `"gwl_m"`).
 #' @export
-lap_read_correctiv <- function(wells = NULL, date_range = NULL, vars = "gwl") {
-  out <- lap_read_gwl(
+lap_read_correctiv <- function(wells = NULL, date_range = NULL) {
+  lap_read_gwl(
     source = "correctiv", version = "1.0",
-    wells = wells, date_range = date_range, vars = vars
+    wells = wells, date_range = date_range,
+    variable = lap_correctiv_meta()$variable
   )
-  out[["variable"]] <- lap_correctiv_meta()$variable
-  out
 }
 
 #' Read CORRECTIV well metadata as a `gwl_wells` layer
@@ -111,7 +110,7 @@ lap_read_correctiv_wells <- function() {
     lap_cache_dir(), "sources", "correctiv", "download", "messstellen.csv"
   )
   if (!file.exists(csv)) lap_correctiv_download()
-  df <- utils::read.csv(csv)
+  df <- utils::read.csv(csv, encoding = "UTF-8")
   df <- df[stats::complete.cases(df[, c("longitude", "latitude")]), , drop = FALSE]
   df[["well_id"]] <- as.character(df[["ms_nr"]])
   keep <- intersect(

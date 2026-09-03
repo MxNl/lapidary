@@ -21,8 +21,11 @@
 #'   normalise. Default `gwl`.
 #' @param group <[`tidy-select`][dplyr::dplyr_tidy_select]> columns identifying
 #'   an independent series. Default `well_id`.
+#' @param date <[`tidy-select`][dplyr::dplyr_tidy_select]> the date column, used
+#'   only by `"sgi"` (to deseasonalise). Default `date`.
+#' @param into Name of the column to add. Default `"<value>_norm"`.
 #'
-#' @return `x` with a `gwl_norm` column added.
+#' @return `x` with the `into` column added.
 #' @references Bloomfield, J. P. and Marchant, B. P. (2013). Analysis of
 #'   groundwater drought building on the standardised precipitation index
 #'   approach. Hydrology and Earth System Sciences, 17, 4769-4787.
@@ -33,31 +36,32 @@
 lap_normalise_gwl <- function(x,
                           method = c("range", "zscore", "sgi"),
                           value = gwl,
-                          group = well_id) {
+                          group = well_id,
+                          date = "date",
+                          into = NULL) {
   method <- rlang::arg_match(method)
   value <- lap_eval_select_one(x, rlang::enquo(value), arg = "value")
   group <- lap_eval_select(x, rlang::enquo(group), arg = "group")
+  into <- into %||% paste0(value, "_norm")
 
   v <- x[[value]]
   grp <- interaction(x[group], drop = TRUE, lex.order = TRUE)
 
   if (method == "sgi") {
-    if (is.null(x[["date"]])) {
-      cli::cli_abort("{.val sgi} needs a {.field date} column.")
-    }
-    month <- as.integer(format(as.Date(x[["date"]]), "%m"))
+    date <- lap_eval_select_one(x, rlang::enquo(date), arg = "date")
+    month <- as.integer(format(as.Date(x[[date]]), "%m"))
     grp <- interaction(grp, month, drop = TRUE, lex.order = TRUE)
-    x[["gwl_norm"]] <- ave_by(v, grp, normal_scores)
+    x[[into]] <- ave_by(v, grp, normal_scores)
   } else if (method == "range") {
-    x[["gwl_norm"]] <- ave_by(v, grp, function(z) {
+    x[[into]] <- ave_by(v, grp, function(z) {
       rng <- range(z, na.rm = TRUE)
-      if (diff(rng) == 0) {
+      if (!is.finite(diff(rng)) || diff(rng) == 0) {
         return(rep(0.5, length(z)))
       }
       (z - rng[[1]]) / diff(rng)
     })
   } else {
-    x[["gwl_norm"]] <- ave_by(v, grp, function(z) {
+    x[[into]] <- ave_by(v, grp, function(z) {
       s <- stats::sd(z, na.rm = TRUE)
       if (is.na(s) || s == 0) {
         return(z - mean(z, na.rm = TRUE))

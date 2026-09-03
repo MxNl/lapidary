@@ -4,7 +4,7 @@
 \alias{lap_ind_amplitude}
 \title{Groundwater-level amplitude}
 \usage{
-lap_ind_amplitude(data, value = gwl, date = date)
+lap_ind_amplitude(data, value = gwl, date = "date")
 }
 \arguments{
 \item{data}{A one-series data frame.}

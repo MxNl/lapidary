@@ -4,21 +4,14 @@
 \alias{lap_read_gems_ger}
 \title{Read GEMS-GER groundwater levels as a \code{gwl_ts}}
 \usage{
-lap_read_gems_ger(
-  version = "latest",
-  wells = NULL,
-  date_range = NULL,
-  vars = "gwl"
-)
+lap_read_gems_ger(version = "latest", wells = NULL, date_range = NULL)
 }
 \arguments{
-\item{version}{Version string or \code{"latest"}.}
+\item{version}{Version string, or \code{"latest"} (the newest built version).}
 
 \item{wells}{Optional character vector of \code{well_id}s to keep.}
 
 \item{date_range}{Optional length-2 \code{Date} (or coercible) vector.}
-
-\item{vars}{Ignored placeholder for forward compatibility (\code{"gwl"}).}
 }
 \value{
 A \code{gwl_ts} (\code{variable} = \code{"gwl_m_asl"}, \code{source} = \code{"gems-ger"}).

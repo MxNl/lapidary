@@ -4,7 +4,7 @@
 \alias{lap_add_indicators}
 \title{Append time-series indicators to a well-level table}
 \usage{
-lap_add_indicators(data, x, .funs, by = well_id, value = gwl, date = date)
+lap_add_indicators(data, x, .funs, by = well_id, value = gwl, date = "date")
 }
 \arguments{
 \item{data}{A well-level table (e.g. from \code{\link[=lap_summarise_wells]{lap_summarise_wells()}} grouped by

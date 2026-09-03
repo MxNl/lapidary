@@ -70,17 +70,30 @@ lap_summarise_wells <- function(x,
   }
 
   val <- rlang::sym(value)
-  out <- x |>
-    dplyr::group_by(dplyr::across(dplyr::all_of(by))) |>
-    dplyr::summarise(
-      min_gwl = min(!!val, na.rm = TRUE),
-      max_gwl = max(!!val, na.rm = TRUE),
-      mean_gwl = mean(!!val, na.rm = TRUE),
-      median_gwl = stats::median(!!val, na.rm = TRUE),
-      sd_gwl = stats::sd(!!val, na.rm = TRUE),
-      n_obs = dplyr::n(),
-      .groups = "drop"
-    )
+  summarise_grouped <- function() {
+    x |>
+      dplyr::group_by(dplyr::across(dplyr::all_of(by))) |>
+      dplyr::summarise(
+        min_gwl = min(!!val, na.rm = TRUE),
+        max_gwl = max(!!val, na.rm = TRUE),
+        mean_gwl = mean(!!val, na.rm = TRUE),
+        median_gwl = stats::median(!!val, na.rm = TRUE),
+        sd_gwl = stats::sd(!!val, na.rm = TRUE),
+        n_obs = dplyr::n(),
+        .groups = "drop"
+      )
+  }
+  # An all-NA group makes base `min()/max()` return +/-Inf with a warning
+  # (the DuckDB path already yields NULL). Muffle that specific warning here;
+  # the non-finite values are turned into NA below.
+  out <- withCallingHandlers(
+    summarise_grouped(),
+    warning = function(w) {
+      if (grepl("no non-missing arguments", conditionMessage(w), fixed = TRUE)) {
+        invokeRestart("muffleWarning")
+      }
+    }
+  )
 
   if (has_year) {
     out <- dplyr::mutate(
@@ -96,6 +109,12 @@ lap_summarise_wells <- function(x,
   }
   if (!is_lazy || collect) {
     out <- tibble::as_tibble(out)
+    # base min()/max()/sd() on all-NA groups -> Inf / -Inf / NaN; normalise to NA
+    stat_cols <- c("min_gwl", "max_gwl", "mean_gwl", "median_gwl", "sd_gwl")
+    out[stat_cols] <- lapply(out[stat_cols], function(v) {
+      v[!is.finite(v)] <- NA_real_
+      v
+    })
   }
 
   if (!is.null(indicators)) {

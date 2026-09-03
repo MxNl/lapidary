@@ -10,7 +10,8 @@ lap_gw_trend(
   time = year,
   by = well_id,
   min_n = 10L,
-  conf_level = 0.95
+  conf_level = 0.95,
+  warn_n = 1000L
 )
 }
 \arguments{
@@ -29,6 +30,10 @@ Default \code{well_id}.}
 \item{min_n}{Minimum number of finite observations required per group.}
 
 \item{conf_level}{Confidence level for the slope confidence interval.}
+
+\item{warn_n}{Warn when any group has more than this many rows: the pairwise
+Theil-Sen estimator is O(n^2), so this function expects an \emph{annual} series
+(summarise first, or use \code{\link[=lap_ind_trend]{lap_ind_trend()}}).}
 }
 \value{
 A tibble with one row per group: \code{n}, \code{slope} (value units per year),

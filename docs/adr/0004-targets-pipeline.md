@@ -13,11 +13,13 @@ hand is error-prone and the provenance is lost.
 ## Decision
 
 A `{targets}` pipeline in `_targets.R` at the repo root chains the package's own
-exported functions into a cached DAG:
-`gems_download -> gems_parquet -> wells_sf / sample_wells -> gwl_sample ->
-well_summary / well_trend / hex_example -> sample_data_files`.
-It is parameterised by a `config` list (source, version, reference period,
-sample size).
+functions into a cached DAG:
+`gems_download -> gems_parquet -> wells_sf / sample_wells -> gwl_sample_raw ->
+sample_data -> sample_data_files`.
+The sampling and dataset build are the internal helpers in `R/sample-data.R`,
+which `data-raw/make_sample_data.R` calls too, so both routes produce identical
+`data/*.rda`. It is parameterised by a `config` list (version, reference
+period, sample size + seed, hex cellsize).
 
 The pipeline is **maintainer infrastructure**. It is `.Rbuildignore`d, is not
 part of the package API, and nothing in `lapidary` or in downstream (Shiny /

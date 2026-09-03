@@ -54,6 +54,12 @@ test_that("lap_indicators accepts a single function and a list", {
   expect_error(lap_indicators(x, .funs = "nope"), "lap_ind")
 })
 
+test_that("a date-needing indicator on a frame without a date column errors cleanly", {
+  df <- data.frame(well_id = c("a", "a"), gwl = c(1, 2))
+  expect_error(lap_indicators(df, lap_ind_extreme_months), "date")
+  expect_error(lap_ind_trend(df), "date")
+})
+
 test_that("lap_summarise_wells(indicators=) folds indicators into one pass", {
   x <- new_gwl_ts(make_ts_fixture(1991:1995))
   s <- lap_summarise_wells(x, by = well_id, indicators = c(lap_ind_amplitude, lap_ind_trend))

@@ -4,7 +4,7 @@
 \alias{lap_indicators}
 \title{Compute time-series indicators per well}
 \usage{
-lap_indicators(x, .funs, by = well_id, value = gwl, date = date)
+lap_indicators(x, .funs, by = well_id, value = gwl, date = "date")
 }
 \arguments{
 \item{x}{A \code{gwl_ts} / data frame of time series (one row per well x date).}

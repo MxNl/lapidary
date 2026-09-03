@@ -4,7 +4,7 @@
 \alias{lap_ind_extreme_months}
 \title{Timing of the annual groundwater extremes}
 \usage{
-lap_ind_extreme_months(data, value = gwl, date = date)
+lap_ind_extreme_months(data, value = gwl, date = "date")
 }
 \arguments{
 \item{data}{A one-series data frame.}

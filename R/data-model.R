@@ -8,8 +8,7 @@
 # Analysis and plotting code only ever sees these shapes, so a new source is
 # "supported" as soon as it has a reader that returns them.
 
-#' Required columns of a `gwl_ts` table
-#' @keywords internal
+# Required columns of a `gwl_ts` table (name -> expected type).
 gwl_ts_required <- c(
   well_id  = "character",
   date     = "Date",
@@ -18,24 +17,46 @@ gwl_ts_required <- c(
   source   = "character"
 )
 
-#' Optional-but-recognised columns of a `gwl_ts` table
-#' @keywords internal
+# Optional-but-recognised columns of a `gwl_ts` table.
 gwl_ts_optional <- c(
   gwl_flag = "factor"
 )
+
+# Allowed values of the `gwl_flag` column.
+gwl_flag_levels <- c("observed", "imputed")
+
+# Reject a `gwl_flag` vector with values outside `gwl_flag_levels` (NA allowed).
+check_gwl_flag <- function(flag, arg = "gwl_flag", call = rlang::caller_env()) {
+  bad <- setdiff(stats::na.omit(unique(as.character(flag))), gwl_flag_levels)
+  if (length(bad)) {
+    cli::cli_abort(c(
+      "{.field {arg}} has unexpected value{?s} {.val {bad}}.",
+      i = "Allowed: {.val {gwl_flag_levels}} (or {.val NA})."
+    ), call = call)
+  }
+  invisible(TRUE)
+}
 
 #' The `gwl_ts` groundwater time-series class
 #'
 #' A `gwl_ts` is a [tibble][tibble::tibble] with at least the columns
 #' `well_id` (character), `date` ([Date]), `gwl` (numeric), `variable`
-#' (character, naming the quantity and its units, e.g. `"gwl_m_asl"`) and
-#' `source` (character). An optional `gwl_flag` factor distinguishes
-#' `"observed"` from `"imputed"` values. Extra columns (for example
-#' meteorological forcing variables) are carried through untouched and ignored
-#' by the analysis functions.
+#' (character) and `source` (character). An optional `gwl_flag` factor
+#' distinguishes `"observed"` from `"imputed"` values. Extra columns (for
+#' example meteorological forcing variables) are carried through untouched;
+#' the analysis functions act only on the column you point them at.
+#'
+#' `variable` names *what* `gwl` is, including its datum and units, so series
+#' with different conventions are never mixed silently. Known values:
+#' \describe{
+#'   \item{`"gwl_m_asl"`}{groundwater level, metres above sea level (GEMS-GER)}
+#'   \item{`"gwl_m_bgl"`}{depth to water, metres below ground level}
+#'   \item{`"gwl_m"`}{level in metres, datum per source (CORRECTIV)}
+#' }
 #'
 #' @param x A data frame / tibble with the required columns.
-#' @param variable Default value for the `variable` column when `x` lacks one.
+#' @param variable Value for the `variable` column when `x` lacks one (see
+#'   Details for known values).
 #' @param source Default value for the `source` column when `x` lacks one.
 #'
 #' @return A `gwl_ts` object (a classed tibble).
@@ -57,14 +78,8 @@ new_gwl_ts <- function(x, variable = "gwl_m_asl", source = NA_character_) {
   if (!is.null(x[["gwl"]])) x[["gwl"]] <- as.numeric(x[["gwl"]])
   if (!is.null(x[["gwl_flag"]]) && !is.factor(x[["gwl_flag"]])) {
     raw_flag <- as.character(x[["gwl_flag"]])
-    bad <- setdiff(stats::na.omit(unique(raw_flag)), c("observed", "imputed"))
-    if (length(bad)) {
-      cli::cli_abort(c(
-        "{.field gwl_flag} has unexpected value{?s} {.val {bad}}.",
-        i = "Allowed: {.val observed} / {.val imputed} (or {.val NA})."
-      ))
-    }
-    x[["gwl_flag"]] <- factor(raw_flag, levels = c("observed", "imputed"))
+    check_gwl_flag(raw_flag)
+    x[["gwl_flag"]] <- factor(raw_flag, levels = gwl_flag_levels)
   }
   # Put the canonical columns first for readability.
   front <- intersect(
@@ -123,10 +138,8 @@ check_gwl_ts <- function(x, arg = rlang::caller_arg(x),
       ))
     }
   }
-  if (!is.null(x[["gwl_flag"]]) &&
-    !all(stats::na.omit(as.character(x[["gwl_flag"]])) %in%
-      c("observed", "imputed"))) {
-    problems <- c(problems, "gwl_flag values must be 'observed' or 'imputed'")
+  if (!is.null(x[["gwl_flag"]])) {
+    check_gwl_flag(x[["gwl_flag"]], arg = paste0(arg, "$gwl_flag"), call = call)
   }
   if (length(problems)) {
     cli::cli_abort(c(
@@ -187,8 +200,7 @@ print.gwl_ts <- function(x, ...) {
 
 # gwl_wells -------------------------------------------------------------------
 
-#' Required columns / properties of a `gwl_wells` layer
-#' @keywords internal
+# Canonical CRS for a `gwl_wells` layer: ETRS89 / UTM zone 32N.
 gwl_wells_crs <- 25832L
 
 #' Build a `gwl_wells` well-metadata layer

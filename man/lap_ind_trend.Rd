@@ -4,7 +4,7 @@
 \alias{lap_ind_trend}
 \title{Long-term trend as an indicator}
 \usage{
-lap_ind_trend(data, value = gwl, date = date, min_years = 10L, alpha = 0.05)
+lap_ind_trend(data, value = gwl, date = "date", min_years = 10L, alpha = 0.05)
 }
 \arguments{
 \item{data}{A one-series data frame.}

@@ -7,7 +7,7 @@
 lap_write_gwl_parquet(
   x,
   source,
-  version = "latest",
+  version = "1.0",
   which = c("gwl", "meteo"),
   overwrite = FALSE
 )
@@ -17,7 +17,7 @@ lap_write_gwl_parquet(
 
 \item{source}{Source key.}
 
-\item{version}{Version string.}
+\item{version}{Concrete version string (not \code{"latest"}).}
 
 \item{which}{\code{"gwl"} or \code{"meteo"}.}
 

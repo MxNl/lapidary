@@ -29,3 +29,25 @@ test_that("sgi requires a date column", {
   df <- data.frame(well_id = "a", gwl = 1:10)
   expect_error(lap_normalise_gwl(df, "sgi"), "date")
 })
+
+test_that("output column is named after `value` (or `into`)", {
+  x <- new_gwl_ts(make_ts_fixture())
+  expect_true("gwl_norm" %in% names(lap_normalise_gwl(x, "range")))
+
+  x2 <- x
+  x2$depth <- -x2$gwl
+  out <- lap_normalise_gwl(x2, "zscore", value = depth)
+  expect_true("depth_norm" %in% names(out))
+  expect_false("gwl_norm" %in% names(out))
+
+  expect_true("foo" %in% names(lap_normalise_gwl(x, "range", into = "foo")))
+})
+
+test_that("sgi accepts a non-default date column", {
+  x <- new_gwl_ts(make_ts_fixture(1991:1994))
+  x$measured_on <- x$date
+  x$date <- NULL
+  out <- lap_normalise_gwl(x, "sgi", date = measured_on)
+  expect_true("gwl_norm" %in% names(out))
+  expect_equal(mean(out$gwl_norm, na.rm = TRUE), 0, tolerance = 0.05)
+})

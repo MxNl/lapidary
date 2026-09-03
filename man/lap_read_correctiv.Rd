@@ -4,17 +4,15 @@
 \alias{lap_read_correctiv}
 \title{Read CORRECTIV groundwater levels as a \code{gwl_ts}}
 \usage{
-lap_read_correctiv(wells = NULL, date_range = NULL, vars = "gwl")
+lap_read_correctiv(wells = NULL, date_range = NULL)
 }
 \arguments{
 \item{wells}{Optional character vector of \code{well_id}s to keep.}
 
 \item{date_range}{Optional length-2 \code{Date} (or coercible) vector.}
-
-\item{vars}{Ignored placeholder for forward compatibility (\code{"gwl"}).}
 }
 \value{
-A \code{gwl_ts} (\code{source} = \code{"correctiv"}).
+A \code{gwl_ts} (\code{source} = \code{"correctiv"}, \code{variable} = \code{"gwl_m"}).
 }
 \description{
 Read CORRECTIV groundwater levels as a \code{gwl_ts}
