@@ -37,6 +37,7 @@ Suggests:
     ggtext,
     knitr,
     patchwork,
+    pkgdown,
     ragg,
     rmarkdown,
     rnaturalearth,
@@ -53,5 +54,5 @@ Suggests:
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 LazyData: true
-URL: https://github.com/mxnl/lapidary
+URL: https://github.com/mxnl/lapidary, https://mxnl.github.io/lapidary/
 BugReports: https://github.com/mxnl/lapidary/issues

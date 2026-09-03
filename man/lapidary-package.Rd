@@ -12,6 +12,7 @@ Tools to ingest, normalise and analyse groundwater-level time series for Germany
 Useful links:
 \itemize{
   \item \url{https://github.com/mxnl/lapidary}
+  \item \url{https://mxnl.github.io/lapidary/}
   \item Report bugs at \url{https://github.com/mxnl/lapidary/issues}
 }
 
