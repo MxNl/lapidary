@@ -81,3 +81,25 @@ lap_circular_mean_month <- function(month, na.rm = TRUE) {
   if (m > 12.5) m <- m - 12 # keep the result in (0.5, 12.5]
   m
 }
+
+# Signed month difference b - a, wrapped to (-6, 6]: "b is this many months
+# later than a" (negative = earlier). Vectorised.
+circular_month_diff <- function(a, b) {
+  d <- (b - a) %% 12
+  ifelse(d > 6, d - 12, d)
+}
+
+# Circular standard deviation of months, expressed in months (0 = perfectly
+# regular, up to ~3.4 for a uniform spread).
+circular_month_sd <- function(month, na.rm = TRUE) {
+  if (na.rm) month <- month[!is.na(month)]
+  if (length(month) < 2) {
+    return(NA_real_)
+  }
+  ang <- (month - 1) / 12 * 2 * pi
+  r <- sqrt(mean(cos(ang))^2 + mean(sin(ang))^2)
+  if (r <= 0) {
+    return(NA_real_)
+  }
+  sqrt(-2 * log(r)) / (2 * pi) * 12
+}

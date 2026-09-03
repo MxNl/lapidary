@@ -66,7 +66,8 @@ lap_add_reference_period <- function(x,
   x
 }
 
-validate_periods <- function(periods, call = rlang::caller_env()) {
+validate_periods <- function(periods, allow_overlap = FALSE,
+                             call = rlang::caller_env()) {
   if (!is.list(periods) || is.null(names(periods)) || any(!nzchar(names(periods)))) {
     cli::cli_abort("{.arg periods} must be a fully named list.", call = call)
   }
@@ -80,15 +81,16 @@ validate_periods <- function(periods, call = rlang::caller_env()) {
     }
     p
   })
-  # Overlap check.
-  ord <- order(vapply(periods, `[[`, integer(1), 1))
-  sorted <- periods[ord]
-  for (i in seq_len(length(sorted) - 1)) {
-    if (sorted[[i]][[2]] >= sorted[[i + 1]][[1]]) {
-      cli::cli_abort(c(
-        "Reference periods must not overlap.",
-        x = "{.val {names(sorted)[i]}} and {.val {names(sorted)[i + 1]}} overlap."
-      ), call = call)
+  if (!allow_overlap) {
+    ord <- order(vapply(periods, `[[`, integer(1), 1))
+    sorted <- periods[ord]
+    for (i in seq_len(length(sorted) - 1)) {
+      if (sorted[[i]][[2]] >= sorted[[i + 1]][[1]]) {
+        cli::cli_abort(c(
+          "Reference periods must not overlap.",
+          x = "{.val {names(sorted)[i]}} and {.val {names(sorted)[i + 1]}} overlap."
+        ), call = call)
+      }
     }
   }
   periods

@@ -8,7 +8,8 @@ lap_indicator_registry()
 }
 \value{
 A tibble with one row per indicator: \code{key} (use it in \code{.funs}),
-\code{columns} (the \verb{ind_*} columns it emits), \code{needs_date} and \code{description}.
+\code{columns} (the \verb{ind_*} columns it emits), \code{needs_date}, \code{in_all} (whether
+\code{.funs = "all"} includes it) and \code{description}.
 }
 \description{
 Lists what \code{\link[=lap_indicators]{lap_indicators()}} can compute, so you do not have to memorise the
