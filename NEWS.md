@@ -34,7 +34,7 @@ tidyselect helpers).
 * `lap_make_hex_grid()`, `lap_aggregate_to_hex()`, `lap_circular_mean_month()`,
   `lap_germany_border()`.
 
-## Time-series indicators (see `docs/adr/0009`)
+## Time-series indicators (see `docs/adr/0009`, `docs/adr/0010`)
 * `lap_indicators()` collector + `lap_add_indicators()` for step-by-step
   appending; `ind_`-prefixed output columns. Per-well indicators and
   per-well-year summaries are separate tables (no `indicators=` on
@@ -42,8 +42,16 @@ tidyselect helpers).
 * `.funs` selects indicators by `"all"`, registry key(s) (`c("amplitude",
   "trend")`) or `lap_ind_*` functions, and is required.
 * `lap_indicator_registry()` lists the catalogue (`key`, `columns`,
-  `needs_date`, `description`).
-* `lap_ind_amplitude()`, `lap_ind_extreme_months()`, `lap_ind_trend()`.
+  `needs_date`, `in_all`, `description`).
+* Catalogue: `amplitude`, `seasonal_amplitude`, `seasonality_strength`,
+  `recharge_discharge`, `phase_regularity`, `extreme_months`, `flashiness`,
+  `memory` (autocorrelation / e-folding), `rise_fall`, `trend`,
+  `trend_extremes` (Sen slope of annual minima / maxima), `step_change`
+  (Pettitt), `trend_acceleration`, and (opt-in, needs an SGI column) `drought`.
+* `lap_indicator_change(x, .funs, periods)` computes any indicator over several
+  (possibly overlapping) year windows -> long `well_id | period | ind_*`.
+  `lap_indicator_delta(change, from, to)` -> one row per well with
+  `<col>_<from>`, `<col>_<to>`, `<col>_change` (catalog-aware differencing).
 
 ## Style scheme & i18n
 * `lap_tokens()`, `theme_lapidary()`, `scale_fill/colour_lapidary_c/d()`,

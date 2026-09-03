@@ -88,6 +88,32 @@ lap_summarise_wells(gems_ger_sample, by = well_id) |>
   head()
 ```
 
+### Change over decades
+
+`lap_indicator_change()` computes any indicator over several (possibly
+overlapping) year windows; `lap_indicator_delta()` turns that into one row per
+well with the change between two of them.
+
+```{r}
+chg <- lap_indicator_change(
+  gems_ger_sample, c("trend", "seasonal_amplitude", "extreme_months"),
+  periods = list(reference = c(1991, 2010), recent = c(2011, 2022))
+)
+
+lap_indicator_delta(chg, from = "reference", to = "recent") |>
+  dplyr::select(well_id, dplyr::ends_with("_change")) |>
+  head()
+```
+
+Drought indicators expect a standardised index — add one first:
+
+```{r}
+gems_ger_sample |>
+  lap_normalise_gwl("sgi") |>
+  lap_indicators("drought", value = gwl_norm) |>
+  head()
+```
+
 Normalisation makes wells comparable:
 
 ```{r}

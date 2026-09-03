@@ -9,5 +9,5 @@ NULL
 
 # Bare column names used as tidy-select argument defaults (see R/utils-tidyselect.R).
 utils::globalVariables(c(
-  ".", "gwl", "mean_gwl", "well_id", "year", "date"
+  ".", "gwl", "gwl_norm", "mean_gwl", "well_id", "year", "date"
 ))

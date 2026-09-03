@@ -53,21 +53,31 @@ you want both. No `lap_ind_*()` is ever handed two frames.
 `.funs` is **required** (running the whole catalogue on thousands of wells
 should be a deliberate choice) and accepts:
 
-- `"all"` - every indicator in `lap_indicator_registry()`;
+- `"all"` - every indicator whose `in_all` flag is set (`drought` is excluded:
+  it needs an SGI column, so it is opt-in);
 - a character vector of registry **keys** (`c("amplitude", "trend")`);
 - one or more `lap_ind_*` functions, or a mix of keys and functions.
 
 `lap_indicator_registry()` (a small introspection helper, like
-`lap_pal_roles()`) returns `key | columns | needs_date | description` so callers
-never have to memorise the `lap_ind_*` names. The catalogue itself is the
-internal `indicator_catalog()` - a function returning `list(fn, columns,
-needs_date, description)` per key; adding an indicator = one new `lap_ind_*()` +
-one `indicator_catalog()` entry.
+`lap_pal_roles()`) returns `key | columns | needs_date | in_all | description`
+so callers never have to memorise the `lap_ind_*` names. The catalogue itself is
+the internal `indicator_catalog()` - a function returning `list(fn, columns,
+needs_date, in_all, delta_kind, description)` per key; adding an indicator = one
+new `lap_ind_*()` + one `indicator_catalog()` entry.
+
+`delta_kind` (a per-output-column character vector, `"diff"` / `"circular"` /
+`"none"`) tells `lap_indicator_delta()` how to difference each column between two
+periods - see ADR-0010.
+
+The catalogue as of this milestone: `amplitude`, `seasonal_amplitude`,
+`seasonality_strength`, `recharge_discharge`, `phase_regularity`,
+`extreme_months`, `flashiness`, `memory`, `rise_fall`, `trend`,
+`trend_extremes`, `step_change`, `trend_acceleration`, and (opt-in) `drought`.
 
 ## Consequences
 
-- Adding a metric = one new `lap_ind_*()` function + one `indicator_catalog()`
-  entry (key, emitted columns, `needs_date`, description).
+- Adding a metric = one new `lap_ind_*()` function (`R/ind-catalog.R`) + one
+  `indicator_catalog()` entry.
 - `lap_gw_trend()` (full trend table with CIs) and `lap_ind_trend()` (trend as
   an indicator column) share the internal `theil_sen_mann_kendall()`.
 - The collector materialises the series in memory (`split()` per well); a lazy
