@@ -1,0 +1,232 @@
+# Package index
+
+## Data model
+
+Canonical `gwl_ts` / `gwl_wells` shapes, constructors and validators.
+
+- [`new_gwl_ts()`](https://mxnl.github.io/lapidary/reference/new_gwl_ts.md)
+  :
+
+  The `gwl_ts` groundwater time-series class
+
+- [`as_gwl_ts()`](https://mxnl.github.io/lapidary/reference/as_gwl_ts.md)
+  :
+
+  Coerce to `gwl_ts`
+
+- [`validate_gwl_ts()`](https://mxnl.github.io/lapidary/reference/validate_gwl_ts.md)
+  :
+
+  Validate a `gwl_ts` table
+
+- [`check_gwl_ts()`](https://mxnl.github.io/lapidary/reference/check_gwl_ts.md)
+  :
+
+  Check that an object satisfies the `gwl_ts` contract
+
+- [`new_gwl_wells()`](https://mxnl.github.io/lapidary/reference/new_gwl_wells.md)
+  :
+
+  Build a `gwl_wells` well-metadata layer
+
+- [`check_gwl_wells()`](https://mxnl.github.io/lapidary/reference/check_gwl_wells.md)
+  :
+
+  Check that an object satisfies the `gwl_wells` contract
+
+## Ingest & caching
+
+Parquet-artifact / DuckDB-engine backend and the dataset readers.
+
+- [`lap_read_gwl()`](https://mxnl.github.io/lapidary/reference/lap_read_gwl.md)
+  : Read a validated groundwater time series from the Parquet cache
+
+- [`lap_gwl_tbl()`](https://mxnl.github.io/lapidary/reference/lap_gwl_tbl.md)
+  : Lazy table over a source's groundwater Parquet dataset
+
+- [`lap_gwl_query()`](https://mxnl.github.io/lapidary/reference/lap_gwl_query.md)
+  : Run a lazy query against a source and collect the result
+
+- [`lap_write_gwl_parquet()`](https://mxnl.github.io/lapidary/reference/lap_write_gwl_parquet.md)
+  : Write a groundwater data frame to the Parquet cache
+
+- [`lap_csvs_to_parquet()`](https://mxnl.github.io/lapidary/reference/lap_csvs_to_parquet.md)
+  : Convert a directory of per-well CSV files into one Parquet file
+
+- [`lap_read_gems_ger()`](https://mxnl.github.io/lapidary/reference/lap_read_gems_ger.md)
+  :
+
+  Read GEMS-GER groundwater levels as a `gwl_ts`
+
+- [`lap_read_gems_ger_wells()`](https://mxnl.github.io/lapidary/reference/lap_read_gems_ger_wells.md)
+  :
+
+  Read GEMS-GER well metadata as a `gwl_wells` layer
+
+- [`lap_gems_ger_download()`](https://mxnl.github.io/lapidary/reference/lap_gems_ger_download.md)
+  : Download and extract the GEMS-GER dataset
+
+- [`lap_gems_ger_build_parquet()`](https://mxnl.github.io/lapidary/reference/lap_gems_ger_build_parquet.md)
+  : Build the GEMS-GER Parquet artifacts
+
+- [`lap_gems_ger_meta()`](https://mxnl.github.io/lapidary/reference/lap_gems_ger_meta.md)
+  : GEMS-GER dataset metadata
+
+- [`lap_join_meteo()`](https://mxnl.github.io/lapidary/reference/lap_join_meteo.md)
+  : Join GEMS-GER meteorological forcings onto a groundwater series
+
+- [`lap_read_correctiv()`](https://mxnl.github.io/lapidary/reference/lap_read_correctiv.md)
+  :
+
+  Read CORRECTIV groundwater levels as a `gwl_ts`
+
+- [`lap_read_correctiv_wells()`](https://mxnl.github.io/lapidary/reference/lap_read_correctiv_wells.md)
+  :
+
+  Read CORRECTIV well metadata as a `gwl_wells` layer
+
+- [`lap_correctiv_download()`](https://mxnl.github.io/lapidary/reference/lap_correctiv_download.md)
+  : Download the CORRECTIV groundwater CSVs
+
+- [`lap_correctiv_build_parquet()`](https://mxnl.github.io/lapidary/reference/lap_correctiv_build_parquet.md)
+  : Build the CORRECTIV Parquet artifact
+
+- [`lap_correctiv_meta()`](https://mxnl.github.io/lapidary/reference/lap_correctiv_meta.md)
+  : CORRECTIV groundwater dataset metadata
+
+- [`lap_cache_dir()`](https://mxnl.github.io/lapidary/reference/lap_cache_dir.md)
+  : lapidary cache directory
+
+- [`lap_cache_info()`](https://mxnl.github.io/lapidary/reference/lap_cache_info.md)
+  : Report on the lapidary cache
+
+- [`lap_parquet_dir()`](https://mxnl.github.io/lapidary/reference/lap_parquet_dir.md)
+  : Directory holding a source's Parquet artifacts
+
+- [`lap_duckdb_con()`](https://mxnl.github.io/lapidary/reference/lap_duckdb_con.md)
+  : Open a DuckDB connection
+
+- [`lap_disconnect()`](https://mxnl.github.io/lapidary/reference/lap_disconnect.md)
+  : Close a DuckDB connection
+
+## Analysis primitives
+
+- [`lap_add_reference_period()`](https://mxnl.github.io/lapidary/reference/lap_add_reference_period.md)
+  : Tag rows with a reference-period label
+- [`lap_reference_periods()`](https://mxnl.github.io/lapidary/reference/lap_reference_periods.md)
+  : Standard climate reference periods
+- [`lap_use_water_year()`](https://mxnl.github.io/lapidary/reference/lap_use_water_year.md)
+  : Add hydrological (water) year and month columns
+- [`lap_summarise_wells()`](https://mxnl.github.io/lapidary/reference/lap_summarise_wells.md)
+  : Per-well (and per-period) groundwater summaries
+- [`lap_wells_with_coverage()`](https://mxnl.github.io/lapidary/reference/lap_wells_with_coverage.md)
+  : Keep only wells with enough temporal coverage
+- [`lap_normalise_gwl()`](https://mxnl.github.io/lapidary/reference/lap_normalise_gwl.md)
+  : Normalise groundwater levels for cross-region comparison
+- [`lap_gw_trend()`](https://mxnl.github.io/lapidary/reference/lap_gw_trend.md)
+  : Non-parametric trend of groundwater time series
+- [`lap_circular_mean_month()`](https://mxnl.github.io/lapidary/reference/lap_circular_mean_month.md)
+  : Circular mean of a month-of-year value
+
+## Time-series indicators
+
+Per-well metrics computed from the hydrograph. See
+[`vignette("indicators")`](https://mxnl.github.io/lapidary/articles/indicators.md)
+for the long-form guide.
+
+- [`lap_indicators()`](https://mxnl.github.io/lapidary/reference/lap_indicators.md)
+  : Compute time-series indicators per well
+- [`lap_add_indicators()`](https://mxnl.github.io/lapidary/reference/lap_add_indicators.md)
+  : Append time-series indicators to a well-level table
+- [`lap_indicator_registry()`](https://mxnl.github.io/lapidary/reference/lap_indicator_registry.md)
+  : The available time-series indicators
+- [`lap_indicator_change()`](https://mxnl.github.io/lapidary/reference/lap_indicator_change.md)
+  : Compute indicators over several time windows
+- [`lap_indicator_delta()`](https://mxnl.github.io/lapidary/reference/lap_indicator_delta.md)
+  : Difference indicators between two periods
+- [`lap_ind_amplitude()`](https://mxnl.github.io/lapidary/reference/lap_ind_amplitude.md)
+  : Groundwater-level amplitude
+- [`lap_ind_climate_signal()`](https://mxnl.github.io/lapidary/reference/lap_ind_climate_signal.md)
+  : Climate response time and the climate-removed (anthropogenic) trend
+- [`lap_ind_drought()`](https://mxnl.github.io/lapidary/reference/lap_ind_drought.md)
+  : Drought characterisation from a standardised index
+- [`lap_ind_drought_recovery()`](https://mxnl.github.io/lapidary/reference/lap_ind_drought_recovery.md)
+  : Recovery from groundwater drought
+- [`lap_ind_extreme_months()`](https://mxnl.github.io/lapidary/reference/lap_ind_extreme_months.md)
+  : Timing of the annual groundwater extremes
+- [`lap_ind_flashiness()`](https://mxnl.github.io/lapidary/reference/lap_ind_flashiness.md)
+  : Flashiness of the hydrograph
+- [`lap_ind_memory()`](https://mxnl.github.io/lapidary/reference/lap_ind_memory.md)
+  : Aquifer memory (persistence)
+- [`lap_ind_phase_regularity()`](https://mxnl.github.io/lapidary/reference/lap_ind_phase_regularity.md)
+  : Year-to-year regularity of the seasonal timing
+- [`lap_ind_recession()`](https://mxnl.github.io/lapidary/reference/lap_ind_recession.md)
+  : Master-recession-curve e-folding time
+- [`lap_ind_recharge_discharge()`](https://mxnl.github.io/lapidary/reference/lap_ind_recharge_discharge.md)
+  : Length of the annual recharge and discharge periods
+- [`lap_ind_rise_fall()`](https://mxnl.github.io/lapidary/reference/lap_ind_rise_fall.md)
+  : Rising- vs falling-limb rates
+- [`lap_ind_seasonal_amplitude()`](https://mxnl.github.io/lapidary/reference/lap_ind_seasonal_amplitude.md)
+  : Mean within-year (seasonal) amplitude
+- [`lap_ind_seasonality_strength()`](https://mxnl.github.io/lapidary/reference/lap_ind_seasonality_strength.md)
+  : Strength of the seasonal cycle
+- [`lap_ind_step_change()`](https://mxnl.github.io/lapidary/reference/lap_ind_step_change.md)
+  : Step change (Pettitt change-point)
+- [`lap_ind_trend()`](https://mxnl.github.io/lapidary/reference/lap_ind_trend.md)
+  : Long-term trend (mean level)
+- [`lap_ind_trend_acceleration()`](https://mxnl.github.io/lapidary/reference/lap_ind_trend_acceleration.md)
+  : Trend acceleration
+- [`lap_ind_trend_extremes()`](https://mxnl.github.io/lapidary/reference/lap_ind_trend_extremes.md)
+  : Trend of the annual minima and maxima
+
+## Spatial aggregation
+
+- [`lap_make_hex_grid()`](https://mxnl.github.io/lapidary/reference/lap_make_hex_grid.md)
+  : Build a hexagonal grid covering a region
+- [`lap_aggregate_to_hex()`](https://mxnl.github.io/lapidary/reference/lap_aggregate_to_hex.md)
+  : Aggregate per-well values onto a hexagonal grid
+- [`lap_germany_border()`](https://mxnl.github.io/lapidary/reference/lap_germany_border.md)
+  : Administrative border of Germany
+
+## Style scheme & i18n
+
+- [`theme_lapidary()`](https://mxnl.github.io/lapidary/reference/theme_lapidary.md)
+  : The lapidary ggplot2 theme
+- [`scale_fill_lapidary_c()`](https://mxnl.github.io/lapidary/reference/scale_lapidary.md)
+  [`scale_colour_lapidary_c()`](https://mxnl.github.io/lapidary/reference/scale_lapidary.md)
+  [`scale_color_lapidary_c()`](https://mxnl.github.io/lapidary/reference/scale_lapidary.md)
+  [`scale_fill_lapidary_d()`](https://mxnl.github.io/lapidary/reference/scale_lapidary.md)
+  [`scale_colour_lapidary_d()`](https://mxnl.github.io/lapidary/reference/scale_lapidary.md)
+  [`scale_color_lapidary_d()`](https://mxnl.github.io/lapidary/reference/scale_lapidary.md)
+  : lapidary continuous fill / colour scales
+- [`lap_tokens()`](https://mxnl.github.io/lapidary/reference/lap_tokens.md)
+  : lapidary design tokens
+- [`lap_pal_roles()`](https://mxnl.github.io/lapidary/reference/lap_pal_roles.md)
+  : Names of the lapidary palette roles
+- [`lap_accents()`](https://mxnl.github.io/lapidary/reference/lap_accents.md)
+  : A named vector of the semantic accent colours
+- [`lap_fonts()`](https://mxnl.github.io/lapidary/reference/lap_fonts.md)
+  : Register the lapidary fonts
+- [`lap_font_families()`](https://mxnl.github.io/lapidary/reference/lap_font_families.md)
+  : Font family names used by lapidary
+- [`ggsave_lapidary()`](https://mxnl.github.io/lapidary/reference/ggsave_lapidary.md)
+  : Save a lapidary plot at a named size preset
+- [`lap_preset()`](https://mxnl.github.io/lapidary/reference/lap_preset.md)
+  : Look up an output preset
+- [`lap_preset_names()`](https://mxnl.github.io/lapidary/reference/lap_preset_names.md)
+  : Output presets for lapidary graphics
+- [`lap_tr()`](https://mxnl.github.io/lapidary/reference/lap_tr.md) :
+  Translate a registry string
+- [`lap_lang()`](https://mxnl.github.io/lapidary/reference/lap_lang.md)
+  : Get or set the default label language
+- [`lap_langs()`](https://mxnl.github.io/lapidary/reference/lap_langs.md)
+  : Supported interface languages
+
+## Datasets
+
+- [`gems_ger_sample`](https://mxnl.github.io/lapidary/reference/gems_ger_sample.md)
+  : GEMS-GER sample groundwater time series
+- [`gems_ger_wells_sample`](https://mxnl.github.io/lapidary/reference/gems_ger_wells_sample.md)
+  : GEMS-GER sample well metadata
+- [`germany_hex_sample`](https://mxnl.github.io/lapidary/reference/germany_hex_sample.md)
+  : Example hexagon aggregation over Germany
