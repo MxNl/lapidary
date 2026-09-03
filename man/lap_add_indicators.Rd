@@ -12,7 +12,7 @@ lap_add_indicators(data, x, .funs, by = well_id, value = gwl, date = "date")
 
 \item{x}{The time series the indicators are computed from.}
 
-\item{.funs}{A \verb{lap_ind_*} function or a list of them.}
+\item{.funs}{Which indicators to compute; see \code{\link[=lap_indicators]{lap_indicators()}}.}
 
 \item{by}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> join key(s), present in
 both \code{data} and \code{x}. Default \code{well_id}.}
@@ -29,8 +29,6 @@ them on \code{by}.
 }
 \examples{
 data(gems_ger_sample, package = "lapidary", envir = environment())
-base <- lap_summarise_wells(gems_ger_sample, by = well_id)
-base |>
-  lap_add_indicators(gems_ger_sample, lap_ind_amplitude) |>
-  lap_add_indicators(gems_ger_sample, lap_ind_trend)
+lap_summarise_wells(gems_ger_sample, by = well_id) |>
+  lap_add_indicators(gems_ger_sample, "all")
 }

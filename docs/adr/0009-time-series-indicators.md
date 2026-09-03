@@ -34,28 +34,40 @@ table and the original time series.
 
 ### The pipeline (the "elegant way")
 
-An indicator is a **function of the time series, never of the summary**. The
-summary is not a prerequisite - it is a sibling table, joined on `well_id` at
-the end. So no `lap_ind_*()` is ever handed two frames.
+An indicator is a **function of the time series, never of the summary**.
+Per-well-year summaries (`lap_summarise_wells()`, whose job is feeding
+`lap_gw_trend()` and annual plots) and per-well indicators are **deliberately
+separate tables** at different aggregation levels; join them on `well_id` when
+you want both. No `lap_ind_*()` is ever handed two frames.
 
-- `lap_ind_<name>(data, value = gwl, date = date)` - pure, one series slice in,
-  a one-row tibble of `ind_*` scalars out.
+- `lap_ind_<name>(data, value = gwl, date = "date")` - pure, one series slice
+  in, a one-row tibble of `ind_*` scalars out.
 - `lap_indicators(x, .funs, by = well_id, value, date)` - the collector: the
-  time series goes in **once**, with a set of `lap_ind_*` functions; one row
-  per well comes out.
-- `lap_summarise_wells(x, ..., indicators = c(lap_ind_...))` - folds the
-  collector into the same call, so the common case is **one function, one data
-  frame**: stats and indicators computed from the same series, returned merged.
-  Only valid for a well-level grouping (indicators are one value per well).
-- `lap_add_indicators(well_table, x, .funs, by = well_id)` - the only helper
-  that takes both a table and the time series, for appending metrics step by
-  step. It is an explicit, key-checked left join; `x` is passed once per call.
-  Preserves `sf` geometry.
+  time series goes in **once**; one row per well comes out.
+- `lap_add_indicators(well_table, x, .funs, by = well_id)` - takes a well-level
+  table + the time series and left-joins the indicators on, for building a
+  feature table step by step. Explicit, key-checked; preserves `sf` geometry.
+
+### Selecting indicators
+
+`.funs` is **required** (running the whole catalogue on thousands of wells
+should be a deliberate choice) and accepts:
+
+- `"all"` - every indicator in `lap_indicator_registry()`;
+- a character vector of registry **keys** (`c("amplitude", "trend")`);
+- one or more `lap_ind_*` functions, or a mix of keys and functions.
+
+`lap_indicator_registry()` (a small introspection helper, like
+`lap_pal_roles()`) returns `key | columns | needs_date | description` so callers
+never have to memorise the `lap_ind_*` names. The catalogue itself is the
+internal `lap_ind_registry()` - a function returning `list(fn, columns,
+needs_date, description)` per key; adding an indicator = one new `lap_ind_*()` +
+one registry entry.
 
 ## Consequences
 
-- Adding a metric = one new `lap_ind_*()` function + its definition/provenance;
-  nothing else changes.
+- Adding a metric = one new `lap_ind_*()` function + one `lap_ind_registry()`
+  entry (key, emitted columns, `needs_date`, description).
 - `lap_gw_trend()` (full trend table with CIs) and `lap_ind_trend()` (trend as
   an indicator column) share the internal `theil_sen_mann_kendall()`.
 - The collector materialises the series in memory (`split()` per well); a lazy

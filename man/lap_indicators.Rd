@@ -9,8 +9,13 @@ lap_indicators(x, .funs, by = well_id, value = gwl, date = "date")
 \arguments{
 \item{x}{A \code{gwl_ts} / data frame of time series (one row per well x date).}
 
-\item{.funs}{A \verb{lap_ind_*} function, or a list/vector of them
-(e.g. \code{c(lap_ind_amplitude, lap_ind_trend)}).}
+\item{.funs}{Which indicators to compute. Required. One of:
+\itemize{
+\item \code{"all"} - every indicator in \code{\link[=lap_indicator_registry]{lap_indicator_registry()}};
+\item a character vector of registry keys, e.g. \code{c("amplitude", "trend")};
+\item one or more \verb{lap_ind_*} functions, e.g. \code{c(lap_ind_amplitude, lap_ind_trend)};
+\item a mix of keys and functions.
+}}
 
 \item{by}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> the series-identifying
 column(s). Default \code{well_id}.}
@@ -26,14 +31,14 @@ A tibble: the \code{by} column(s) plus one column per indicator output
 (all \code{ind_}-prefixed).
 }
 \description{
-Applies one or more \verb{lap_ind_*()} functions to each series in \code{x} and
-column-binds the results into a well-level table.
+Applies a selection of \verb{lap_ind_*()} indicator functions to each series in
+\code{x} and column-binds the results into a well-level table.
 }
 \examples{
 data(gems_ger_sample, package = "lapidary", envir = environment())
-lap_indicators(gems_ger_sample, c(lap_ind_amplitude, lap_ind_extreme_months))
+lap_indicators(gems_ger_sample, "all")
+lap_indicators(gems_ger_sample, c("amplitude", "extreme_months"))
 }
 \seealso{
-\code{\link[=lap_summarise_wells]{lap_summarise_wells()}} (\verb{indicators=} argument),
-\code{\link[=lap_add_indicators]{lap_add_indicators()}}
+\code{\link[=lap_indicator_registry]{lap_indicator_registry()}}, \code{\link[=lap_add_indicators]{lap_add_indicators()}}
 }

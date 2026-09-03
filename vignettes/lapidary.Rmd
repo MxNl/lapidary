@@ -69,17 +69,21 @@ head(trends[order(trends$slope), c("well_id", "slope", "p_value", "direction")])
 
 ### Time-series indicators
 
-Derived per-well metrics (`ind_*` columns) are computed straight from the time
-series. Pass `lap_ind_*()` functions to `lap_summarise_wells(indicators = )` for
-a single pass, or use `lap_indicators()` / `lap_add_indicators()` to build a set
-step by step.
+Derived *per-well* metrics (`ind_*` columns) are computed straight from the time
+series — a separate table from the per-well-year summary above.
+`lap_indicator_registry()` lists what is available:
 
 ```{r}
-lap_summarise_wells(
-  gems_ger_sample,
-  by = well_id,
-  indicators = c(lap_ind_amplitude, lap_ind_extreme_months, lap_ind_trend)
-) |>
+lap_indicator_registry()
+```
+
+Compute them with `lap_indicators()`, or append them to an existing well-level
+table with `lap_add_indicators()`. `.funs` takes `"all"`, registry keys, or
+`lap_ind_*()` functions.
+
+```{r}
+lap_summarise_wells(gems_ger_sample, by = well_id) |>
+  lap_add_indicators(gems_ger_sample, "all") |>
   dplyr::select(well_id, mean_gwl, dplyr::starts_with("ind_")) |>
   head()
 ```
