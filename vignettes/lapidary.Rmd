@@ -105,6 +105,14 @@ lap_indicator_delta(chg, from = "reference", to = "recent") |>
   head()
 ```
 
+`lap_period_windows()` derives the `periods` list from the record itself, so you
+do not hand-write year pairs:
+
+```{r}
+lap_period_windows(gems_ger_sample, "first_vs_last_decade")
+lap_period_windows(gems_ger_sample, "decade_per_decade")
+```
+
 Drought indicators expect a standardised index — add one first:
 
 ```{r}

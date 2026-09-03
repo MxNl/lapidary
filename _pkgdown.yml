@@ -54,6 +54,7 @@ reference:
   contents:
   - lap_add_reference_period
   - lap_reference_periods
+  - lap_period_windows
   - lap_use_water_year
   - lap_summarise_wells
   - lap_wells_with_coverage

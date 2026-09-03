@@ -27,6 +27,10 @@ tidyselect helpers).
 
 ## Analysis primitives
 * `lap_add_reference_period()`, `lap_reference_periods()`, `lap_use_water_year()`.
+* `lap_period_windows()` derives a `periods` list from a record's date range
+  (`first_vs_last_decade`, `first_vs_last_half`, `decade_per_decade`, or from a
+  `c(first_year, last_year)` vector) to feed `lap_indicator_change()` /
+  `lap_add_reference_period()` without hand-writing year pairs.
 * `lap_summarise_wells()` (in-memory or pushed down to DuckDB),
   `lap_wells_with_coverage()`.
 * `lap_normalise_gwl()` — `range`, `zscore`, `sgi`.
