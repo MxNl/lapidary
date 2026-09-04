@@ -74,6 +74,12 @@ tidyselect helpers).
 ## Style scheme & i18n
 * `lap_tokens()`, `theme_lapidary()`, `scale_fill/colour_lapidary_c/d()`,
   `lap_accents()`, `lap_fonts()`.
+* The continuous `scale_*_lapidary_c()` scales are now **binned** at pretty
+  round breaks with a long, thin `guide_coloursteps()` bar
+  (`lap_coloursteps_guide()`); pass `binned = FALSE` for a smooth gradient.
+  Their legend title defaults to `lap_prettify_label()` of the mapped variable
+  (`ind_trend_slope` -> `"Trend slope"`). `lap_na_guide()` adds a "no data" key
+  for `NA` regions (e.g. empty hexes).
 * `ggsave_lapidary()` with web/A4–A0 presets that also fix `showtext` DPI.
 * Bilingual (`en`/`de`) string registry: `lap_tr()`, `lap_lang()`,
   `lap_langs()`.
