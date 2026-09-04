@@ -80,7 +80,11 @@ column’s theoretical range and a short citation are in the registry:</p>
 <p><code>range</code> is <code>" | "</code>-separated and lines up with
 <code>columns</code> (e.g. <code>drought</code> emits
 <code>ind_drought_frequency</code> in <code>[0, 1]</code> and
-<code>ind_index_min</code> in <code>(-Inf, Inf)</code>).</p>
+<code>ind_index_min</code> in <code>(-Inf, Inf)</code>). Every section
+below also states its range in interval notation —
+<code>[</code>/<code>]</code> closed, <code>(</code>/<code>)</code>
+open, <code>Inf</code> unbounded, <code>{FALSE, TRUE}</code> for the
+logical flags.</p>
 <p>All indicators take <code>value</code> / <code>date</code> as
 [tidy-select][dplyr::dplyr_tidy_select] arguments and NA-guard short
 input. Extra arguments (<code>threshold</code>, <code>min_len</code>,
@@ -94,6 +98,7 @@ input. Extra arguments (<code>threshold</code>, <code>min_len</code>,
 <h3 id="amplitude-ind_amplitude">
 <code>amplitude</code> — <code>ind_amplitude</code><a class="anchor" aria-label="anchor" href="#amplitude-ind_amplitude"></a>
 </h3>
+<p><em>Range <code>[0, Inf)</code>.</em></p>
 <p><code>max - min</code> of the level over the whole slice. The crudest
 measure of how much a well moves. Inflated by any long-term trend — use
 <code>seasonal_amplitude</code> for the within-year signal.</p>
@@ -103,6 +108,7 @@ measure of how much a well moves. Inflated by any long-term trend — use
 <code>seasonal_amplitude</code> —
 <code>ind_seasonal_amplitude</code><a class="anchor" aria-label="anchor" href="#seasonal_amplitude-ind_seasonal_amplitude"></a>
 </h3>
+<p><em>Range <code>[0, Inf)</code>.</em></p>
 <p>Mean, over calendar years, of the annual <code>max - min</code>. The
 typical size of the yearly recharge–discharge swing, with the
 multi-decadal drift removed. Large in shallow unconfined aquifers under
@@ -114,6 +120,7 @@ systems.</p>
 <code>seasonality_strength</code> —
 <code>ind_seasonality_strength</code><a class="anchor" aria-label="anchor" href="#seasonality_strength-ind_seasonality_strength"></a>
 </h3>
+<p><em>Range <code>[0, 1]</code>.</em></p>
 <p><code>max(0, 1 - var(remainder) / var(seasonal + remainder))</code>
 from an STL decomposition ([stats::stl()]) of the monthly-mean series
 (Wang, Smith &amp; Hyndman 2006). 0 = no detectable annual cycle (the
@@ -126,6 +133,9 @@ annual cycle.</p>
 <code>recharge_discharge</code> — <code>ind_recharge_months</code>,
 <code>ind_discharge_months</code><a class="anchor" aria-label="anchor" href="#recharge_discharge-ind_recharge_months-ind_discharge_months"></a>
 </h3>
+<p><em>Ranges <code>ind_recharge_months</code> <code>[1, 12]</code>,
+<code>ind_discharge_months</code> <code>[0, 11]</code> (they sum to
+12).</em></p>
 <p>From the 12 climatological monthly means: the number of months from
 the annual trough up to the annual peak (the mean rising limb) and its
 complement to 12. A short recharge / long discharge limb is a system
@@ -136,6 +146,7 @@ summer.</p>
 <h3 id="phase_regularity-ind_min_month_sd">
 <code>phase_regularity</code> — <code>ind_min_month_sd</code><a class="anchor" aria-label="anchor" href="#phase_regularity-ind_min_month_sd"></a>
 </h3>
+<p><em>Range <code>[0, Inf)</code> (a circular SD, in months).</em></p>
 <p>Circular standard deviation (in months, Mardia &amp; Jupp 2000) of
 the month in which each year’s minimum falls. Near 0 = a metronomic
 seasonal cycle (the low always lands in the same month); large =
@@ -151,6 +162,8 @@ storms rather than the seasonal balance.</p>
 <code>extreme_months</code> — <code>ind_min_month</code>,
 <code>ind_max_month</code><a class="anchor" aria-label="anchor" href="#extreme_months-ind_min_month-ind_max_month"></a>
 </h3>
+<p><em>Range <code>(0.5, 12.5]</code> for both columns (circular
+months).</em></p>
 <p>Circular-mean month of the annual minimum and of the annual maximum
 level (<code><a href="../reference/lap_circular_mean_month.html">lap_circular_mean_month()</a></code>; values in
 <code>(0.5, 12.5]</code>). Together they bracket the discharge and
@@ -162,6 +175,7 @@ integrating spring rain.</p>
 <h3 id="flashiness-ind_flashiness">
 <code>flashiness</code> — <code>ind_flashiness</code><a class="anchor" aria-label="anchor" href="#flashiness-ind_flashiness"></a>
 </h3>
+<p><em>Range <code>[1, Inf)</code>.</em></p>
 <p><code>sum(|diff(level)|) / (max - min)</code> — the total path length
 the series travels per unit of its overall span (Baker et al. 2004, the
 Richards–Baker index applied to heads). High for flashy shallow
@@ -173,6 +187,8 @@ smooth, strongly filtered deep or confined ones.</p>
 <code>memory</code> — <code>ind_acf1</code>,
 <code>ind_memory_weeks</code><a class="anchor" aria-label="anchor" href="#memory-ind_acf1-ind_memory_weeks"></a>
 </h3>
+<p><em>Ranges <code>ind_acf1</code> <code>[-1, 1]</code>,
+<code>ind_memory_weeks</code> <code>[1, Inf)</code>.</em></p>
 <p>On the month-deseasonalised series: the lag-1 autocorrelation and the
 first lag at which the autocorrelation falls below <code>1/e</code>.
 This is the <strong>internal</strong> persistence timescale — how many
@@ -186,6 +202,8 @@ below.</p>
 <code>rise_fall</code> — <code>ind_rise_rate</code>,
 <code>ind_fall_rate</code><a class="anchor" aria-label="anchor" href="#rise_fall-ind_rise_rate-ind_fall_rate"></a>
 </h3>
+<p><em>Ranges <code>ind_rise_rate</code>, <code>ind_fall_rate</code>
+both <code>(0, Inf)</code>.</em></p>
 <p>Median magnitude of the positive and of the negative step-to-step
 changes. A large rise rate with a small fall rate is a system driven by
 sharp recharge pulses that then drain slowly — the classic saw-tooth
@@ -200,6 +218,9 @@ karst or shallow-sand hydrograph.</p>
 <code>trend</code> — <code>ind_trend_slope</code>,
 <code>ind_trend_p_value</code>, <code>ind_trend_significant</code><a class="anchor" aria-label="anchor" href="#trend-ind_trend_slope-ind_trend_p_value-ind_trend_significant"></a>
 </h3>
+<p><em>Ranges <code>ind_trend_slope</code> <code>(-Inf, Inf)</code>,
+<code>ind_trend_p_value</code> <code>[0, 1]</code>,
+<code>ind_trend_significant</code> <code>{FALSE, TRUE}</code>.</em></p>
 <p>Theil–Sen slope (level units per year) plus a Mann–Kendall test on
 the annual-mean series. The <strong>raw</strong> long-term trend — it
 mixes the climate signal (wet/dry decades) with any human influence.
@@ -212,6 +233,7 @@ drivers.</p>
 <code>trend_extremes</code> — <code>ind_trend_min_slope</code>,
 <code>ind_trend_max_slope</code><a class="anchor" aria-label="anchor" href="#trend_extremes-ind_trend_min_slope-ind_trend_max_slope"></a>
 </h3>
+<p><em>Range <code>(-Inf, Inf)</code> for both columns.</em></p>
 <p>Theil–Sen slope of the series of annual minima and of annual maxima.
 If <code>ind_trend_min_slope</code> is more negative than the mean
 trend, the <em>drought floor</em> is dropping faster than the average
@@ -223,6 +245,9 @@ stable.</p>
 <code>step_change</code> — <code>ind_step_year</code>,
 <code>ind_step_magnitude</code>, <code>ind_step_p_value</code><a class="anchor" aria-label="anchor" href="#step_change-ind_step_year-ind_step_magnitude-ind_step_p_value"></a>
 </h3>
+<p><em>Ranges <code>ind_step_year</code> a calendar year (no fixed
+range), <code>ind_step_magnitude</code> <code>(-Inf, Inf)</code>,
+<code>ind_step_p_value</code> <code>[0, 1]</code>.</em></p>
 <p>Pettitt change-point (1979): the single most likely year of an abrupt
 shift in the annual mean, its size (after minus before) and approximate
 significance. Captures post-drought regime shifts (2003, 2018–2019 in
@@ -232,6 +257,7 @@ Central Europe) and the onset of abstraction.</p>
 <h3 id="trend_acceleration-ind_trend_accel">
 <code>trend_acceleration</code> — <code>ind_trend_accel</code><a class="anchor" aria-label="anchor" href="#trend_acceleration-ind_trend_accel"></a>
 </h3>
+<p><em>Range <code>(-Inf, Inf)</code>.</em></p>
 <p>Theil–Sen slope over the second half of the record minus the slope
 over the first half. Negative = an accelerating decline (the recent
 slope is steeper); positive = a recovering or decelerating well.</p>
@@ -256,47 +282,57 @@ theory (Yevjevich 1967).</p>
 </h3>
 <table class="table">
 <colgroup>
-<col width="50%">
-<col width="50%">
+<col width="33%">
+<col width="33%">
+<col width="33%">
 </colgroup>
 <thead><tr class="header">
 <th>column</th>
 <th>meaning</th>
+<th>range</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td><code>ind_drought_frequency</code></td>
 <td>fraction of timesteps below <code>threshold</code>
 </td>
+<td><code>[0, 1]</code></td>
 </tr>
 <tr class="even">
 <td><code>ind_frac_below_normal</code></td>
 <td>fraction of timesteps below 0</td>
+<td><code>[0, 1]</code></td>
 </tr>
 <tr class="odd">
 <td><code>ind_index_min</code></td>
 <td>the most negative SGI in the slice</td>
+<td><code>(-Inf, Inf)</code></td>
 </tr>
 <tr class="even">
 <td><code>ind_drought_n_events</code></td>
 <td>number of events</td>
+<td><code>[0, Inf)</code></td>
 </tr>
 <tr class="odd">
 <td><code>ind_drought_duration_weeks</code></td>
 <td>mean event duration</td>
+<td><code>[1, Inf)</code></td>
 </tr>
 <tr class="even">
 <td><code>ind_drought_max_weeks</code></td>
 <td>longest single event</td>
+<td><code>[0, Inf)</code></td>
 </tr>
 <tr class="odd">
 <td><code>ind_drought_severity</code></td>
 <td>mean cumulative deficit per event (<code>sum(-SGI)</code> over the
 run)</td>
+<td><code>(0, Inf)</code></td>
 </tr>
 <tr class="even">
 <td><code>ind_drought_intensity</code></td>
 <td>mean deficit per timestep (severity / duration)</td>
+<td><code>(0, Inf)</code></td>
 </tr>
 </tbody>
 </table>
@@ -310,6 +346,9 @@ into long, deep deficits.</p>
 <code>ind_drought_recovery_weeks</code>,
 <code>ind_drought_n_unrecovered</code><a class="anchor" aria-label="anchor" href="#drought_recovery-ind_drought_recovery_weeks-ind_drought_n_unrecovered"></a>
 </h3>
+<p><em>Ranges <code>ind_drought_recovery_weeks</code>,
+<code>ind_drought_n_unrecovered</code> both
+<code>[0, Inf)</code>.</em></p>
 <p>For each event, the number of timesteps from its SGI minimum forward
 to the first <code>SGI &gt;= 0</code>: the mean of that over events that
 do recover, and a count of events still unrecovered at the end of the
@@ -341,45 +380,54 @@ the SGI machinery). A grid search over accumulation and lag
 SGI.</p>
 <table class="table">
 <colgroup>
-<col width="50%">
-<col width="50%">
+<col width="33%">
+<col width="33%">
+<col width="33%">
 </colgroup>
 <thead><tr class="header">
 <th>column</th>
 <th>meaning</th>
+<th>range</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td><code>ind_accum_months</code></td>
 <td>accumulation window of maximum correlation</td>
+<td><code>[1, Inf)</code></td>
 </tr>
 <tr class="even">
 <td><code>ind_climate_lag_months</code></td>
 <td>lag at maximum correlation</td>
+<td><code>[0, Inf)</code></td>
 </tr>
 <tr class="odd">
 <td><code>ind_response_months</code></td>
 <td>
 <code>accum / 2 + lag</code> — the peak-to-peak propagation delay
 (Ebeling et al. 2025)</td>
+<td><code>(0, Inf)</code></td>
 </tr>
 <tr class="even">
 <td><code>ind_climate_cc</code></td>
 <td>that maximum correlation — how climate-driven the well is</td>
+<td><code>[-1, 1]</code></td>
 </tr>
 <tr class="odd">
 <td><code>ind_residual_trend_slope</code></td>
 <td>Theil–Sen slope of the annual-mean residual of
 <code>lm(SGI ~ SPI_best)</code>
 </td>
+<td><code>(-Inf, Inf)</code></td>
 </tr>
 <tr class="even">
 <td><code>ind_residual_trend_p_value</code></td>
 <td>Mann–Kendall p-value of the residual trend</td>
+<td><code>[0, 1]</code></td>
 </tr>
 <tr class="odd">
 <td><code>ind_residual_trend_significant</code></td>
 <td><code>p &lt; alpha</code></td>
+<td><code>{FALSE, TRUE}</code></td>
 </tr>
 </tbody>
 </table>
@@ -403,6 +451,8 @@ influence).</p>
 <code>recession</code> — <code>ind_recession_weeks</code>,
 <code>ind_recession_n_segments</code><a class="anchor" aria-label="anchor" href="#recession-ind_recession_weeks-ind_recession_n_segments"></a>
 </h3>
+<p><em>Ranges <code>ind_recession_weeks</code> <code>(0, Inf)</code>,
+<code>ind_recession_n_segments</code> <code>[0, Inf)</code>.</em></p>
 <p>Sustained falling segments (at least <code>min_len</code> steps,
 tolerating a single up-step) are identified; within each,
 <code>log(level - asymptote)</code> is regressed on time and the

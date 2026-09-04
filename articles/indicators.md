@@ -18,7 +18,9 @@ lap_indicator_registry()[, c("key", "columns", "range")]
 
 `range` is `" | "`-separated and lines up with `columns` (e.g. `drought`
 emits `ind_drought_frequency` in `[0, 1]` and `ind_index_min` in
-`(-Inf, Inf)`).
+`(-Inf, Inf)`). Every section below also states its range in interval
+notation — `[`/`]` closed, `(`/`)` open, `Inf` unbounded,
+`{FALSE, TRUE}` for the logical flags.
 
 All indicators take `value` / `date` as
 \[tidy-select\]\[dplyr::dplyr_tidy_select\] arguments and NA-guard short
@@ -34,11 +36,15 @@ forwarded through
 
 ### `amplitude` — `ind_amplitude`
 
+*Range `[0, Inf)`.*
+
 `max - min` of the level over the whole slice. The crudest measure of
 how much a well moves. Inflated by any long-term trend — use
 `seasonal_amplitude` for the within-year signal.
 
 ### `seasonal_amplitude` — `ind_seasonal_amplitude`
+
+*Range `[0, Inf)`.*
 
 Mean, over calendar years, of the annual `max - min`. The typical size
 of the yearly recharge–discharge swing, with the multi-decadal drift
@@ -46,6 +52,8 @@ removed. Large in shallow unconfined aquifers under a strong seasonal
 recharge regime; small in deep or confined systems.
 
 ### `seasonality_strength` — `ind_seasonality_strength`
+
+*Range `[0, 1]`.*
 
 `max(0, 1 - var(remainder) / var(seasonal + remainder))` from an STL
 decomposition (\[stats::stl()\]) of the monthly-mean series (Wang, Smith
@@ -56,12 +64,17 @@ cycle.
 
 ### `recharge_discharge` — `ind_recharge_months`, `ind_discharge_months`
 
+*Ranges `ind_recharge_months` `[1, 12]`, `ind_discharge_months`
+`[0, 11]` (they sum to 12).*
+
 From the 12 climatological monthly means: the number of months from the
 annual trough up to the annual peak (the mean rising limb) and its
 complement to 12. A short recharge / long discharge limb is a system
 that fills quickly after winter rain and then drains slowly all summer.
 
 ### `phase_regularity` — `ind_min_month_sd`
+
+*Range `[0, Inf)` (a circular SD, in months).*
 
 Circular standard deviation (in months, Mardia & Jupp 2000) of the month
 in which each year’s minimum falls. Near 0 = a metronomic seasonal cycle
@@ -73,6 +86,8 @@ than the seasonal balance.
 
 ### `extreme_months` — `ind_min_month`, `ind_max_month`
 
+*Range `(0.5, 12.5]` for both columns (circular months).*
+
 Circular-mean month of the annual minimum and of the annual maximum
 level
 ([`lap_circular_mean_month()`](https://mxnl.github.io/lapidary/reference/lap_circular_mean_month.md);
@@ -83,6 +98,8 @@ integrating spring rain.
 
 ### `flashiness` — `ind_flashiness`
 
+*Range `[1, Inf)`.*
+
 `sum(|diff(level)|) / (max - min)` — the total path length the series
 travels per unit of its overall span (Baker et al. 2004, the
 Richards–Baker index applied to heads). High for flashy shallow
@@ -90,6 +107,8 @@ unconfined systems that react to every rain event; low (near 1) for
 smooth, strongly filtered deep or confined ones.
 
 ### `memory` — `ind_acf1`, `ind_memory_weeks`
+
+*Ranges `ind_acf1` `[-1, 1]`, `ind_memory_weeks` `[1, Inf)`.*
 
 On the month-deseasonalised series: the lag-1 autocorrelation and the
 first lag at which the autocorrelation falls below `1/e`. This is the
@@ -100,6 +119,8 @@ thick unsaturated zone. See the note on timescales below.
 
 ### `rise_fall` — `ind_rise_rate`, `ind_fall_rate`
 
+*Ranges `ind_rise_rate`, `ind_fall_rate` both `(0, Inf)`.*
+
 Median magnitude of the positive and of the negative step-to-step
 changes. A large rise rate with a small fall rate is a system driven by
 sharp recharge pulses that then drain slowly — the classic saw-tooth
@@ -108,6 +129,9 @@ karst or shallow-sand hydrograph.
 ## C. Long-term change
 
 ### `trend` — `ind_trend_slope`, `ind_trend_p_value`, `ind_trend_significant`
+
+*Ranges `ind_trend_slope` `(-Inf, Inf)`, `ind_trend_p_value` `[0, 1]`,
+`ind_trend_significant` `{FALSE, TRUE}`.*
 
 Theil–Sen slope (level units per year) plus a Mann–Kendall test on the
 annual-mean series. The **raw** long-term trend — it mixes the climate
@@ -118,6 +142,8 @@ separates the two drivers.
 
 ### `trend_extremes` — `ind_trend_min_slope`, `ind_trend_max_slope`
 
+*Range `(-Inf, Inf)` for both columns.*
+
 Theil–Sen slope of the series of annual minima and of annual maxima. If
 `ind_trend_min_slope` is more negative than the mean trend, the *drought
 floor* is dropping faster than the average level — low-water conditions
@@ -125,12 +151,17 @@ are deepening even if the mean looks stable.
 
 ### `step_change` — `ind_step_year`, `ind_step_magnitude`, `ind_step_p_value`
 
+*Ranges `ind_step_year` a calendar year (no fixed range),
+`ind_step_magnitude` `(-Inf, Inf)`, `ind_step_p_value` `[0, 1]`.*
+
 Pettitt change-point (1979): the single most likely year of an abrupt
 shift in the annual mean, its size (after minus before) and approximate
 significance. Captures post-drought regime shifts (2003, 2018–2019 in
 Central Europe) and the onset of abstraction.
 
 ### `trend_acceleration` — `ind_trend_accel`
+
+*Range `(-Inf, Inf)`.*
 
 Theil–Sen slope over the second half of the record minus the slope over
 the first half. Negative = an accelerating decline (the recent slope is
@@ -149,22 +180,25 @@ dynamic ranges. A **drought event** is a maximal run of
 
 ### `drought` — eight columns
 
-| column | meaning |
-|----|----|
-| `ind_drought_frequency` | fraction of timesteps below `threshold` |
-| `ind_frac_below_normal` | fraction of timesteps below 0 |
-| `ind_index_min` | the most negative SGI in the slice |
-| `ind_drought_n_events` | number of events |
-| `ind_drought_duration_weeks` | mean event duration |
-| `ind_drought_max_weeks` | longest single event |
-| `ind_drought_severity` | mean cumulative deficit per event (`sum(-SGI)` over the run) |
-| `ind_drought_intensity` | mean deficit per timestep (severity / duration) |
+| column | meaning | range |
+|----|----|----|
+| `ind_drought_frequency` | fraction of timesteps below `threshold` | `[0, 1]` |
+| `ind_frac_below_normal` | fraction of timesteps below 0 | `[0, 1]` |
+| `ind_index_min` | the most negative SGI in the slice | `(-Inf, Inf)` |
+| `ind_drought_n_events` | number of events | `[0, Inf)` |
+| `ind_drought_duration_weeks` | mean event duration | `[1, Inf)` |
+| `ind_drought_max_weeks` | longest single event | `[0, Inf)` |
+| `ind_drought_severity` | mean cumulative deficit per event (`sum(-SGI)` over the run) | `(0, Inf)` |
+| `ind_drought_intensity` | mean deficit per timestep (severity / duration) | `(0, Inf)` |
 
 Applied to German heads by Ebeling et al. (2025). Duration and severity
 separate wells that dip briefly but often from wells that go into long,
 deep deficits.
 
 ### `drought_recovery` — `ind_drought_recovery_weeks`, `ind_drought_n_unrecovered`
+
+*Ranges `ind_drought_recovery_weeks`, `ind_drought_n_unrecovered` both
+`[0, Inf)`.*
 
 For each event, the number of timesteps from its SGI minimum forward to
 the first `SGI >= 0`: the mean of that over events that do recover, and
@@ -194,15 +228,15 @@ standardised per calendar month (an SPI/SPEI-analog, reusing the SGI
 machinery). A grid search over accumulation and lag 0..`max_lag` finds
 the maximum cross-correlation with the SGI.
 
-| column | meaning |
-|----|----|
-| `ind_accum_months` | accumulation window of maximum correlation |
-| `ind_climate_lag_months` | lag at maximum correlation |
-| `ind_response_months` | `accum / 2 + lag` — the peak-to-peak propagation delay (Ebeling et al. 2025) |
-| `ind_climate_cc` | that maximum correlation — how climate-driven the well is |
-| `ind_residual_trend_slope` | Theil–Sen slope of the annual-mean residual of `lm(SGI ~ SPI_best)` |
-| `ind_residual_trend_p_value` | Mann–Kendall p-value of the residual trend |
-| `ind_residual_trend_significant` | `p < alpha` |
+| column | meaning | range |
+|----|----|----|
+| `ind_accum_months` | accumulation window of maximum correlation | `[1, Inf)` |
+| `ind_climate_lag_months` | lag at maximum correlation | `[0, Inf)` |
+| `ind_response_months` | `accum / 2 + lag` — the peak-to-peak propagation delay (Ebeling et al. 2025) | `(0, Inf)` |
+| `ind_climate_cc` | that maximum correlation — how climate-driven the well is | `[-1, 1]` |
+| `ind_residual_trend_slope` | Theil–Sen slope of the annual-mean residual of `lm(SGI ~ SPI_best)` | `(-Inf, Inf)` |
+| `ind_residual_trend_p_value` | Mann–Kendall p-value of the residual trend | `[0, 1]` |
+| `ind_residual_trend_significant` | `p < alpha` | `{FALSE, TRUE}` |
 
 A low `ind_climate_cc` with a long `ind_response_months` is a well whose
 variability precipitation cannot explain — often confined, or under
@@ -216,6 +250,9 @@ use the same reference-residual idea to screen for human influence).
 ## F. Aquifer physics
 
 ### `recession` — `ind_recession_weeks`, `ind_recession_n_segments`
+
+*Ranges `ind_recession_weeks` `(0, Inf)`, `ind_recession_n_segments`
+`[0, Inf)`.*
 
 Sustained falling segments (at least `min_len` steps, tolerating a
 single up-step) are identified; within each, `log(level - asymptote)` is
