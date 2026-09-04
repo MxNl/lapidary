@@ -6,7 +6,7 @@
 \description{
 \code{lapidary} reads a handful of options. Those with an environment-variable
 counterpart take it as a fallback (the option wins); \code{lapidary.scale_range}
-is option-only.
+and \code{lapidary.scale_robust} are option-only.
 }
 \details{
 \describe{
@@ -17,6 +17,9 @@ labels, one of \code{"en"} or \code{"de"}. Defaults to \code{"en"}.}
 \item{\code{lapidary.scale_range}}{Logical, default \code{FALSE}. When \code{TRUE} the
 continuous \verb{scale_*_lapidary_c()} scales append a mapped \verb{ind_*} column's
 theoretical range to the legend title (same as \code{range = TRUE}).}
+\item{\code{lapidary.scale_robust}}{Logical / numeric, default \code{FALSE}. Global
+default for the \code{robust} argument of \verb{scale_*_lapidary_c()}: clip the
+colour limits to distribution-aware percentiles (\code{TRUE} = 2nd / 98th).}
 }
 }
 \keyword{internal}

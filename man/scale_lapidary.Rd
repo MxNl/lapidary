@@ -22,7 +22,8 @@ scale_fill_lapidary_c(
   direction = 1,
   midpoint = NULL,
   guide = NULL,
-  range = getOption("lapidary.scale_range", FALSE)
+  range = getOption("lapidary.scale_range", FALSE),
+  robust = getOption("lapidary.scale_robust", FALSE)
 )
 
 scale_colour_lapidary_c(
@@ -37,7 +38,8 @@ scale_colour_lapidary_c(
   direction = 1,
   midpoint = NULL,
   guide = NULL,
-  range = getOption("lapidary.scale_range", FALSE)
+  range = getOption("lapidary.scale_range", FALSE),
+  robust = getOption("lapidary.scale_robust", FALSE)
 )
 
 scale_color_lapidary_c(
@@ -52,7 +54,8 @@ scale_color_lapidary_c(
   direction = 1,
   midpoint = NULL,
   guide = NULL,
-  range = getOption("lapidary.scale_range", FALSE)
+  range = getOption("lapidary.scale_range", FALSE),
+  robust = getOption("lapidary.scale_robust", FALSE)
 )
 
 scale_fill_lapidary_d(
@@ -108,6 +111,17 @@ append that column's theoretical value range (interval notation, \code{Inf}
 shown as an infinity symbol) to the auto-derived legend title. \verb{_c} scales
 only; ignored when \code{name} is an explicit string / \code{NULL} or the variable is
 unknown. Default \code{getOption("lapidary.scale_range", FALSE)}.}
+
+\item{robust}{Clip the colour limits to distribution-aware percentiles so
+extreme outliers do not compress the range for the bulk of the data.
+\code{FALSE} (default) is off; \code{TRUE} uses the 2nd / 98th percentiles; a single
+number \code{p} with \verb{0.5 < p < 1} uses \code{c(1 - p, p)}; a length-2 vector gives
+the lower / upper percentiles directly. Out-of-range values take the end
+colour (\code{scales::oob_squish}); on the binned default the clipped legend
+end gets a \code{<=} / \code{>=} prefix when data really extends past it (the smooth
+path clips but is not marked). When \code{midpoint} is also set the limits are
+made symmetric about it. An explicit \code{limits} in \code{...} always wins.
+\verb{_c} scales only. Default \code{getOption("lapidary.scale_robust", FALSE)}.}
 }
 \value{
 A ggplot2 scale.
@@ -123,8 +137,11 @@ pretty round breaks and shown as a long, thin colour-steps bar. The legend
 title is derived from the mapped variable with \code{\link[=lap_prettify_label]{lap_prettify_label()}}
 (\code{ind_trend_slope} becomes \code{"Trend slope"}) unless you pass \code{name}; with
 \code{range = TRUE} a known indicator column's theoretical range is appended
-(\code{"Trend slope  (-Inf, Inf)"}). Pair with \code{\link[=lap_na_guide]{lap_na_guide()}} to add a "no data"
-key for \code{NA} regions (e.g. empty hexes).
+(\code{"Trend slope  (-Inf, Inf)"}). With \code{robust = TRUE} the limits are clipped to
+distribution-aware percentiles so a few extreme values no longer flatten the
+colour range for the rest; out-of-range values take the end colour and the
+binned legend end is marked \code{<=} / \code{>=}. Pair with \code{\link[=lap_na_guide]{lap_na_guide()}} to add a
+"no data" key for \code{NA} regions (e.g. empty hexes).
 }
 \examples{
 \dontrun{
