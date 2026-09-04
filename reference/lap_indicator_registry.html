@@ -54,7 +54,9 @@ lap_ind_* function names."></head><body>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A tibble with one row per indicator: <code>key</code> (use it in <code>.funs</code>),
-<code>columns</code> (the <code>ind_*</code> columns it emits), <code>needs_date</code>, <code>in_all</code> (whether
+<code>columns</code> (comma-separated <code>ind_*</code> columns it emits), <code>range</code> (those
+columns' theoretical value ranges in interval notation, <code>" | "</code>-separated
+and positionally aligned with <code>columns</code>), <code>needs_date</code>, <code>in_all</code> (whether
 <code>.funs = "all"</code> includes it), <code>description</code> and <code>reference</code> (a short
 citation; the long form is <code><a href="../articles/indicators.html">vignette("indicators")</a></code>).</p>
     </div>
@@ -62,26 +64,26 @@ citation; the long form is <code><a href="../articles/indicators.html">vignette(
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">lap_indicator_registry</span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 17 × 6</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    key                  columns          needs_date in_all description reference</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> amplitude            ind_amplitude    FALSE      TRUE   max - min … descript…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> seasonal_amplitude   ind_seasonal_am… TRUE       TRUE   mean over … descript…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> seasonality_strength ind_seasonality… TRUE       TRUE   STL varian… Wang, Sm…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> recharge_discharge   ind_recharge_mo… TRUE       TRUE   length of … descript…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> phase_regularity     ind_min_month_sd TRUE       TRUE   circular S… Mardia &amp;…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> extreme_months       ind_min_month, … TRUE       TRUE   circular-m… Mardia &amp;…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> flashiness           ind_flashiness   FALSE      TRUE   sum(|diff(… Baker et…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> memory               ind_acf1, ind_m… TRUE       TRUE   lag-1 auto… Rinaldo …</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> rise_fall            ind_rise_rate, … FALSE      TRUE   median rat… descript…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> trend                ind_trend_slope… TRUE       TRUE   Theil-Sen … Sen (196…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">11</span> trend_extremes       ind_trend_min_s… TRUE       TRUE   Theil-Sen … Sen (196…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">12</span> step_change          ind_step_year, … TRUE       TRUE   Pettitt ch… Pettitt …</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">13</span> trend_acceleration   ind_trend_accel  TRUE       TRUE   Sen slope(… descript…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">14</span> drought              ind_drought_fre… FALSE      FALSE  run-theory… Bloomfie…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">15</span> drought_recovery     ind_drought_rec… FALSE      FALSE  recovery t… Peterson…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">16</span> climate_signal       ind_accum_month… TRUE       FALSE  climate re… Ebeling …</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">17</span> recession            ind_recession_w… FALSE      TRUE   master-rec… Posavec,…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 17 × 7</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    key                  columns    range needs_date in_all description reference</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> amplitude            ind_ampli… [0, … FALSE      TRUE   max - min … descript…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> seasonal_amplitude   ind_seaso… [0, … TRUE       TRUE   mean over … descript…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> seasonality_strength ind_seaso… [0, … TRUE       TRUE   STL varian… Wang, Sm…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> recharge_discharge   ind_recha… [1, … TRUE       TRUE   length of … descript…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> phase_regularity     ind_min_m… [0, … TRUE       TRUE   circular S… Mardia &amp;…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> extreme_months       ind_min_m… (0.5… TRUE       TRUE   circular-m… Mardia &amp;…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> flashiness           ind_flash… [1, … FALSE      TRUE   sum(|diff(… Baker et…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> memory               ind_acf1,… [-1,… TRUE       TRUE   lag-1 auto… Rinaldo …</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> rise_fall            ind_rise_… (0, … FALSE      TRUE   median rat… descript…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> trend                ind_trend… (-In… TRUE       TRUE   Theil-Sen … Sen (196…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">11</span> trend_extremes       ind_trend… (-In… TRUE       TRUE   Theil-Sen … Sen (196…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">12</span> step_change          ind_step_… NA |… TRUE       TRUE   Pettitt ch… Pettitt …</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">13</span> trend_acceleration   ind_trend… (-In… TRUE       TRUE   Sen slope(… descript…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">14</span> drought              ind_droug… [0, … FALSE      FALSE  run-theory… Bloomfie…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">15</span> drought_recovery     ind_droug… [0, … FALSE      FALSE  recovery t… Peterson…</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">16</span> climate_signal       ind_accum… [1, … TRUE       FALSE  climate re… Ebeling …</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">17</span> recession            ind_reces… (0, … FALSE      TRUE   master-rec… Posavec,…</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

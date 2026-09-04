@@ -62,7 +62,9 @@
 <span>  end <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  direction <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  midpoint <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  guide <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  guide <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"lapidary.scale_range"</span>, <span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>  robust <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"lapidary.scale_robust"</span>, <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">scale_colour_lapidary_c</span><span class="op">(</span></span>
@@ -76,7 +78,9 @@
 <span>  end <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  direction <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  midpoint <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  guide <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  guide <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"lapidary.scale_range"</span>, <span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>  robust <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"lapidary.scale_robust"</span>, <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">scale_color_lapidary_c</span><span class="op">(</span></span>
@@ -90,7 +94,9 @@
 <span>  end <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  direction <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  midpoint <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  guide <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  guide <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"lapidary.scale_range"</span>, <span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>  robust <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"lapidary.scale_robust"</span>, <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">scale_fill_lapidary_d</span><span class="op">(</span></span>
@@ -162,6 +168,27 @@ at the palette centre.</p></dd>
 <dd><p>Legend guide. Defaults to a long, thin
 <code><a href="https://ggplot2.tidyverse.org/reference/guide_coloursteps.html" class="external-link">ggplot2::guide_coloursteps()</a></code> (binned) or the scale default.</p></dd>
 
+
+<dt id="arg-range">range<a class="anchor" aria-label="anchor" href="#arg-range"></a></dt>
+<dd><p>If <code>TRUE</code> and the mapped variable is a known <code>ind_*</code> column,
+append that column's theoretical value range (interval notation, <code>Inf</code>
+shown as an infinity symbol) to the auto-derived legend title. <code>_c</code> scales
+only; ignored when <code>name</code> is an explicit string / <code>NULL</code> or the variable is
+unknown. Default <code>getOption("lapidary.scale_range", FALSE)</code>.</p></dd>
+
+
+<dt id="arg-robust">robust<a class="anchor" aria-label="anchor" href="#arg-robust"></a></dt>
+<dd><p>Clip the colour limits to distribution-aware percentiles so
+extreme outliers do not compress the range for the bulk of the data.
+<code>FALSE</code> (default) is off; <code>TRUE</code> uses the 2nd / 98th percentiles; a single
+number <code>p</code> with <code>0.5 &lt; p &lt; 1</code> uses <code>c(1 - p, p)</code>; a length-2 vector gives
+the lower / upper percentiles directly. Out-of-range values take the end
+colour (<code><a href="https://scales.r-lib.org/reference/oob.html" class="external-link">scales::oob_squish</a></code>); on the binned default the clipped legend
+end gets a <code>&lt;=</code> / <code>&gt;=</code> prefix when data really extends past it (the smooth
+path clips but is not marked). When <code>midpoint</code> is also set the limits are
+made symmetric about it. An explicit <code>limits</code> in <code>...</code> always wins.
+<code>_c</code> scales only. Default <code>getOption("lapidary.scale_robust", FALSE)</code>.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -172,8 +199,13 @@ at the palette centre.</p></dd>
     <p>The continuous (<code>_c</code>) scales are <strong>binned</strong> by default: the data is cut at
 pretty round breaks and shown as a long, thin colour-steps bar. The legend
 title is derived from the mapped variable with <code><a href="lap_prettify_label.html">lap_prettify_label()</a></code>
-(<code>ind_trend_slope</code> becomes <code>"Trend slope"</code>) unless you pass <code>name</code>. Pair with
-<code><a href="lap_na_guide.html">lap_na_guide()</a></code> to add a "no data" key for <code>NA</code> regions (e.g. empty hexes).</p>
+(<code>ind_trend_slope</code> becomes <code>"Trend slope"</code>) unless you pass <code>name</code>; with
+<code>range = TRUE</code> a known indicator column's theoretical range is appended
+(<code>"Trend slope  (-Inf, Inf)"</code>). With <code>robust = TRUE</code> the limits are clipped to
+distribution-aware percentiles so a few extreme values no longer flatten the
+colour range for the rest; out-of-range values take the end colour and the
+binned legend end is marked <code>&lt;=</code> / <code>&gt;=</code>. Pair with <code><a href="lap_na_guide.html">lap_na_guide()</a></code> to add a
+"no data" key for <code>NA</code> regions (e.g. empty hexes).</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

@@ -97,11 +97,14 @@ strings, or tidyselect helpers).
   is forwarded to every `lap_ind_*()` (`threshold`, `min_len`, `driver`,
   …).
 - [`lap_indicator_registry()`](https://mxnl.github.io/lapidary/reference/lap_indicator_registry.md)
-  lists the catalogue (`key`, `columns`, `needs_date`, `in_all`,
-  `description`, `reference`). Each `lap_ind_*()` also carries
+  lists the catalogue (`key`, `columns`, `range`, `needs_date`,
+  `in_all`, `description`, `reference`). Each `lap_ind_*()` also carries
   `@references`;
   [`vignette("indicators")`](https://mxnl.github.io/lapidary/articles/indicators.md)
   is the long-form guide.
+- `range` gives each `ind_*` column’s theoretical value range in
+  interval notation (`[0, 1]`, `(-Inf, Inf)`, `{FALSE, TRUE}`, …),
+  `" | "`-separated and aligned with `columns`.
 - Catalogue: `amplitude`, `seasonal_amplitude`, `seasonality_strength`,
   `recharge_discharge`, `phase_regularity`, `extreme_months`,
   `flashiness`, `memory` (autocorrelation / e-folding), `rise_fall`,
@@ -141,9 +144,19 @@ strings, or tidyselect helpers).
   pass `binned = FALSE` for a smooth gradient. Their legend title
   defaults to
   [`lap_prettify_label()`](https://mxnl.github.io/lapidary/reference/lap_prettify_label.md)
-  of the mapped variable (`ind_trend_slope` -\> `"Trend slope"`).
+  of the mapped variable (`ind_trend_slope` -\> `"Trend slope"`);
+  `range = TRUE` (or `options(lapidary.scale_range = TRUE)`) appends a
+  known indicator’s theoretical range, e.g. `"Trend slope (−∞, ∞)"`.
   [`lap_na_guide()`](https://mxnl.github.io/lapidary/reference/lap_na_guide.md)
   adds a “no data” key for `NA` regions (e.g. empty hexes).
+- `scale_fill/colour_lapidary_c(robust = TRUE)` (or a percentile spec,
+  or `options(lapidary.scale_robust = TRUE)`) clips the colour limits to
+  distribution-aware percentiles (default 2nd / 98th) so a few extreme
+  values stop flattening the pattern for the bulk of the data.
+  Out-of-range values take the end colour; on the binned default the
+  clipped legend end is marked “≤” / “≥”. Off by default; an explicit
+  `limits` wins; with `midpoint` the limits stay symmetric about the
+  centre.
 - [`ggsave_lapidary()`](https://mxnl.github.io/lapidary/reference/ggsave_lapidary.md)
   with web/A4–A0 presets that also fix `showtext` DPI.
 - Bilingual (`en`/`de`) string registry:

@@ -7,13 +7,18 @@ runs a selection of them and returns one row per well;
 [`lap_indicator_registry()`](https://mxnl.github.io/lapidary/reference/lap_indicator_registry.md)
 is the index. This vignette is the long form: for every catalogue key,
 what it measures, how it is computed, and what a high or low value tells
-you hydrogeologically. The one-line version and a short citation are in
-the registry:
+you hydrogeologically. The one-line version, the emitted columns, each
+column’s theoretical range and a short citation are in the registry:
 
 ``` r
 
 lap_indicator_registry()[, c("key", "description", "reference")]
+lap_indicator_registry()[, c("key", "columns", "range")]
 ```
+
+`range` is `" | "`-separated and lines up with `columns` (e.g. `drought`
+emits `ind_drought_frequency` in `[0, 1]` and `ind_index_min` in
+`(-Inf, Inf)`).
 
 All indicators take `value` / `date` as
 \[tidy-select\]\[dplyr::dplyr_tidy_select\] arguments and NA-guard short

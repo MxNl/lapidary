@@ -104,8 +104,11 @@ the <em>same</em> plot scales from web to A0.</p>
 colour-steps bar; the legend title is prettified from the mapped
 variable (see <code><a href="../reference/lap_prettify_label.html">lap_prettify_label()</a></code>) unless you set
 <code>name</code>/<code><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs()</a></code>; and <code><a href="../reference/lap_na_guide.html">lap_na_guide()</a></code>
-adds a “no data” key for <code>NA</code> regions such as empty
-hexes.</p>
+adds a “no data” key for <code>NA</code> regions such as empty hexes.
+With <code>scale_fill_lapidary_c(range = TRUE)</code> — or
+<code>options(lapidary.scale_range = TRUE)</code> — a mapped indicator
+column’s theoretical range is appended to the title
+(<code>"Trend slope  (-Inf, Inf)"</code>).</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">germany_hex_sample</span><span class="op">)</span></span>
 <span></span>
@@ -120,8 +123,26 @@ hexes.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p</span> <span class="op">+</span> <span class="fu"><a href="../reference/theme_lapidary.html">theme_lapidary</a></span><span class="op">(</span><span class="st">"dark"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="style_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" alt="" width="672"></p>
-<p>Palette roles decouple intent from the underlying scico palette:</p>
+<p>A handful of extreme values can flatten the colour range for
+everywhere else. <code>robust = TRUE</code> clips the limits to the 2nd
+and 98th percentiles (pass a number like <code>0.95</code>, or
+<code>c(0.05, 0.95)</code>, to choose them;
+<code>options(lapidary.scale_robust = TRUE)</code> sets the default).
+Clipped values take the end colour and the binned legend marks that end
+with <code>≤</code> / <code>≥</code>:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">hex_spike</span> <span class="op">&lt;-</span> <span class="va">germany_hex_sample</span></span>
+<span><span class="va">hex_spike</span><span class="op">$</span><span class="va">mean_gwl</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">hex_spike</span><span class="op">$</span><span class="va">mean_gwl</span><span class="op">)</span><span class="op">)</span>, <span class="fl">5</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">5000</span></span>
+<span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">hex_spike</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsf.html" class="external-link">geom_sf</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>fill <span class="op">=</span> <span class="va">mean_gwl</span><span class="op">)</span>, colour <span class="op">=</span> <span class="st">"white"</span>, linewidth <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/scale_lapidary.html">scale_fill_lapidary_c</a></span><span class="op">(</span><span class="st">"magnitude"</span>, robust <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/lap_na_guide.html">lap_na_guide</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/theme_lapidary.html">theme_lapidary</a></span><span class="op">(</span><span class="st">"light"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="style_files/figure-html/unnamed-chunk-5-1.png" class="r-plt" alt="" width="672"></p>
+<p>Palette roles decouple intent from the underlying scico palette:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/lap_pal_roles.html">lap_pal_roles</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "months"         "magnitude"      "magnitude_dark" "density"       </span></span>
 <span><span class="co">#&gt; [5] "anomaly"</span></span></code></pre></div>
@@ -145,13 +166,13 @@ reference</li>
 (body) and enables <code>showtext</code>. If the fonts or packages are
 missing it is a no-op and the theme falls back to <code>serif</code> /
 <code>sans</code>, so headless rendering never breaks.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/lap_fonts.html">lap_fonts</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="output-presets">Output presets<a class="anchor" aria-label="anchor" href="#output-presets"></a>
 </h2>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/lap_preset_names.html">lap_preset_names</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "web"      "web_wide" "a4"       "a3"       "a2"       "a1"       "a0"</span></span>
 <span><span class="fu"><a href="../reference/lap_preset.html">lap_preset</a></span><span class="op">(</span><span class="st">"a1"</span><span class="op">)</span></span>
@@ -172,7 +193,7 @@ missing it is a no-op and the theme falls back to <code>serif</code> /
 <p><code><a href="../reference/ggsave_lapidary.html">ggsave_lapidary()</a></code> applies a preset’s width/height/dpi
 <em>and</em> sets <code>showtext</code>’s DPI to match, which is the
 difference between crisp and blurry poster text.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ggsave_lapidary.html">ggsave_lapidary</a></span><span class="op">(</span><span class="va">p</span> <span class="op">+</span> <span class="fu"><a href="../reference/theme_lapidary.html">theme_lapidary</a></span><span class="op">(</span><span class="st">"light"</span>, base_size <span class="op">=</span> <span class="fu"><a href="../reference/lap_preset.html">lap_preset</a></span><span class="op">(</span><span class="st">"a1"</span><span class="op">)</span><span class="op">$</span><span class="va">base_size</span><span class="op">)</span>,</span>
 <span>  <span class="st">"groundwater_a1.png"</span>,</span>
 <span>  preset <span class="op">=</span> <span class="st">"a1"</span></span>
@@ -181,7 +202,7 @@ difference between crisp and blurry poster text.</p>
 <div class="section level2">
 <h2 id="language">Language<a class="anchor" aria-label="anchor" href="#language"></a>
 </h2>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/lap_tr.html">lap_tr</a></span><span class="op">(</span><span class="st">"groundwater_level"</span>, <span class="st">"en"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "Groundwater level"</span></span>
 <span><span class="fu"><a href="../reference/lap_tr.html">lap_tr</a></span><span class="op">(</span><span class="st">"groundwater_level"</span>, <span class="st">"de"</span><span class="op">)</span></span>

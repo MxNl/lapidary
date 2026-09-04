@@ -18,7 +18,9 @@ scale_fill_lapidary_c(
   end = 1,
   direction = 1,
   midpoint = NULL,
-  guide = NULL
+  guide = NULL,
+  range = getOption("lapidary.scale_range", FALSE),
+  robust = getOption("lapidary.scale_robust", FALSE)
 )
 
 scale_colour_lapidary_c(
@@ -32,7 +34,9 @@ scale_colour_lapidary_c(
   end = 1,
   direction = 1,
   midpoint = NULL,
-  guide = NULL
+  guide = NULL,
+  range = getOption("lapidary.scale_range", FALSE),
+  robust = getOption("lapidary.scale_robust", FALSE)
 )
 
 scale_color_lapidary_c(
@@ -46,7 +50,9 @@ scale_color_lapidary_c(
   end = 1,
   direction = 1,
   midpoint = NULL,
-  guide = NULL
+  guide = NULL,
+  range = getOption("lapidary.scale_range", FALSE),
+  robust = getOption("lapidary.scale_robust", FALSE)
 )
 
 scale_fill_lapidary_d(
@@ -125,6 +131,30 @@ scale_color_lapidary_d(
   [`ggplot2::guide_coloursteps()`](https://ggplot2.tidyverse.org/reference/guide_coloursteps.html)
   (binned) or the scale default.
 
+- range:
+
+  If `TRUE` and the mapped variable is a known `ind_*` column, append
+  that column's theoretical value range (interval notation, `Inf` shown
+  as an infinity symbol) to the auto-derived legend title. `_c` scales
+  only; ignored when `name` is an explicit string / `NULL` or the
+  variable is unknown. Default
+  `getOption("lapidary.scale_range", FALSE)`.
+
+- robust:
+
+  Clip the colour limits to distribution-aware percentiles so extreme
+  outliers do not compress the range for the bulk of the data. `FALSE`
+  (default) is off; `TRUE` uses the 2nd / 98th percentiles; a single
+  number `p` with `0.5 < p < 1` uses `c(1 - p, p)`; a length-2 vector
+  gives the lower / upper percentiles directly. Out-of-range values take
+  the end colour
+  ([`scales::oob_squish`](https://scales.r-lib.org/reference/oob.html));
+  on the binned default the clipped legend end gets a `<=` / `>=` prefix
+  when data really extends past it (the smooth path clips but is not
+  marked). When `midpoint` is also set the limits are made symmetric
+  about it. An explicit `limits` in `...` always wins. `_c` scales only.
+  Default `getOption("lapidary.scale_robust", FALSE)`.
+
 ## Value
 
 A ggplot2 scale.
@@ -135,7 +165,12 @@ The continuous (`_c`) scales are **binned** by default: the data is cut
 at pretty round breaks and shown as a long, thin colour-steps bar. The
 legend title is derived from the mapped variable with
 [`lap_prettify_label()`](https://mxnl.github.io/lapidary/reference/lap_prettify_label.md)
-(`ind_trend_slope` becomes `"Trend slope"`) unless you pass `name`. Pair
+(`ind_trend_slope` becomes `"Trend slope"`) unless you pass `name`; with
+`range = TRUE` a known indicator column's theoretical range is appended
+(`"Trend slope (-Inf, Inf)"`). With `robust = TRUE` the limits are
+clipped to distribution-aware percentiles so a few extreme values no
+longer flatten the colour range for the rest; out-of-range values take
+the end colour and the binned legend end is marked `<=` / `>=`. Pair
 with
 [`lap_na_guide()`](https://mxnl.github.io/lapidary/reference/lap_na_guide.md)
 to add a "no data" key for `NA` regions (e.g. empty hexes).

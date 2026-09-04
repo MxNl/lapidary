@@ -45,7 +45,11 @@ unless you set
 `name`/[`labs()`](https://ggplot2.tidyverse.org/reference/labs.html);
 and
 [`lap_na_guide()`](https://mxnl.github.io/lapidary/reference/lap_na_guide.md)
-adds a “no data” key for `NA` regions such as empty hexes.
+adds a “no data” key for `NA` regions such as empty hexes. With
+`scale_fill_lapidary_c(range = TRUE)` — or
+`options(lapidary.scale_range = TRUE)` — a mapped indicator column’s
+theoretical range is appended to the title
+(`"Trend slope (-Inf, Inf)"`).
 
 ``` r
 
@@ -68,6 +72,28 @@ p + theme_lapidary("dark")
 ```
 
 ![](style_files/figure-html/unnamed-chunk-4-1.png)
+
+A handful of extreme values can flatten the colour range for everywhere
+else. `robust = TRUE` clips the limits to the 2nd and 98th percentiles
+(pass a number like `0.95`, or `c(0.05, 0.95)`, to choose them;
+`options(lapidary.scale_robust = TRUE)` sets the default). Clipped
+values take the end colour and the binned legend marks that end with `≤`
+/ `≥`:
+
+``` r
+
+set.seed(1)
+hex_spike <- germany_hex_sample
+hex_spike$mean_gwl[sample(which(!is.na(hex_spike$mean_gwl)), 5)] <- 5000
+
+ggplot(hex_spike) +
+  geom_sf(aes(fill = mean_gwl), colour = "white", linewidth = 0.1) +
+  scale_fill_lapidary_c("magnitude", robust = TRUE) +
+  lap_na_guide() +
+  theme_lapidary("light")
+```
+
+![](style_files/figure-html/unnamed-chunk-5-1.png)
 
 Palette roles decouple intent from the underlying scico palette:
 

@@ -72,10 +72,15 @@ handful of numbers. <code><a href="../reference/lap_indicators.html">lap_indicat
 them and returns one row per well; <code><a href="../reference/lap_indicator_registry.html">lap_indicator_registry()</a></code>
 is the index. This vignette is the long form: for every catalogue key,
 what it measures, how it is computed, and what a high or low value tells
-you hydrogeologically. The one-line version and a short citation are in
-the registry:</p>
+you hydrogeologically. The one-line version, the emitted columns, each
+column’s theoretical range and a short citation are in the registry:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/lap_indicator_registry.html">lap_indicator_registry</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"key"</span>, <span class="st">"description"</span>, <span class="st">"reference"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/lap_indicator_registry.html">lap_indicator_registry</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"key"</span>, <span class="st">"description"</span>, <span class="st">"reference"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="fu"><a href="../reference/lap_indicator_registry.html">lap_indicator_registry</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"key"</span>, <span class="st">"columns"</span>, <span class="st">"range"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
+<p><code>range</code> is <code>" | "</code>-separated and lines up with
+<code>columns</code> (e.g. <code>drought</code> emits
+<code>ind_drought_frequency</code> in <code>[0, 1]</code> and
+<code>ind_index_min</code> in <code>(-Inf, Inf)</code>).</p>
 <p>All indicators take <code>value</code> / <code>date</code> as
 [tidy-select][dplyr::dplyr_tidy_select] arguments and NA-guard short
 input. Extra arguments (<code>threshold</code>, <code>min_len</code>,

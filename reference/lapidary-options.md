@@ -1,7 +1,9 @@
 # lapidary options
 
-`lapidary` reads a handful of options, each overridable by an
-environment variable. Options win over environment variables.
+`lapidary` reads a handful of options. Those with an
+environment-variable counterpart take it as a fallback (the option
+wins); `lapidary.scale_range` and `lapidary.scale_robust` are
+option-only.
 
 ## Details
 
@@ -14,3 +16,15 @@ environment variable. Options win over environment variables.
 
   Default language for user-facing labels, one of `"en"` or `"de"`.
   Defaults to `"en"`.
+
+- `lapidary.scale_range`:
+
+  Logical, default `FALSE`. When `TRUE` the continuous
+  `scale_*_lapidary_c()` scales append a mapped `ind_*` column's
+  theoretical range to the legend title (same as `range = TRUE`).
+
+- `lapidary.scale_robust`:
+
+  Logical / numeric, default `FALSE`. Global default for the `robust`
+  argument of `scale_*_lapidary_c()`: clip the colour limits to
+  distribution-aware percentiles (`TRUE` = 2nd / 98th).
