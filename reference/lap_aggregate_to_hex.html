@@ -60,6 +60,7 @@ named in <code>circular</code> are averaged with <code><a href="lap_circular_mea
 <span>  cols <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  circular <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  by <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  complete <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  grid <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  region <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cellsize <span class="op">=</span> <span class="fl">25000</span></span>
@@ -97,6 +98,14 @@ the output has one row per combination. Default: none. A grouping column's
 type (e.g. the ordered <code>period</code> factor) is preserved.</p></dd>
 
 
+<dt id="arg-complete">complete<a class="anchor" aria-label="anchor" href="#arg-complete"></a></dt>
+<dd><p>When <code>by</code> is set, keep every hexagon in <em>every</em> observed
+group (with <code>NA</code> values / <code>n_wells = 0</code> where that hexagon had no wells in
+that group), so a facetted map draws the full grid in each panel. <code>TRUE</code>
+by default; set <code>FALSE</code> to keep only the hexagon-group combinations that
+actually have wells. No effect without <code>by</code>.</p></dd>
+
+
 <dt id="arg-grid">grid<a class="anchor" aria-label="anchor" href="#arg-grid"></a></dt>
 <dd><p>A hex grid from <code><a href="lap_make_hex_grid.html">lap_make_hex_grid()</a></code>. If <code>NULL</code>, one is built from
 <code>region</code>.</p></dd>
@@ -114,8 +123,13 @@ type (e.g. the ordered <code>period</code> factor) is preserved.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>An <code>sf</code> polygon layer: the grid plus one column per aggregated value,
-any <code>by</code> column(s), and <code>n_wells</code>. Hexagons with no wells keep <code>NA</code> values
-(and <code>NA</code> in the <code>by</code> column(s), so filter them out for a facetted map).</p>
+any <code>by</code> column(s), and <code>n_wells</code>. Without <code>by</code>, hexagons with no wells
+keep <code>NA</code> values. With <code>by</code> and the default <code>complete = TRUE</code>, every
+hexagon appears once per observed group (<code>NA</code> values / <code>n_wells = 0</code>
+where that hexagon-group combination has no wells) - ready to facet by
+<code>by</code> with the full grid in every panel; with <code>complete = FALSE</code> a
+hexagon with no wells in <em>any</em> group instead keeps a single row with <code>NA</code>
+in the <code>by</code> column(s).</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

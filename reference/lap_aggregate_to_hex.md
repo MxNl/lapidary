@@ -15,6 +15,7 @@ lap_aggregate_to_hex(
   cols = NULL,
   circular = NULL,
   by = NULL,
+  complete = TRUE,
   grid = NULL,
   region = NULL,
   cellsize = 25000
@@ -51,6 +52,14 @@ lap_aggregate_to_hex(
   Default: none. A grouping column's type (e.g. the ordered `period`
   factor) is preserved.
 
+- complete:
+
+  When `by` is set, keep every hexagon in *every* observed group (with
+  `NA` values / `n_wells = 0` where that hexagon had no wells in that
+  group), so a facetted map draws the full grid in each panel. `TRUE` by
+  default; set `FALSE` to keep only the hexagon-group combinations that
+  actually have wells. No effect without `by`.
+
 - grid:
 
   A hex grid from
@@ -72,9 +81,13 @@ lap_aggregate_to_hex(
 ## Value
 
 An `sf` polygon layer: the grid plus one column per aggregated value,
-any `by` column(s), and `n_wells`. Hexagons with no wells keep `NA`
-values (and `NA` in the `by` column(s), so filter them out for a
-facetted map).
+any `by` column(s), and `n_wells`. Without `by`, hexagons with no wells
+keep `NA` values. With `by` and the default `complete = TRUE`, every
+hexagon appears once per observed group (`NA` values / `n_wells = 0`
+where that hexagon-group combination has no wells) - ready to facet by
+`by` with the full grid in every panel; with `complete = FALSE` a
+hexagon with no wells in *any* group instead keeps a single row with
+`NA` in the `by` column(s).
 
 ## Details
 
