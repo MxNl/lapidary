@@ -10,7 +10,9 @@
 #    It never sees a summary table.
 #  * `lap_indicators()` is the collector: time series in once, a selection of
 #    indicators (`"all"`, registry keys, or `lap_ind_*` functions), one row per
-#    well out. `lap_indicator_registry()` lists what is available.
+#    well out. `lap_indicator_registry()` lists what is available. `"all"` is
+#    data-aware: it adds the indicators that need an SGI column / a climate
+#    driver once those columns are there (see `resolve_ind_funs()`).
 #  * `lap_add_indicators()` takes a well-level table + the time series and
 #    left-joins the indicators on - for building a feature table step by step.
 #  * Per-well-year summaries (`lap_summarise_wells()`) and per-well indicators
@@ -24,7 +26,8 @@
 #' @param x A `gwl_ts` / data frame of time series (one row per well x date).
 #' @param .funs Which indicators to compute. Required. One of:
 #'   \itemize{
-#'     \item `"all"` - every indicator in [lap_indicator_registry()];
+#'     \item `"all"` - every indicator in [lap_indicator_registry()] whose inputs
+#'       are present in `x` (see the section below);
 #'     \item a character vector of registry keys, e.g. `c("amplitude", "trend")`;
 #'     \item one or more `lap_ind_*` functions, e.g. `c(lap_ind_amplitude, lap_ind_trend)`;
 #'     \item a mix of keys and functions.
@@ -38,6 +41,24 @@
 #' @param ... Extra arguments forwarded to every `lap_ind_*()` (e.g.
 #'   `threshold`, `min_len`, `driver`). Indicators ignore what they do not use.
 #'
+#' @section Which indicators "all" runs:
+#' Most indicators run off `value` and are always included (`in_all` in the
+#' registry). Three need more than a level column and are therefore added only
+#' when `x` actually carries what they need:
+#' \itemize{
+#'   \item `drought` and `drought_recovery` need a standardised index - add one
+#'     with [lap_normalise_gwl()] `method = "sgi"`;
+#'   \item `climate_signal` needs that **and** a climate driver - join one with
+#'     [lap_join_meteo()].
+#' }
+#' `"all"` finds those columns itself (`<value>_norm`, `precip`) and passes them
+#' to those indicators instead of `value`, reporting what it added and - when a
+#' prerequisite is missing - what it had to skip and why. A single series whose
+#' index is unusable over the window at hand yields `NA` for that indicator, with
+#' a warning, rather than failing the whole table. Requesting one of the three by
+#' key is stricter: pass `value = gwl_norm` (and `driver =`) yourself, and an
+#' unusable series is an error.
+#'
 #' @return A tibble: the `by` column(s) plus one column per indicator output
 #'   (all `ind_`-prefixed).
 #' @seealso [lap_indicator_registry()], [lap_add_indicators()]
@@ -46,20 +67,49 @@
 #' data(gems_ger_sample, package = "lapidary", envir = environment())
 #' lap_indicators(gems_ger_sample, "all")
 #' lap_indicators(gems_ger_sample, c("amplitude", "extreme_months"))
+#' # with an SGI column, "all" also covers the drought indicators
+#' lap_indicators(lap_normalise_gwl(gems_ger_sample, "sgi"), "all")
 lap_indicators <- function(x, .funs, by = well_id, value = gwl, date = "date", ...) {
-  funs <- resolve_ind_funs(if (missing(.funs)) NULL else .funs)
   by <- lap_eval_select(x, rlang::enquo(by), arg = "by")
   value <- lap_eval_select_one(x, rlang::enquo(value), arg = "value")
   date_col <- lap_eval_select_one(x, rlang::enquo(date), arg = "date", null_ok = TRUE)
+  funs <- resolve_ind_funs(
+    if (missing(.funs)) NULL else .funs,
+    x = x, value = value, date_col = date_col
+  )
 
   x <- tibble::as_tibble(x)
   grp <- interaction(x[by], drop = TRUE, lex.order = TRUE)
   parts <- split(x, grp, drop = TRUE)
 
-  one_indicator <- function(f, part, ...) {
+  # never override an argument the caller supplied through `...`; `...names()`
+  # avoids forcing the promises (a `driver = precip` would not evaluate here)
+  dots_nms <- ...names()
+
+  # series that an auto-included indicator could not handle, reported once
+  unusable <- new.env(parent = emptyenv())
+
+  one_indicator <- function(e, key, part, ...) {
     # inject `value` / `date` as string literals so each indicator's tidy-select
     # sees a plain column name, not an external vector
-    out <- rlang::inject(f(part, value = !!value, date = !!date_col, ...))
+    extra <- e$args[setdiff(names(e$args), dots_nms)]
+    val <- if ("value" %in% names(extra)) extra[["value"]] else value
+    extra <- as.list(extra[setdiff(names(extra), "value")])
+    run <- function(p) rlang::inject(
+      e$fn(p, value = !!val, date = !!date_col, !!!extra, ...)
+    )
+    out <- if (isTRUE(e$auto)) {
+      # `"all"` picked this one up; it was not asked for by name. A series it
+      # cannot handle gets its NA row - the same answer it gives for a series
+      # that is too short - rather than aborting the whole table.
+      tryCatch(run(part), error = function(cnd) {
+        id <- paste(as.character(part[1, by, drop = FALSE]), collapse = " / ")
+        unusable[[key]] <- c(unusable[[key]], id)
+        run(part[0, , drop = FALSE])
+      })
+    } else {
+      run(part)
+    }
     if (!is.data.frame(out) || nrow(out) != 1L) {
       cli::cli_abort("Every {.fn lap_ind_*} must return a one-row data frame.")
     }
@@ -67,9 +117,19 @@ lap_indicators <- function(x, .funs, by = well_id, value = gwl, date = "date", .
   }
   rows <- lapply(parts, function(part) {
     key <- part[1, by, drop = FALSE]
-    vals <- lapply(funs, one_indicator, part = part, ...)
+    vals <- lapply(names(funs) %||% seq_along(funs), function(k) {
+      one_indicator(funs[[k]], as.character(k), part = part, ...)
+    })
     dplyr::bind_cols(key, !!!vals)
   })
+  for (k in ls(unusable)) {
+    ids <- unusable[[k]]
+    cli::cli_warn(c(
+      "{.val {k}} is {.val NA} for {length(ids)} series it could not handle.",
+      i = "Series: {.val {ids[seq_len(min(5L, length(ids)))]}}\\
+           {if (length(ids) > 5L) ' ...' else ''}"
+    ))
+  }
   out <- tibble::as_tibble(do.call(rbind, rows))
   rownames(out) <- NULL
   out
@@ -82,8 +142,14 @@ lap_indicators <- function(x, .funs, by = well_id, value = gwl, date = "date", .
 #   fn         - the lap_ind_* function
 #   columns    - the ind_* column(s) it emits
 #   needs_date - whether it needs a date column
-#   in_all     - whether `.funs = "all"` runs it (drought needs an SGI column,
-#                so it is opt-in)
+#   in_all     - whether `.funs = "all"` runs it unconditionally
+#   inputs     - optional; the extra inputs the indicator needs beyond the
+#                caller's `value`, as `arg = requirement`. The requirement is
+#                either the sentinel "standardised" (a normalised, ~N(0, 1)
+#                companion of the value column, from lap_normalise_gwl("sgi"))
+#                or a literal default column name. `.funs = "all"` runs an
+#                `in_all = FALSE` indicator when its inputs are present in the
+#                data, passing the resolved columns instead of `value`.
 #   delta_kind - per output column, how lap_indicator_delta() differences it:
 #                "diff" (b - a), "circular" (signed month diff), "none" (skip)
 #   range      - per output column, its theoretical value range in interval
@@ -234,6 +300,7 @@ indicator_catalog <- function() {
         "ind_drought_max_weeks", "ind_drought_severity", "ind_drought_intensity"
       ),
       needs_date = FALSE, in_all = FALSE,
+      inputs = list(value = "standardised"),
       delta_kind = d(c(
         "ind_drought_frequency", "ind_frac_below_normal", "ind_index_min",
         "ind_drought_n_events", "ind_drought_duration_weeks",
@@ -255,6 +322,7 @@ indicator_catalog <- function() {
       fn = lap_ind_drought_recovery,
       columns = c("ind_drought_recovery_weeks", "ind_drought_n_unrecovered"),
       needs_date = FALSE, in_all = FALSE,
+      inputs = list(value = "standardised"),
       delta_kind = d(c("ind_drought_recovery_weeks", "ind_drought_n_unrecovered")),
       range = r(c("ind_drought_recovery_weeks", "ind_drought_n_unrecovered"), "[0, Inf)"),
       units = c(ind_drought_recovery_weeks = "weeks", ind_drought_n_unrecovered = "-"),
@@ -269,6 +337,7 @@ indicator_catalog <- function() {
         "ind_residual_trend_p_value", "ind_residual_trend_significant"
       ),
       needs_date = TRUE, in_all = FALSE,
+      inputs = list(value = "standardised", driver = "precip"),
       delta_kind = c(
         ind_accum_months = "diff", ind_climate_lag_months = "diff",
         ind_response_months = "diff", ind_climate_cc = "diff",
@@ -392,9 +461,92 @@ catalog_lookup <- function(field, col) {
   unname(lookup[col])
 }
 
-# Resolve the `.funs` argument to a list of indicator functions.
-resolve_ind_funs <- function(.funs, call = rlang::caller_env()) {
+# Can `entry` run against `x`? Returns `list(ok = TRUE, args = <named chr>)`
+# with the `arg = column` overrides to inject, or `list(ok = FALSE, why = )`
+# with an already-formatted explanation.
+ind_inputs_available <- function(entry, x, value, date_col) {
+  no <- function(...) list(ok = FALSE, why = cli::format_inline(...))
+  fix <- cli::format_inline('{.code lap_normalise_gwl("sgi")}')
+  if (isTRUE(entry$needs_date) && is.null(date_col)) {
+    return(no("needs a date column"))
+  }
+  args <- character()
+  for (arg in names(entry$inputs)) {
+    req <- entry$inputs[[arg]]
+    if (identical(req, "standardised")) {
+      # lap_normalise_gwl() writes "<value>_norm" by default
+      cand <- intersect(c(paste0(value, "_norm"), "gwl_norm"), names(x))
+      if (!length(cand)) {
+        return(no("no standardised column - add {fix}"))
+      }
+      if (!is_standardised(x[[cand[[1]]]])) {
+        return(no(
+          "{.field {cand[[1]]}} is not a standardised index - use {fix}"
+        ))
+      }
+      args[[arg]] <- cand[[1]]
+    } else {
+      if (!req %in% names(x)) {
+        return(no("no {.field {req}} column - add it with {.fn lap_join_meteo}"))
+      }
+      args[[arg]] <- req
+    }
+  }
+  list(ok = TRUE, args = args)
+}
+
+# One selected indicator: the function plus the `arg = column` overrides that
+# `lap_indicators()` should inject for it instead of the caller-wide `value`.
+ind_selection <- function(x) structure(x, class = "lap_ind_selection")
+
+# The unconditional indicators, with no input overrides.
+in_all_selection <- function(reg) {
+  lapply(Filter(function(e) e$in_all, reg), function(e) {
+    list(fn = e$fn, args = character())
+  })
+}
+
+# Everything `.funs = "all"` can run against `x`: the unconditional indicators,
+# plus each opt-in one whose declared inputs are present. Informs about what it
+# added and what it had to leave out.
+all_ind_selection <- function(reg, x, value, date_col) {
+  out <- in_all_selection(reg)
+  unconditional <- names(out)
+  opt <- Filter(function(e) !e$in_all, reg)
+  cols <- character()
+  why <- character()
+  for (k in names(opt)) {
+    got <- ind_inputs_available(opt[[k]], x, value, date_col)
+    if (!got$ok) {
+      why[[k]] <- got$why
+      next
+    }
+    out[[k]] <- list(fn = opt[[k]]$fn, args = got$args, auto = TRUE)
+    cols <- c(cols, unname(got$args))
+  }
+  if (length(cols)) {
+    added <- setdiff(names(out), unconditional)
+    cli::cli_inform(c(i = "{.val all} also ran {.val {added}}, \\
+                          using {.field {unique(cols)}}."))
+  }
+  # one line per distinct reason, so several indicators blocked by the same
+  # missing column are reported together
+  for (r in unique(why)) {
+    keys <- names(why)[why == r]
+    cli::cli_inform(c(i = "{.val all} skipped {.val {keys}}: {r}."))
+  }
+  ind_selection(out)
+}
+
+# Resolve the `.funs` argument to a list of `list(fn, args)` selections. `x`,
+# `value` and `date_col` are what `"all"` is gated against; without them
+# `"all"` falls back to the unconditional indicators only.
+resolve_ind_funs <- function(.funs, x = NULL, value = NULL, date_col = NULL,
+                             call = rlang::caller_env()) {
   reg <- indicator_catalog()
+  if (inherits(.funs, "lap_ind_selection")) {
+    return(.funs)
+  }
   if (is.null(.funs)) {
     cli::cli_abort(c(
       "{.arg .funs} is required.",
@@ -403,12 +555,21 @@ resolve_ind_funs <- function(.funs, call = rlang::caller_env()) {
     ), call = call)
   }
   if (identical(.funs, "all")) {
-    return(lapply(Filter(function(e) e$in_all, reg), `[[`, "fn"))
+    if (is.null(x)) {
+      return(ind_selection(in_all_selection(reg)))
+    }
+    return(all_ind_selection(reg, x, value, date_col))
   }
   items <- if (is.function(.funs)) list(.funs) else as.list(.funs)
-  lapply(items, function(it) {
+  ind_selection(lapply(items, function(it) {
     if (is.function(it)) {
-      return(it)
+      if (identical(it, base::all)) {
+        cli::cli_abort(c(
+          "{.arg .funs} entries must be indicator keys or {.fn lap_ind_*} functions.",
+          i = "Did you mean the string {.val all}?"
+        ), call = call)
+      }
+      return(list(fn = it, args = character()))
     }
     if (is.character(it) && length(it) == 1L) {
       entry <- reg[[it]]
@@ -418,13 +579,13 @@ resolve_ind_funs <- function(.funs, call = rlang::caller_env()) {
           i = "Keys: {.val {names(reg)}} (or {.val all})."
         ), call = call)
       }
-      return(entry$fn)
+      return(list(fn = entry$fn, args = character()))
     }
     cli::cli_abort(
       "{.arg .funs} entries must be indicator keys or {.fn lap_ind_*} functions.",
       call = call
     )
-  })
+  }))
 }
 
 #' Append time-series indicators to a well-level table
@@ -436,7 +597,9 @@ resolve_ind_funs <- function(.funs, call = rlang::caller_env()) {
 #' @param data A well-level table (e.g. from [lap_summarise_wells()] grouped by
 #'   `well_id`, or a `gwl_wells` layer).
 #' @param x The time series the indicators are computed from.
-#' @param .funs Which indicators to compute; see [lap_indicators()].
+#' @param .funs Which indicators to compute; see [lap_indicators()]. `"all"`
+#'   is data-aware - it covers the drought and climate indicators too once `x`
+#'   carries an SGI column (and a driver).
 #' @param by <[`tidy-select`][dplyr::dplyr_tidy_select]> join key(s), present in
 #'   both `data` and `x`. Default `well_id`.
 #' @param value,date Passed to [lap_indicators()].
@@ -486,6 +649,7 @@ slice_years <- function(x, date_col, range) {
 #' (e.g. a full-record window alongside a recent one).
 #'
 #' @inheritParams lap_indicators
+#' @inheritSection lap_indicators Which indicators "all" runs
 #' @param periods A **named** list of `c(start_year, end_year)` pairs, e.g.
 #'   `list(reference = c(1991, 2010), recent = c(2011, 2022))`.
 #' @param ... Extra arguments forwarded to each `lap_ind_*()` (e.g. `threshold`,
@@ -505,9 +669,15 @@ slice_years <- function(x, date_col, range) {
 #' )
 lap_indicator_change <- function(x, .funs, periods, by = well_id,
                                  value = gwl, date = "date", ...) {
-  funs <- resolve_ind_funs(if (missing(.funs)) NULL else .funs)
   periods <- validate_periods(periods, allow_overlap = TRUE)
   date_col <- lap_eval_select_one(x, rlang::enquo(date), arg = "date")
+  value_col <- lap_eval_select_one(x, rlang::enquo(value), arg = "value")
+  # resolve once against the full series, so the indicator set (and the message
+  # about it) is the same for every period rather than varying with the slice
+  funs <- resolve_ind_funs(
+    if (missing(.funs)) NULL else .funs,
+    x = x, value = value_col, date_col = date_col
+  )
   x <- tibble::as_tibble(x)
 
   rows <- lapply(names(periods), function(nm) {
@@ -517,7 +687,7 @@ lap_indicator_change <- function(x, .funs, periods, by = well_id,
     }
     res <- rlang::inject(lap_indicators(
       sl,
-      .funs = funs, by = {{ by }}, value = {{ value }}, date = !!date_col, ...
+      .funs = funs, by = {{ by }}, value = !!value_col, date = !!date_col, ...
     ))
     res[["period"]] <- factor(nm, levels = names(periods), ordered = TRUE)
     res

@@ -59,11 +59,65 @@ test_that(".funs accepts functions, a single function, a list, string keys and '
   expect_equal(by_key, by_fun)
 
   reg <- lap_indicator_registry()
-  all <- lap_indicators(new_gwl_ts(make_ts_fixture(1991:2000)), "all")
+  # no standardised column -> "all" is exactly the unconditional indicators
+  all <- suppressMessages(
+    lap_indicators(new_gwl_ts(make_ts_fixture(1991:2000)), "all")
+  )
   in_all_cols <- unlist(strsplit(reg$columns[reg$in_all], ", "))
   expect_setequal(setdiff(names(all), "well_id"), in_all_cols)
-  # "drought" is a catalogue entry but not part of "all"
+  # "drought" is a catalogue entry but not one of the unconditional ones
   expect_false("drought" %in% reg$key[reg$in_all])
+})
+
+test_that('"all" says which opt-in indicators it had to skip', {
+  x <- new_gwl_ts(make_ts_fixture(1991:2000))
+  expect_message(lap_indicators(x, "all"), "no standardised column")
+  expect_message(lap_indicators(x, "all"), "drought")
+})
+
+test_that('"all" picks up the drought indicators once an SGI column exists', {
+  x <- lap_normalise_gwl(new_gwl_ts(make_ts_fixture(1991:2000)), "sgi")
+  expect_message(lap_indicators(x, "all"), "also ran")
+  ind <- suppressMessages(lap_indicators(x, "all"))
+  reg <- lap_indicator_registry()
+  drought_cols <- unlist(strsplit(reg$columns[reg$key %in% c("drought", "drought_recovery")], ", "))
+  expect_true(all(drought_cols %in% names(ind)))
+  # gwl_norm was used, not gwl: on raw levels check_standardised() would abort
+  expect_true(all(is.finite(ind$ind_drought_frequency)))
+  expect_true(all(ind$ind_index_min < 0))
+  # and the unconditional indicators still ran off `value` (gwl, in metres)
+  expect_equal(
+    ind$ind_amplitude,
+    suppressMessages(lap_indicators(x, "amplitude"))$ind_amplitude
+  )
+})
+
+test_that('"all" picks up climate_signal once a driver is joined too', {
+  x <- lap_normalise_gwl(new_gwl_ts(make_ts_fixture(1991:2000)), "sgi")
+  set.seed(42)
+  x$precip <- abs(stats::rnorm(nrow(x), 2, 1))
+  ind <- suppressMessages(lap_indicators(x, "all"))
+  reg <- lap_indicator_registry()
+  expect_true(all(
+    unlist(strsplit(reg$columns[reg$key == "climate_signal"], ", ")) %in% names(ind)
+  ))
+  # a driver passed through `...` wins over the catalogue default
+  x$rain <- x$precip
+  expect_equal(ind, suppressMessages(lap_indicators(x, "all", driver = rain)))
+})
+
+test_that('"all" skips a gwl_norm that is not a standardised index', {
+  x <- lap_normalise_gwl(new_gwl_ts(make_ts_fixture(1991:2000)), "range")
+  expect_message(lap_indicators(x, "all"), "not a standardised index")
+  ind <- suppressMessages(lap_indicators(x, "all"))
+  expect_false("ind_drought_frequency" %in% names(ind))
+})
+
+test_that("requesting drought by key is unchanged - it needs an explicit value", {
+  x <- lap_normalise_gwl(new_gwl_ts(make_ts_fixture(1991:2000)), "sgi")
+  expect_error(lap_indicators(x, "drought"), "standardised index")
+  expect_silent(ind <- lap_indicators(x, "drought", value = gwl_norm))
+  expect_true("ind_drought_severity" %in% names(ind))
 })
 
 test_that(".funs is required and unknown keys are rejected", {
@@ -71,6 +125,8 @@ test_that(".funs is required and unknown keys are rejected", {
   expect_error(lap_indicators(x), "required")
   expect_error(lap_indicators(x, "nope"), "Unknown indicator key")
   expect_error(lap_indicators(x, 42), "keys or")
+  # bare `all` is base::all(), which is a function - catch it with a hint
+  expect_error(lap_indicators(x, all), "Did you mean")
 })
 
 test_that("lap_indicator_registry lists one row per registered indicator", {

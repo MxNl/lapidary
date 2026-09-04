@@ -19,7 +19,8 @@ lap_indicator_change(
 
 \item{.funs}{Which indicators to compute. Required. One of:
 \itemize{
-\item \code{"all"} - every indicator in \code{\link[=lap_indicator_registry]{lap_indicator_registry()}};
+\item \code{"all"} - every indicator in \code{\link[=lap_indicator_registry]{lap_indicator_registry()}} whose inputs
+are present in \code{x} (see the section below);
 \item a character vector of registry keys, e.g. \code{c("amplitude", "trend")};
 \item one or more \verb{lap_ind_*} functions, e.g. \code{c(lap_ind_amplitude, lap_ind_trend)};
 \item a mix of keys and functions.
@@ -51,6 +52,26 @@ change in a well's behaviour between (say) a reference decade and a recent one
 is visible. Unlike \code{\link[=lap_add_reference_period]{lap_add_reference_period()}}, the periods \strong{may overlap}
 (e.g. a full-record window alongside a recent one).
 }
+\section{Which indicators "all" runs}{
+
+Most indicators run off \code{value} and are always included (\code{in_all} in the
+registry). Three need more than a level column and are therefore added only
+when \code{x} actually carries what they need:
+\itemize{
+\item \code{drought} and \code{drought_recovery} need a standardised index - add one
+with \code{\link[=lap_normalise_gwl]{lap_normalise_gwl()}} \code{method = "sgi"};
+\item \code{climate_signal} needs that \strong{and} a climate driver - join one with
+\code{\link[=lap_join_meteo]{lap_join_meteo()}}.
+}
+\code{"all"} finds those columns itself (\verb{<value>_norm}, \code{precip}) and passes them
+to those indicators instead of \code{value}, reporting what it added and - when a
+prerequisite is missing - what it had to skip and why. A single series whose
+index is unusable over the window at hand yields \code{NA} for that indicator, with
+a warning, rather than failing the whole table. Requesting one of the three by
+key is stricter: pass \code{value = gwl_norm} (and \verb{driver =}) yourself, and an
+unusable series is an error.
+}
+
 \examples{
 data(gems_ger_sample, package = "lapidary", envir = environment())
 lap_indicator_change(

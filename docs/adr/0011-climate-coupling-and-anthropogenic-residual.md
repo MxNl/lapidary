@@ -57,7 +57,10 @@ standardised index (guarded by `check_standardised()`), so the pipeline is
 `lap_join_meteo()` -> `lap_normalise_gwl("sgi")` -> `lap_indicators("climate_signal",
 value = gwl_norm, driver = ...)`.
 
-`in_all = FALSE` (needs both an SGI column and a joined driver). `delta_kind` is
+`in_all = FALSE` (needs both an SGI column and a joined driver). It declares
+those as `inputs = list(value = "standardised", driver = "precip")`, so
+`.funs = "all"` runs it once the data actually has them - see the amendment to
+ADR 0009. `delta_kind` is
 `"diff"` for the four coupling columns and the residual slope, `"none"` for the
 residual p-value / significance flag.
 

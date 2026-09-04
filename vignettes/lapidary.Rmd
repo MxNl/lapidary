@@ -81,6 +81,13 @@ Compute them with `lap_indicators()`, or append them to an existing well-level
 table with `lap_add_indicators()`. `.funs` takes `"all"`, registry keys, or
 `lap_ind_*()` functions.
 
+`"all"` is data-aware: it runs every indicator whose inputs are in the data.
+Most need only the level column, but the drought and climate ones need a
+standardised index (`lap_normalise_gwl("sgi")`) and, for `climate_signal`, a
+joined driver (`lap_join_meteo()`). Add those columns and `"all"` picks the
+indicators up by itself, using `gwl_norm` and `precip` in place of `value`; if
+they are missing it says which indicators it skipped and why.
+
 ```{r}
 lap_summarise_wells(gems_ger_sample, by = well_id) |>
   lap_add_indicators(gems_ger_sample, "all") |>

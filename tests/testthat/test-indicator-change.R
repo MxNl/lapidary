@@ -63,3 +63,44 @@ test_that("lap_indicator_delta errors on a bad period label / missing period col
   expect_error(lap_indicator_delta(chg, "reference", "nope"), "not in")
   expect_error(lap_indicator_delta(x, "a", "b"), "period")
 })
+
+test_that('lap_indicator_change resolves "all" once, for every period alike', {
+  x <- lap_normalise_gwl(new_gwl_ts(make_two_period_ts()), "sgi")
+  periods <- list(reference = c(1991, 2010), recent = c(2011, 2022))
+  # resolved against the whole series, so the message is emitted a single time
+  expect_message(
+    chg <- suppressWarnings(lap_indicator_change(x, "all", periods = periods)),
+    "also ran"
+  )
+  expect_true(all(c("ind_drought_severity", "ind_drought_recovery_weeks") %in% names(chg)))
+  expect_equal(nrow(chg), 4L)
+  # both periods are present, carrying the same (single) set of columns
+  expect_setequal(as.character(chg$period), c("reference", "recent"))
+  reg <- lap_indicator_registry()
+  expect_setequal(
+    grep("^ind_", names(chg), value = TRUE),
+    unlist(strsplit(reg$columns[reg$key != "climate_signal"], ", "))
+  )
+})
+
+test_that('an auto-included indicator degrades to NA instead of aborting', {
+  # well "a" declines steeply after 2010, so its SGI within one window is
+  # skewed and check_standardised() rejects it - that must not kill the table
+  x <- lap_normalise_gwl(new_gwl_ts(make_two_period_ts()), "sgi")
+  w <- testthat::capture_warnings(
+    chg <- suppressMessages(lap_indicator_change(
+      x, "all",
+      periods = list(reference = c(1991, 2010), recent = c(2011, 2022))
+    ))
+  )
+  # one warning per affected indicator, naming the series it gave up on
+  expect_length(w, 2L)
+  expect_true(all(grepl("could not handle", w)))
+  na <- chg[is.na(chg$ind_drought_frequency), ]
+  expect_equal(nrow(na), 1L)
+  expect_identical(na$well_id, "a")
+  # the other well, and well "a" in the other period, are computed normally
+  expect_true(all(is.finite(chg$ind_drought_frequency[chg$well_id == "b"])))
+  # the unconditional indicators are unaffected for that same row
+  expect_true(is.finite(na$ind_amplitude))
+})
