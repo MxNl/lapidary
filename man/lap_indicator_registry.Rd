@@ -4,15 +4,22 @@
 \alias{lap_indicator_registry}
 \title{The available time-series indicators}
 \usage{
-lap_indicator_registry()
+lap_indicator_registry(long = FALSE)
+}
+\arguments{
+\item{long}{If \code{FALSE} (default) one row per indicator key, with the emitted
+columns, ranges and units \code{" | "}-separated and positionally aligned. If
+\code{TRUE}, one row per emitted \verb{ind_*} column (\code{key}, \code{column}, \code{range},
+\code{units}, \code{delta_kind}, \code{needs_date}, \code{in_all}, \code{description}, \code{reference}).}
 }
 \value{
-A tibble with one row per indicator: \code{key} (use it in \code{.funs}),
-\code{columns} (comma-separated \verb{ind_*} columns it emits), \code{range} (those
-columns' theoretical value ranges in interval notation, \code{" | "}-separated
-and positionally aligned with \code{columns}), \code{needs_date}, \code{in_all} (whether
-\code{.funs = "all"} includes it), \code{description} and \code{reference} (a short
-citation; the long form is \code{vignette("indicators")}).
+A tibble. Wide (\code{long = FALSE}): \code{key}, \code{columns}, \code{range}, \code{units},
+\code{needs_date}, \code{in_all}, \code{description}, \code{reference}. Long (\code{long = TRUE}):
+one row per \verb{ind_*} column with \code{column}, \code{range}, \code{units} and \code{delta_kind}
+(how \code{\link[=lap_indicator_delta]{lap_indicator_delta()}} differences it). Units are \code{"m"}, \code{"months"},
+\code{"weeks"}, \code{"m/year"}, \code{"month"}, \code{"year"}, ... or \code{"-"} for a
+dimensionless quantity (\code{"m"} assumes a level column in metres).
+Value ranges use interval notation; the long form is \code{vignette("indicators")}.
 }
 \description{
 Lists what \code{\link[=lap_indicators]{lap_indicators()}} can compute, so you do not have to memorise the
@@ -20,4 +27,5 @@ Lists what \code{\link[=lap_indicators]{lap_indicators()}} can compute, so you d
 }
 \examples{
 lap_indicator_registry()
+lap_indicator_registry(long = TRUE)
 }

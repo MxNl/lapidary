@@ -82,11 +82,45 @@ test_that("lap_indicator_registry lists one row per registered indicator", {
   expect_type(reg$in_all, "logical")
   expect_true(all(nzchar(reg$columns)))
   expect_true(all(nzchar(reg$description)))
-  expect_true("range" %in% names(reg))
+  expect_true(all(c("range", "units") %in% names(reg)))
   expect_true(all(nzchar(reg$range)))
+  expect_true(all(nzchar(reg$units)))
   # every catalogued column is unique across indicators
   cols <- unlist(strsplit(reg$columns, ", "))
   expect_equal(anyDuplicated(cols), 0L)
+})
+
+test_that("lap_indicator_registry(long = TRUE) is one row per ind_ column", {
+  wide <- lap_indicator_registry()
+  long <- lap_indicator_registry(long = TRUE)
+  expect_setequal(
+    names(long),
+    c("key", "column", "range", "units", "delta_kind", "needs_date",
+      "in_all", "description", "reference")
+  )
+  expect_equal(nrow(long), sum(lengths(strsplit(wide$columns, ", "))))
+  expect_equal(anyDuplicated(long$column), 0L)
+  expect_true(all(startsWith(long$column, "ind_")))
+  # per-column fields agree with the wide (pipe-joined) form
+  d <- long[long$key == "drought", ]
+  expect_identical(
+    paste(d$units, collapse = " | "),
+    wide$units[wide$key == "drought"]
+  )
+  expect_identical(
+    long$delta_kind[long$column == "ind_trend_p_value"], "none"
+  )
+  expect_true(all(long$delta_kind %in% c("diff", "circular", "none")))
+})
+
+test_that("units are '-' or a real unit, and 'm' assumes a metre level", {
+  long <- lap_indicator_registry(long = TRUE)
+  u <- long$units
+  expect_true(all(u %in% c("-", "m", "months", "month", "weeks", "year", "m/year", "m per step", "SGI/year")))
+  expect_identical(long$units[long$column == "ind_amplitude"], "m")
+  expect_identical(long$units[long$column == "ind_trend_slope"], "m/year")
+  expect_identical(long$units[long$column == "ind_seasonality_strength"], "-")
+  expect_identical(long$units[long$column == "ind_memory_weeks"], "weeks")
 })
 
 test_that("the registry carries a theoretical range aligned with every column", {

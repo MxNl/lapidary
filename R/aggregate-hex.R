@@ -5,32 +5,43 @@
 #' named in `circular` are averaged with [lap_circular_mean_month()]; a well count
 #' `n_wells` is always added.
 #'
+#' Pass `by` to aggregate *within groups* - e.g. feed the long output of
+#' [lap_indicator_change()] with `by = period` to get one row per hexagon and
+#' period (without `by`, the repeated `well_id`s would collapse the periods).
+#'
 #' @param wells A `gwl_wells` layer (or any `sf` POINT layer with `well_id`).
 #' @param values A data frame keyed by `well_id` holding the columns to
 #'   aggregate, or `NULL` to use numeric columns already on `wells`.
 #' @param cols <[`tidy-select`][dplyr::dplyr_tidy_select]> value columns to
 #'   aggregate (bare names, strings, helpers). Default: all numeric columns of
-#'   `values` (or `wells`).
+#'   `values` (or `wells`), minus any `by` columns.
 #' @param circular <[`tidy-select`][dplyr::dplyr_tidy_select]> subset of `cols`
 #'   to average circularly (months). Default: none.
+#' @param by <[`tidy-select`][dplyr::dplyr_tidy_select]> grouping column(s) in
+#'   `values` (or `wells`) - the aggregation runs per hexagon *and* group, and
+#'   the output has one row per combination. Default: none. A grouping column's
+#'   type (e.g. the ordered `period` factor) is preserved.
 #' @param grid A hex grid from [lap_make_hex_grid()]. If `NULL`, one is built from
 #'   `region`.
 #' @param region Passed to [lap_make_hex_grid()] when `grid` is `NULL`. Defaults to
 #'   [lap_germany_border()].
 #' @param cellsize Passed to [lap_make_hex_grid()].
 #'
-#' @return An `sf` polygon layer: the grid plus one column per aggregated value
-#'   and `n_wells`. Hexagons with no wells keep `NA` values.
+#' @return An `sf` polygon layer: the grid plus one column per aggregated value,
+#'   any `by` column(s), and `n_wells`. Hexagons with no wells keep `NA` values
+#'   (and `NA` in the `by` column(s), so filter them out for a facetted map).
 #' @export
 lap_aggregate_to_hex <- function(wells,
                              values = NULL,
                              cols = NULL,
                              circular = NULL,
+                             by = NULL,
                              grid = NULL,
                              region = NULL,
                              cellsize = 25000) {
   cols_quo <- rlang::enquo(cols)
   circular_quo <- rlang::enquo(circular)
+  by_quo <- rlang::enquo(by)
   check_gwl_wells(wells)
   wells <- sf::st_transform(wells, gwl_wells_crs)
 
@@ -48,13 +59,19 @@ lap_aggregate_to_hex <- function(wells,
   }
 
   flat <- sf::st_drop_geometry(wells)
+  by_nm <- if (rlang::quo_is_null(by_quo)) {
+    character()
+  } else {
+    lap_eval_select(flat, by_quo, arg = "by")
+  }
+
   numeric_cols <- names(which(vapply(flat, is.numeric, logical(1))))
   cols <- if (rlang::quo_is_null(cols_quo)) {
     numeric_cols
   } else {
     lap_eval_select(flat, cols_quo, arg = "cols")
   }
-  cols <- intersect(cols, numeric_cols)
+  cols <- setdiff(intersect(cols, numeric_cols), by_nm)
   if (!length(cols)) {
     cli::cli_abort("No numeric value columns to aggregate.")
   }
@@ -77,9 +94,14 @@ lap_aggregate_to_hex <- function(wells,
   joined <- sf::st_drop_geometry(joined)
   joined <- joined[!is.na(joined[["hex_id"]]), , drop = FALSE]
 
-  parts <- split(joined, joined[["hex_id"]])
+  grp <- interaction(joined[c("hex_id", by_nm)], drop = TRUE, lex.order = TRUE)
+  parts <- split(joined, grp, drop = TRUE)
   agg <- dplyr::bind_rows(lapply(parts, function(part) {
-    row <- list(hex_id = part[["hex_id"]][[1]], n_wells = nrow(part))
+    row <- c(
+      list(hex_id = part[["hex_id"]][[1]]),
+      as.list(part[1, by_nm, drop = FALSE]),
+      list(n_wells = nrow(part))
+    )
     for (col in cols) {
       row[[col]] <- if (col %in% circular) {
         lap_circular_mean_month(part[[col]])
@@ -92,5 +114,6 @@ lap_aggregate_to_hex <- function(wells,
 
   out <- dplyr::left_join(sf::st_drop_geometry(grid), agg, by = "hex_id")
   out[["n_wells"]][is.na(out[["n_wells"]])] <- 0L
-  sf::st_sf(out, geometry = sf::st_geometry(grid))
+  geom <- sf::st_geometry(grid)[match(out[["hex_id"]], grid[["hex_id"]])]
+  sf::st_sf(out, geometry = geom)
 }

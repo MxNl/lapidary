@@ -64,3 +64,51 @@ test_that("lap_aggregate_to_hex averages a `circular` month column on the circle
   # ... whereas the plain arithmetic mean of {12,12,1,1,12,1} lands mid-year
   expect_equal(mean(vals$min_month), 6.5)
 })
+
+test_that("lap_aggregate_to_hex `by` aggregates per hex x group, keeping factor type", {
+  set.seed(3)
+  region <- sf::st_sf(geometry = sf::st_sfc(
+    sf::st_polygon(list(rbind(
+      c(4e6, 3e6), c(4.4e6, 3e6), c(4.4e6, 3.4e6), c(4e6, 3.4e6), c(4e6, 3e6)
+    ))),
+    crs = 3035
+  ))
+  grid <- lap_make_hex_grid(region, cellsize = 60000)
+  pts <- sf::st_transform(sf::st_sample(region, 40), 25832)
+  wells <- sf::st_sf(well_id = paste0("w", seq_along(pts)), geometry = pts)
+  vals <- data.frame(
+    well_id = rep(wells$well_id, 2),
+    period = factor(rep(c("early", "late"), each = nrow(wells)), c("early", "late"),
+      ordered = TRUE
+    ),
+    level = rnorm(2 * nrow(wells), 10)
+  )
+
+  hex <- lap_aggregate_to_hex(wells, values = vals, cols = level, by = period, grid = grid)
+  expect_s3_class(hex$period, "ordered")
+  expect_identical(levels(hex$period), c("early", "late"))
+  populated <- hex[hex$n_wells > 0, ]
+  # each populated hex appears once per period, none dropped
+  expect_setequal(table(populated$hex_id), 2L)
+  expect_equal(sum(populated$n_wells), 2L * nrow(wells))
+  # empty hexes still present, once, with NA period
+  empty <- hex[hex$n_wells == 0, ]
+  expect_true(all(is.na(empty$period)))
+})
+
+test_that("lap_aggregate_to_hex is unchanged without `by`", {
+  set.seed(4)
+  region <- sf::st_sf(geometry = sf::st_sfc(
+    sf::st_polygon(list(rbind(
+      c(4e6, 3e6), c(4.3e6, 3e6), c(4.3e6, 3.3e6), c(4e6, 3.3e6), c(4e6, 3e6)
+    ))),
+    crs = 3035
+  ))
+  grid <- lap_make_hex_grid(region, cellsize = 60000)
+  pts <- sf::st_transform(sf::st_sample(region, 30), 25832)
+  wells <- sf::st_sf(well_id = paste0("w", seq_along(pts)), geometry = pts)
+  vals <- data.frame(well_id = wells$well_id, level = rnorm(nrow(wells), 10))
+  hex <- lap_aggregate_to_hex(wells, values = vals, grid = grid)
+  expect_equal(nrow(hex), nrow(grid))
+  expect_false("period" %in% names(hex))
+})
