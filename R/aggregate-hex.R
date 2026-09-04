@@ -21,6 +21,11 @@
 #'   `values` (or `wells`) - the aggregation runs per hexagon *and* group, and
 #'   the output has one row per combination. Default: none. A grouping column's
 #'   type (e.g. the ordered `period` factor) is preserved.
+#' @param complete When `by` is set, keep every hexagon in *every* observed
+#'   group (with `NA` values / `n_wells = 0` where that hexagon had no wells in
+#'   that group), so a facetted map draws the full grid in each panel. `TRUE`
+#'   by default; set `FALSE` to keep only the hexagon-group combinations that
+#'   actually have wells. No effect without `by`.
 #' @param grid A hex grid from [lap_make_hex_grid()]. If `NULL`, one is built from
 #'   `region`.
 #' @param region Passed to [lap_make_hex_grid()] when `grid` is `NULL`. Defaults to
@@ -28,14 +33,20 @@
 #' @param cellsize Passed to [lap_make_hex_grid()].
 #'
 #' @return An `sf` polygon layer: the grid plus one column per aggregated value,
-#'   any `by` column(s), and `n_wells`. Hexagons with no wells keep `NA` values
-#'   (and `NA` in the `by` column(s), so filter them out for a facetted map).
+#'   any `by` column(s), and `n_wells`. Without `by`, hexagons with no wells
+#'   keep `NA` values. With `by` and the default `complete = TRUE`, every
+#'   hexagon appears once per observed group (`NA` values / `n_wells = 0`
+#'   where that hexagon-group combination has no wells) - ready to facet by
+#'   `by` with the full grid in every panel; with `complete = FALSE` a
+#'   hexagon with no wells in *any* group instead keeps a single row with `NA`
+#'   in the `by` column(s).
 #' @export
 lap_aggregate_to_hex <- function(wells,
                              values = NULL,
                              cols = NULL,
                              circular = NULL,
                              by = NULL,
+                             complete = TRUE,
                              grid = NULL,
                              region = NULL,
                              cellsize = 25000) {
@@ -112,7 +123,22 @@ lap_aggregate_to_hex <- function(wells,
     tibble::as_tibble(row)
   }))
 
-  out <- dplyr::left_join(sf::st_drop_geometry(grid), agg, by = "hex_id")
+  if (length(by_nm) && isTRUE(complete) && nrow(agg)) {
+    # scaffold: every hexagon x every observed group combination, so a
+    # facetted map has the full grid (grey "no data" hexes included) in
+    # every panel, not just where a hexagon happened to have wells.
+    combos <- unique(agg[by_nm])
+    combos <- combos[do.call(order, unname(as.list(combos))), , drop = FALSE]
+    hex_ids <- grid[["hex_id"]]
+    n <- nrow(combos)
+    scaffold <- tibble::as_tibble(c(
+      list(hex_id = rep(hex_ids, each = n)),
+      lapply(combos, function(col) col[rep(seq_len(n), times = length(hex_ids))])
+    ))
+    out <- dplyr::left_join(scaffold, agg, by = c("hex_id", by_nm))
+  } else {
+    out <- dplyr::left_join(sf::st_drop_geometry(grid), agg, by = "hex_id")
+  }
   out[["n_wells"]][is.na(out[["n_wells"]])] <- 0L
   geom <- sf::st_geometry(grid)[match(out[["hex_id"]], grid[["hex_id"]])]
   sf::st_sf(out, geometry = geom)

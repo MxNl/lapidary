@@ -10,6 +10,7 @@ lap_aggregate_to_hex(
   cols = NULL,
   circular = NULL,
   by = NULL,
+  complete = TRUE,
   grid = NULL,
   region = NULL,
   cellsize = 25000
@@ -33,6 +34,12 @@ to average circularly (months). Default: none.}
 the output has one row per combination. Default: none. A grouping column's
 type (e.g. the ordered \code{period} factor) is preserved.}
 
+\item{complete}{When \code{by} is set, keep every hexagon in \emph{every} observed
+group (with \code{NA} values / \code{n_wells = 0} where that hexagon had no wells in
+that group), so a facetted map draws the full grid in each panel. \code{TRUE}
+by default; set \code{FALSE} to keep only the hexagon-group combinations that
+actually have wells. No effect without \code{by}.}
+
 \item{grid}{A hex grid from \code{\link[=lap_make_hex_grid]{lap_make_hex_grid()}}. If \code{NULL}, one is built from
 \code{region}.}
 
@@ -43,8 +50,13 @@ type (e.g. the ordered \code{period} factor) is preserved.}
 }
 \value{
 An \code{sf} polygon layer: the grid plus one column per aggregated value,
-any \code{by} column(s), and \code{n_wells}. Hexagons with no wells keep \code{NA} values
-(and \code{NA} in the \code{by} column(s), so filter them out for a facetted map).
+any \code{by} column(s), and \code{n_wells}. Without \code{by}, hexagons with no wells
+keep \code{NA} values. With \code{by} and the default \code{complete = TRUE}, every
+hexagon appears once per observed group (\code{NA} values / \code{n_wells = 0}
+where that hexagon-group combination has no wells) - ready to facet by
+\code{by} with the full grid in every panel; with \code{complete = FALSE} a
+hexagon with no wells in \emph{any} group instead keeps a single row with \code{NA}
+in the \code{by} column(s).
 }
 \description{
 Spatially joins well points to a hex grid and summarises one or more value

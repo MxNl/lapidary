@@ -87,13 +87,28 @@ test_that("lap_aggregate_to_hex `by` aggregates per hex x group, keeping factor 
   hex <- lap_aggregate_to_hex(wells, values = vals, cols = level, by = period, grid = grid)
   expect_s3_class(hex$period, "ordered")
   expect_identical(levels(hex$period), c("early", "late"))
+  # complete = TRUE (default): every hex appears once per observed period,
+  # empty hexes included - ready to facet by period with the full grid in
+  # every panel.
+  expect_equal(nrow(hex), nrow(grid) * 2L)
+  expect_true(all(!is.na(hex$period)))
+  expect_setequal(table(hex$hex_id), 2L)
   populated <- hex[hex$n_wells > 0, ]
-  # each populated hex appears once per period, none dropped
-  expect_setequal(table(populated$hex_id), 2L)
   expect_equal(sum(populated$n_wells), 2L * nrow(wells))
-  # empty hexes still present, once, with NA period
+  # a hex empty in a period keeps that period's label with NA values / n_wells = 0
   empty <- hex[hex$n_wells == 0, ]
-  expect_true(all(is.na(empty$period)))
+  expect_true(all(!is.na(empty$period)))
+  expect_true(all(is.na(empty$level)))
+
+  # complete = FALSE: the old sparse shape - only observed hex x period
+  # combinations, plus one NA-period row for a hex with wells in no period
+  sparse <- lap_aggregate_to_hex(
+    wells, values = vals, cols = level, by = period, grid = grid, complete = FALSE
+  )
+  expect_lte(nrow(sparse), nrow(hex))
+  expect_equal(sum(sparse$n_wells), sum(hex$n_wells))
+  never_populated <- setdiff(grid$hex_id, unique(populated$hex_id))
+  expect_equal(sum(is.na(sparse$period)), length(never_populated))
 })
 
 test_that("lap_aggregate_to_hex is unchanged without `by`", {
