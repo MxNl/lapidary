@@ -163,18 +163,30 @@ lapidary_scale_c <- function(aesthetic, role, ..., name, na.value, binned, bins,
 #'
 #' @param length,thickness Bar length and thickness, in text `"lines"` (so they
 #'   scale with the legend text size). Defaults 18 and 0.55.
+#' @param title_gap,label_gap,tick_length Space (in `"lines"`) below the legend
+#'   title, to the left of the break labels, and the tick-mark length. Defaults
+#'   0.9, 1.0 and 0.2.
 #' @param order Guide order (default 1), so it sits above a [lap_na_guide()] key.
 #' @param ... Passed to [ggplot2::guide_coloursteps()].
 #'
 #' @return A ggplot2 guide.
 #' @export
-lap_coloursteps_guide <- function(length = 18, thickness = 0.55, order = 1, ...) {
+lap_coloursteps_guide <- function(length = 18, thickness = 0.55,
+                                  title_gap = 0.9, label_gap = 1.0,
+                                  tick_length = 0.2, order = 1, ...) {
   rlang::check_installed("ggplot2", "for `lap_coloursteps_guide()`")
   tk <- lap_tokens()
   ggplot2::guide_coloursteps(
     theme = ggplot2::theme(
       legend.key.width = grid::unit(thickness, "lines"),
       legend.key.height = grid::unit(length, "lines"),
+      legend.title = ggplot2::element_text(
+        margin = ggplot2::margin(b = title_gap, unit = "lines")
+      ),
+      legend.text = ggplot2::element_text(
+        margin = ggplot2::margin(l = label_gap, unit = "lines")
+      ),
+      legend.ticks.length = grid::unit(tick_length, "lines"),
       legend.ticks = ggplot2::element_line(colour = tk$colour$grid, linewidth = 0.4),
       legend.frame = ggplot2::element_rect(
         colour = tk$colour$grid, fill = NA, linewidth = 0.3

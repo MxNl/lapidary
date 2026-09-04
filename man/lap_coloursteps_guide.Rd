@@ -4,11 +4,23 @@
 \alias{lap_coloursteps_guide}
 \title{A long, thin colour-steps legend guide}
 \usage{
-lap_coloursteps_guide(length = 18, thickness = 0.55, order = 1, ...)
+lap_coloursteps_guide(
+  length = 18,
+  thickness = 0.55,
+  title_gap = 0.9,
+  label_gap = 1,
+  tick_length = 0.2,
+  order = 1,
+  ...
+)
 }
 \arguments{
 \item{length, thickness}{Bar length and thickness, in text \code{"lines"} (so they
 scale with the legend text size). Defaults 18 and 0.55.}
+
+\item{title_gap, label_gap, tick_length}{Space (in \code{"lines"}) below the legend
+title, to the left of the break labels, and the tick-mark length. Defaults
+0.9, 1.0 and 0.2.}
 
 \item{order}{Guide order (default 1), so it sits above a \code{\link[=lap_na_guide]{lap_na_guide()}} key.}
 
