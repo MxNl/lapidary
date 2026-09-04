@@ -5,16 +5,19 @@
 \title{Add a "no data" key for NA regions}
 \usage{
 lap_na_guide(
-  label = "no data",
-  colour = lap_tokens()$colour$missing,
+  label = lap_tr("no_data"),
+  colour = NULL,
+  variant = NULL,
   order = 2
 )
 }
 \arguments{
-\item{label}{Key label. Defaults to \code{"no data"}.}
+\item{label}{Key label. Defaults to the localised \code{"no data"}.}
 
-\item{colour}{Swatch colour. Defaults to the token \code{missing} colour (match
-the scale's \code{na.value}).}
+\item{colour}{Swatch colour. \code{NULL} (default) uses the \code{variant}'s token
+\code{missing} colour (matches the scale's \code{na.value}).}
+
+\item{variant}{\code{"light"} / \code{"dark"}. Defaults to \code{\link[=lap_variant]{lap_variant()}}.}
 
 \item{order}{Legend order (passed to \code{\link[ggplot2:guide_legend]{ggplot2::guide_legend()}}); the default
 2 keeps the NA key below a \code{\link[=lap_coloursteps_guide]{lap_coloursteps_guide()}} bar (order 1).}

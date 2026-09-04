@@ -38,57 +38,48 @@ lap_lang <- function(lang = NULL) {
   lang
 }
 
-# Central string registry. Keyed by string id; each entry has one field per
-# supported language. Extend this list as builders and captions are added.
-lap_labels <- list(
-  app_title = list(
-    en = "Groundwater in Germany",
-    de = "Grundwasser in Deutschland"
-  ),
-  made_in_r = list(
-    en = "Made in R",
-    de = "Erstellt in R"
-  ),
-  by_author = list(
-    en = "By {author}",
-    de = "Von {author}"
-  ),
-  data_source = list(
-    en = "Data: {source}",
-    de = "Daten: {source}"
-  ),
-  months_abbr = list(
-    en = c("J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"),
-    de = c("J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D")
-  ),
-  month_names = list(
-    en = c(
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
-    ),
-    de = c(
-      "Januar", "Februar", "M\u00e4rz", "April", "Mai", "Juni",
-      "Juli", "August", "September", "Oktober", "November", "Dezember"
-    )
-  ),
-  groundwater_level = list(
-    en = "Groundwater level",
-    de = "Grundwasserstand"
-  ),
-  normalised_level = list(
-    en = "Normalised groundwater level",
-    de = "Normierter Grundwasserstand"
-  ),
-  year = list(en = "Year", de = "Jahr"),
-  trend_per_decade = list(
-    en = "Trend (m per decade)",
-    de = "Trend (m pro Dekade)"
-  ),
-  wells_per_hexagon = list(
-    en = "Wells per hexagon",
-    de = "Messstellen pro Wabe"
-  )
-)
+#' Supported visual variants
+#'
+#' @return A character vector: `"light"`, `"dark"`.
+#' @export
+#' @examples
+#' lap_variants()
+lap_variants <- function() {
+  c("light", "dark")
+}
+
+#' Get or set the default visual variant
+#'
+#' Resolves the light/dark variant used by [theme_lapidary()] and the plot
+#' builders when `variant` is not given explicitly. Reads the
+#' `lapidary.variant` option or `LAPIDARY_VARIANT` environment variable,
+#' falling back to `"light"`. The dark-first counterpart of [lap_lang()].
+#'
+#' @param variant Optional variant to validate and return; `NULL` (default)
+#'   returns the configured default.
+#'
+#' @return A single valid variant string.
+#' @export
+#' @examples
+#' lap_variant()
+#' old <- options(lapidary.variant = "dark")
+#' lap_variant()
+#' options(old)
+lap_variant <- function(variant = NULL) {
+  if (is.null(variant)) {
+    variant <- lap_opt("variant", "LAPIDARY_VARIANT", "light")
+  }
+  variant <- as.character(variant)[[1]]
+  if (!variant %in% lap_variants()) {
+    cli::cli_abort(c(
+      "Unknown visual variant {.val {variant}}.",
+      i = "Variants: {.val {lap_variants()}}."
+    ))
+  }
+  variant
+}
+
+# The `lap_labels` string registry lives in R/i18n-labels.R (data only).
 
 #' Translate a registry string
 #'
@@ -121,4 +112,32 @@ lap_tr <- function(id, lang = NULL, ...) {
     }
   }
   value
+}
+
+#' A "how to read this chart" explainer string
+#'
+#' Looks up `howto_<builder>` in the string registry (see [lap_tr()]) and fills
+#' the `{recharge}` / `{discharge}` / `{below}` / `{above}` colour placeholders
+#' from the design tokens of `variant`, so the prose colour-matches the plot.
+#' The plot builders call this for their default `plot.caption`; call it
+#' directly to place the explainer elsewhere.
+#'
+#' @param builder Builder name without the `lap_plot_` prefix, e.g. `"hex_map"`.
+#' @param lang Language code; defaults to [lap_lang()].
+#' @param variant `"light"` / `"dark"`; defaults to [lap_variant()].
+#' @param ... Further named `{placeholder}` values passed to [lap_tr()].
+#'
+#' @return A single string (may contain `<span>` markup for \pkg{ggtext}).
+#' @export
+#' @examples
+#' lap_howto("hex_map")
+#' lap_howto("hex_map", lang = "de")
+lap_howto <- function(builder, lang = NULL, variant = NULL, ...) {
+  col <- lap_tokens(lap_variant(variant))$colour
+  lap_tr(
+    paste0("howto_", builder), lang,
+    recharge = col$recharge, discharge = col$discharge,
+    below = col$below_reference, above = col$above_reference,
+    ...
+  )
 }

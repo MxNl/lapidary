@@ -14,6 +14,12 @@ and \code{lapidary.scale_robust} are option-only.
 and derived datasets. Defaults to \code{\link[tools:userdir]{tools::R_user_dir()}}.}
 \item{\code{lapidary.lang} / \code{LAPIDARY_LANG}}{Default language for user-facing
 labels, one of \code{"en"} or \code{"de"}. Defaults to \code{"en"}.}
+\item{\code{lapidary.variant} / \code{LAPIDARY_VARIANT}}{Default visual variant for
+\code{\link[=theme_lapidary]{theme_lapidary()}} and the plot builders, \code{"light"} or \code{"dark"}.
+Defaults to \code{"light"}.}
+\item{\code{lapidary.annotate}}{Default for the \code{annotate} argument of the plot
+builders: \code{"caption"} (a how-to-read explainer in \code{plot.caption}),
+\code{"callout"}, or \code{NA} to suppress. Option-only.}
 \item{\code{lapidary.scale_range}}{Logical, default \code{FALSE}. When \code{TRUE} the
 continuous \verb{scale_*_lapidary_c()} scales append a mapped \verb{ind_*} column's
 theoretical range to the legend title (same as \code{range = TRUE}).}

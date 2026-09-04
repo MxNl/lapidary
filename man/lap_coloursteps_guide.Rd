@@ -11,6 +11,7 @@ lap_coloursteps_guide(
   label_gap = 1,
   tick_length = 0.2,
   order = 1,
+  variant = NULL,
   ...
 )
 }
@@ -23,6 +24,9 @@ title, to the left of the break labels, and the tick-mark length. Defaults
 0.9, 1.0 and 0.2.}
 
 \item{order}{Guide order (default 1), so it sits above a \code{\link[=lap_na_guide]{lap_na_guide()}} key.}
+
+\item{variant}{\code{"light"} / \code{"dark"} for the frame / tick colour. Defaults to
+\code{\link[=lap_variant]{lap_variant()}}.}
 
 \item{...}{Passed to \code{\link[ggplot2:guide_coloursteps]{ggplot2::guide_coloursteps()}}.}
 }

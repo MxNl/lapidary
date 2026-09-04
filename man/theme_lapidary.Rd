@@ -5,23 +5,30 @@
 \title{The lapidary ggplot2 theme}
 \usage{
 theme_lapidary(
-  variant = c("light", "dark"),
+  variant = lap_variant(),
   base_size = 11,
-  map = TRUE,
-  tokens = NULL
+  panel = c("map", "xy", "ridge", "polar"),
+  tokens = NULL,
+  map = NULL
 )
 }
 \arguments{
-\item{variant}{\code{"light"} (default) or \code{"dark"}.}
+\item{variant}{\code{"light"} or \code{"dark"}. Defaults to \code{\link[=lap_variant]{lap_variant()}}.}
 
 \item{base_size}{Base font size in points. Downstream builders typically
 leave this at the default and let \code{\link[=ggsave_lapidary]{ggsave_lapidary()}} override it.}
 
-\item{map}{If \code{TRUE} (default) also blanks axis text/ticks/grid, which is
-what the hex-map builders want; set \code{FALSE} for time-series panels.}
+\item{panel}{Which panel furniture to blank, matched to the chart family:
+\code{"map"} (default; no axes/grid, for choropleths), \code{"xy"} (Cartesian
+time-series/scatter: keep the y grid, drop minor + x grid), \code{"ridge"}
+(drop the y grid and y ticks, keep the x axis), \code{"polar"} (radial/month
+rings: no axis titles/ticks, keep the radial grid).}
 
 \item{tokens}{A token list from \code{\link[=lap_tokens]{lap_tokens()}}; computed from \code{variant}
 if \code{NULL}.}
+
+\item{map}{Deprecated; use \code{panel} instead (\code{map = TRUE} -> \code{panel = "map"},
+\code{map = FALSE} -> \code{panel = "xy"}).}
 }
 \value{
 A \link[ggplot2:theme]{ggplot2::theme} object.
@@ -38,6 +45,6 @@ changing \code{base_size} (see \code{\link[=ggsave_lapidary]{ggsave_lapidary()}}
 library(ggplot2)
 ggplot(mtcars, aes(mpg, wt)) +
   geom_point() +
-  theme_lapidary(variant = "dark", map = FALSE)
+  theme_lapidary(variant = "dark", panel = "xy")
 }
 }

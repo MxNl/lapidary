@@ -9,6 +9,12 @@
 #'     and derived datasets. Defaults to [tools::R_user_dir()].}
 #'   \item{`lapidary.lang` / `LAPIDARY_LANG`}{Default language for user-facing
 #'     labels, one of `"en"` or `"de"`. Defaults to `"en"`.}
+#'   \item{`lapidary.variant` / `LAPIDARY_VARIANT`}{Default visual variant for
+#'     [theme_lapidary()] and the plot builders, `"light"` or `"dark"`.
+#'     Defaults to `"light"`.}
+#'   \item{`lapidary.annotate`}{Default for the `annotate` argument of the plot
+#'     builders: `"caption"` (a how-to-read explainer in `plot.caption`),
+#'     `"callout"`, or `NA` to suppress. Option-only.}
 #'   \item{`lapidary.scale_range`}{Logical, default `FALSE`. When `TRUE` the
 #'     continuous `scale_*_lapidary_c()` scales append a mapped `ind_*` column's
 #'     theoretical range to the legend title (same as `range = TRUE`).}

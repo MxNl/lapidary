@@ -80,6 +80,15 @@ reference:
   - lap_aggregate_to_hex
   - lap_germany_border
 
+- title: Plot builders
+  desc: >
+    Reusable ggplot2 chart builders. Each returns a bare ggplot (or patchwork),
+    themed and annotated, ready to compose.
+  contents:
+  - starts_with("lap_plot_")
+  - lap_annotate_howto
+  - lap_howto
+
 - title: Style scheme & i18n
   contents:
   - theme_lapidary
@@ -98,6 +107,8 @@ reference:
   - lap_tr
   - lap_lang
   - lap_langs
+  - lap_variant
+  - lap_variants
 
 - title: Datasets
   contents:
