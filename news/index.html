@@ -43,6 +43,20 @@
 <p>First milestone: <strong>data + analysis foundation</strong>.</p>
 <p><strong>Conventions</strong> (see <code>docs/adr/0008</code>): the core API is <code>lap_</code>-prefixed; ggplot2 extension points (<code><a href="../reference/theme_lapidary.html">theme_lapidary()</a></code>, <code>scale_*_lapidary_*()</code>, <code><a href="../reference/ggsave_lapidary.html">ggsave_lapidary()</a></code>) and class constructors (<code><a href="../reference/new_gwl_ts.html">new_gwl_ts()</a></code>, …) keep their names. Column arguments use tidy evaluation (bare names, strings, or tidyselect helpers).</p>
 <div class="section level3">
+<h3 id="plot-builders-milestone-see-docsadr0012-0-0-0-9000">Plot builders (milestone 2, see <code>docs/adr/0012</code>)<a class="anchor" aria-label="anchor" href="#plot-builders-milestone-see-docsadr0012-0-0-0-9000"></a></h3>
+<ul><li>
+<code><a href="../reference/lap_plot_map.html">lap_plot_hex_map()</a></code> / <code><a href="../reference/lap_plot_map.html">lap_plot_point_map()</a></code> — the first <code>lap_plot_*</code> chart builders: a themed choropleth of a hex grid (or coloured well points) in one call, replacing the hand-written <code>geom_sf() + scale_fill_lapidary_c() + theme_lapidary()</code> block. Return a bare ggplot; auto-add a <code><a href="../reference/lap_na_guide.html">lap_na_guide()</a></code> when the value column has <code>NA</code>s; use the cyclic palette for circular-month columns; a POINT layer to <code><a href="../reference/lap_plot_map.html">lap_plot_hex_map()</a></code> dispatches to the point map.</li>
+<li>Every builder appends a localised “how to read this chart” explainer to <code>plot.caption</code> (<code>annotate = "caption"</code> default; <code>"callout"</code> /<code>NA</code> / a string; <code>options(lapidary.annotate = )</code>). <code><a href="../reference/lap_howto.html">lap_howto()</a></code> / <code><a href="../reference/lap_annotate_howto.html">lap_annotate_howto()</a></code>.</li>
+<li>
+<code><a href="../reference/lap_variant.html">lap_variant()</a></code> — light/dark resolver mirroring <code><a href="../reference/lap_lang.html">lap_lang()</a></code> (<code>options(lapidary.variant = )</code> / <code>LAPIDARY_VARIANT</code>).</li>
+<li>
+<code><a href="../reference/theme_lapidary.html">theme_lapidary()</a></code> gains <code>panel = c("map", "xy", "ridge", "polar")</code> (<code>map = TRUE/FALSE</code> kept as a deprecated alias).</li>
+<li>
+<code><a href="../reference/lap_na_guide.html">lap_na_guide()</a></code> / <code><a href="../reference/lap_coloursteps_guide.html">lap_coloursteps_guide()</a></code> gain a <code>variant</code> argument (they previously always resolved light-variant token colours).</li>
+<li>
+<code>ggplot2</code> (<code>&gt;= 3.5.0</code>), <code>ggtext</code>, <code>scales</code>, <code>scico</code> moved from Suggests to Imports.</li>
+</ul></div>
+<div class="section level3">
 <h3 id="data-model-0-0-0-9000">Data model<a class="anchor" aria-label="anchor" href="#data-model-0-0-0-9000"></a></h3>
 <ul><li>
 <code>gwl_ts</code> (tidy long groundwater time series) and <code>gwl_wells</code> (<code>sf</code> well metadata) canonical shapes, with constructors, coercers and validators (<code><a href="../reference/new_gwl_ts.html">new_gwl_ts()</a></code>, <code><a href="../reference/as_gwl_ts.html">as_gwl_ts()</a></code>, <code><a href="../reference/validate_gwl_ts.html">validate_gwl_ts()</a></code>, <code><a href="../reference/check_gwl_ts.html">check_gwl_ts()</a></code>, <code><a href="../reference/new_gwl_wells.html">new_gwl_wells()</a></code>, <code><a href="../reference/check_gwl_wells.html">check_gwl_wells()</a></code>).</li>

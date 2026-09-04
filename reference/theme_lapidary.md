@@ -12,10 +12,11 @@ which does this for you).
 
 ``` r
 theme_lapidary(
-  variant = c("light", "dark"),
+  variant = lap_variant(),
   base_size = 11,
-  map = TRUE,
-  tokens = NULL
+  panel = c("map", "xy", "ridge", "polar"),
+  tokens = NULL,
+  map = NULL
 )
 ```
 
@@ -23,7 +24,8 @@ theme_lapidary(
 
 - variant:
 
-  `"light"` (default) or `"dark"`.
+  `"light"` or `"dark"`. Defaults to
+  [`lap_variant()`](https://mxnl.github.io/lapidary/reference/lap_variant.md).
 
 - base_size:
 
@@ -32,16 +34,24 @@ theme_lapidary(
   [`ggsave_lapidary()`](https://mxnl.github.io/lapidary/reference/ggsave_lapidary.md)
   override it.
 
-- map:
+- panel:
 
-  If `TRUE` (default) also blanks axis text/ticks/grid, which is what
-  the hex-map builders want; set `FALSE` for time-series panels.
+  Which panel furniture to blank, matched to the chart family: `"map"`
+  (default; no axes/grid, for choropleths), `"xy"` (Cartesian
+  time-series/scatter: keep the y grid, drop minor + x grid), `"ridge"`
+  (drop the y grid and y ticks, keep the x axis), `"polar"`
+  (radial/month rings: no axis titles/ticks, keep the radial grid).
 
 - tokens:
 
   A token list from
   [`lap_tokens()`](https://mxnl.github.io/lapidary/reference/lap_tokens.md);
   computed from `variant` if `NULL`.
+
+- map:
+
+  Deprecated; use `panel` instead (`map = TRUE` -\> `panel = "map"`,
+  `map = FALSE` -\> `panel = "xy"`).
 
 ## Value
 
@@ -55,6 +65,6 @@ if (FALSE) { # \dontrun{
 library(ggplot2)
 ggplot(mtcars, aes(mpg, wt)) +
   geom_point() +
-  theme_lapidary(variant = "dark", map = FALSE)
+  theme_lapidary(variant = "dark", panel = "xy")
 } # }
 ```

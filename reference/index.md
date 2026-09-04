@@ -190,6 +190,19 @@ for the long-form guide.
 - [`lap_germany_border()`](https://mxnl.github.io/lapidary/reference/lap_germany_border.md)
   : Administrative border of Germany
 
+## Plot builders
+
+Reusable ggplot2 chart builders. Each returns a bare ggplot (or
+patchwork), themed and annotated, ready to compose.
+
+- [`lap_plot_hex_map()`](https://mxnl.github.io/lapidary/reference/lap_plot_map.md)
+  [`lap_plot_point_map()`](https://mxnl.github.io/lapidary/reference/lap_plot_map.md)
+  : lapidary map builders
+- [`lap_annotate_howto()`](https://mxnl.github.io/lapidary/reference/lap_annotate_howto.md)
+  : Add a "how to read this chart" explainer to a plot
+- [`lap_howto()`](https://mxnl.github.io/lapidary/reference/lap_howto.md)
+  : A "how to read this chart" explainer string
+
 ## Style scheme & i18n
 
 - [`theme_lapidary()`](https://mxnl.github.io/lapidary/reference/theme_lapidary.md)
@@ -229,6 +242,10 @@ for the long-form guide.
   : Get or set the default label language
 - [`lap_langs()`](https://mxnl.github.io/lapidary/reference/lap_langs.md)
   : Supported interface languages
+- [`lap_variant()`](https://mxnl.github.io/lapidary/reference/lap_variant.md)
+  : Get or set the default visual variant
+- [`lap_variants()`](https://mxnl.github.io/lapidary/reference/lap_variants.md)
+  : Supported visual variants
 
 ## Datasets
 

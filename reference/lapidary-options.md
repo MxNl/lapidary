@@ -17,6 +17,18 @@ option-only.
   Default language for user-facing labels, one of `"en"` or `"de"`.
   Defaults to `"en"`.
 
+- `lapidary.variant` / `LAPIDARY_VARIANT`:
+
+  Default visual variant for
+  [`theme_lapidary()`](https://mxnl.github.io/lapidary/reference/theme_lapidary.md)
+  and the plot builders, `"light"` or `"dark"`. Defaults to `"light"`.
+
+- `lapidary.annotate`:
+
+  Default for the `annotate` argument of the plot builders: `"caption"`
+  (a how-to-read explainer in `plot.caption`), `"callout"`, or `NA` to
+  suppress. Option-only.
+
 - `lapidary.scale_range`:
 
   Logical, default `FALSE`. When `TRUE` the continuous

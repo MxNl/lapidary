@@ -16,6 +16,7 @@ lap_coloursteps_guide(
   label_gap = 1,
   tick_length = 0.2,
   order = 1,
+  variant = NULL,
   ...
 )
 ```
@@ -37,6 +38,11 @@ lap_coloursteps_guide(
   Guide order (default 1), so it sits above a
   [`lap_na_guide()`](https://mxnl.github.io/lapidary/reference/lap_na_guide.md)
   key.
+
+- variant:
+
+  `"light"` / `"dark"` for the frame / tick colour. Defaults to
+  [`lap_variant()`](https://mxnl.github.io/lapidary/reference/lap_variant.md).
 
 - ...:
 

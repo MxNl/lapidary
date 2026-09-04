@@ -14,6 +14,41 @@ and class constructors
 …) keep their names. Column arguments use tidy evaluation (bare names,
 strings, or tidyselect helpers).
 
+### Plot builders (milestone 2, see `docs/adr/0012`)
+
+- [`lap_plot_hex_map()`](https://mxnl.github.io/lapidary/reference/lap_plot_map.md)
+  /
+  [`lap_plot_point_map()`](https://mxnl.github.io/lapidary/reference/lap_plot_map.md)
+  — the first `lap_plot_*` chart builders: a themed choropleth of a hex
+  grid (or coloured well points) in one call, replacing the hand-written
+  `geom_sf() + scale_fill_lapidary_c() + theme_lapidary()` block. Return
+  a bare ggplot; auto-add a
+  [`lap_na_guide()`](https://mxnl.github.io/lapidary/reference/lap_na_guide.md)
+  when the value column has `NA`s; use the cyclic palette for
+  circular-month columns; a POINT layer to
+  [`lap_plot_hex_map()`](https://mxnl.github.io/lapidary/reference/lap_plot_map.md)
+  dispatches to the point map.
+- Every builder appends a localised “how to read this chart” explainer
+  to `plot.caption` (`annotate = "caption"` default; `"callout"` /`NA` /
+  a string; `options(lapidary.annotate = )`).
+  [`lap_howto()`](https://mxnl.github.io/lapidary/reference/lap_howto.md)
+  /
+  [`lap_annotate_howto()`](https://mxnl.github.io/lapidary/reference/lap_annotate_howto.md).
+- [`lap_variant()`](https://mxnl.github.io/lapidary/reference/lap_variant.md)
+  — light/dark resolver mirroring
+  [`lap_lang()`](https://mxnl.github.io/lapidary/reference/lap_lang.md)
+  (`options(lapidary.variant = )` / `LAPIDARY_VARIANT`).
+- [`theme_lapidary()`](https://mxnl.github.io/lapidary/reference/theme_lapidary.md)
+  gains `panel = c("map", "xy", "ridge", "polar")` (`map = TRUE/FALSE`
+  kept as a deprecated alias).
+- [`lap_na_guide()`](https://mxnl.github.io/lapidary/reference/lap_na_guide.md)
+  /
+  [`lap_coloursteps_guide()`](https://mxnl.github.io/lapidary/reference/lap_coloursteps_guide.md)
+  gain a `variant` argument (they previously always resolved
+  light-variant token colours).
+- `ggplot2` (`>= 3.5.0`), `ggtext`, `scales`, `scico` moved from
+  Suggests to Imports.
+
 ### Data model
 
 - `gwl_ts` (tidy long groundwater time series) and `gwl_wells` (`sf`

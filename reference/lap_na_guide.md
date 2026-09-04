@@ -10,8 +10,9 @@ aesthetic) for the `na.value` colour - e.g. hexagons with no wells.
 
 ``` r
 lap_na_guide(
-  label = "no data",
-  colour = lap_tokens()$colour$missing,
+  label = lap_tr("no_data"),
+  colour = NULL,
+  variant = NULL,
   order = 2
 )
 ```
@@ -20,12 +21,17 @@ lap_na_guide(
 
 - label:
 
-  Key label. Defaults to `"no data"`.
+  Key label. Defaults to the localised `"no data"`.
 
 - colour:
 
-  Swatch colour. Defaults to the token `missing` colour (match the
-  scale's `na.value`).
+  Swatch colour. `NULL` (default) uses the `variant`'s token `missing`
+  colour (matches the scale's `na.value`).
+
+- variant:
+
+  `"light"` / `"dark"`. Defaults to
+  [`lap_variant()`](https://mxnl.github.io/lapidary/reference/lap_variant.md).
 
 - order:
 

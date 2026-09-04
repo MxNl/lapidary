@@ -21,6 +21,7 @@
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_add_indicators.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_add_reference_period.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_aggregate_to_hex.html</loc></url>
+<url><loc>https://mxnl.github.io/lapidary/reference/lap_annotate_howto.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_cache_dir.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_cache_info.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_cache_source_dir.html</loc></url>
@@ -43,6 +44,7 @@
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_gw_trend.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_gwl_query.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_gwl_tbl.html</loc></url>
+<url><loc>https://mxnl.github.io/lapidary/reference/lap_howto.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_ind_amplitude.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_ind_climate_signal.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_ind_drought.html</loc></url>
@@ -73,6 +75,7 @@
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_pal_roles.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_parquet_dir.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_period_windows.html</loc></url>
+<url><loc>https://mxnl.github.io/lapidary/reference/lap_plot_map.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_preset.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_preset_names.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_prettify_label.html</loc></url>
@@ -87,6 +90,8 @@
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_tr.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_unzip_once.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_use_water_year.html</loc></url>
+<url><loc>https://mxnl.github.io/lapidary/reference/lap_variant.html</loc></url>
+<url><loc>https://mxnl.github.io/lapidary/reference/lap_variants.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_wells_with_coverage.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_write_gwl_parquet.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lapidary-options.html</loc></url>
