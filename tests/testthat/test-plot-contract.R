@@ -7,6 +7,12 @@ library(ggplot2)
 # A representative call per builder (extend as builders are added).
 builder_inputs <- local({
   ind <- lap_indicators(gems_ger_sample, c("amplitude", "memory", "flashiness"))
+  chg <- lap_indicator_change(
+    gems_ger_sample, "amplitude",
+    periods = list(reference = c(1991, 2010), recent = c(2011, 2022))
+  )
+  dl <- lap_indicator_delta(chg, "reference", "recent")
+  hex_dl <- lap_aggregate_to_hex(gems_ger_wells_sample, dl)
   list(
     lap_plot_hex_map = function() lap_plot_hex_map(germany_hex_sample, mean_gwl),
     lap_plot_point_map = function() {
@@ -15,7 +21,10 @@ builder_inputs <- local({
     lap_plot_distribution = function() lap_plot_distribution(ind, ind_amplitude),
     lap_plot_indicator_scatter = function() {
       lap_plot_indicator_scatter(ind, ind_memory_weeks, ind_flashiness)
-    }
+    },
+    lap_plot_delta_map = function() lap_plot_delta_map(hex_dl, ind_amplitude),
+    lap_plot_period_ridges = function() lap_plot_period_ridges(chg, ind_amplitude),
+    lap_plot_change_scatter = function() lap_plot_change_scatter(dl, ind_amplitude)
   )
 })
 
