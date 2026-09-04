@@ -22,3 +22,27 @@ test_that("lap_lang resolves option, default and rejects bad codes", {
   withr::with_options(list(lapidary.lang = "de"), expect_equal(lap_lang(), "de"))
   expect_error(lap_lang("fr"), "Unsupported language")
 })
+
+test_that("lap_variant resolves option, default and rejects bad values", {
+  withr::with_options(list(lapidary.variant = NULL), expect_equal(lap_variant(), "light"))
+  withr::with_options(list(lapidary.variant = "dark"), expect_equal(lap_variant(), "dark"))
+  expect_equal(lap_variant("dark"), "dark")
+  expect_error(lap_variant("neon"), "Unknown visual variant")
+  expect_setequal(lap_variants(), c("light", "dark"))
+})
+
+test_that("lap_howto looks up the builder explainer and injects accent colours", {
+  h <- lap_howto("hex_map")
+  expect_type(h, "character")
+  expect_length(h, 1L)
+  expect_match(h, "hexagon", ignore.case = TRUE)
+  expect_identical(lap_howto("hex_map", lang = "de"), lap_tr("howto_hex_map", "de"))
+})
+
+test_that("every howto_* key is present in all languages", {
+  reg <- lapidary:::lap_labels
+  for (id in grep("^howto_", names(reg), value = TRUE)) {
+    expect_setequal(names(reg[[id]]), lap_langs())
+    for (l in lap_langs()) expect_true(nzchar(reg[[id]][[l]]))
+  }
+})

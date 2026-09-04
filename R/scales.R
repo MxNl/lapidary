@@ -375,15 +375,18 @@ lapidary_scale_c <- function(aesthetic, role, ..., name, na.value, binned, bins,
 #'   title, to the left of the break labels, and the tick-mark length. Defaults
 #'   0.9, 1.0 and 0.2.
 #' @param order Guide order (default 1), so it sits above a [lap_na_guide()] key.
+#' @param variant `"light"` / `"dark"` for the frame / tick colour. Defaults to
+#'   [lap_variant()].
 #' @param ... Passed to [ggplot2::guide_coloursteps()].
 #'
 #' @return A ggplot2 guide.
 #' @export
 lap_coloursteps_guide <- function(length = 18, thickness = 0.55,
                                   title_gap = 0.9, label_gap = 1.0,
-                                  tick_length = 0.2, order = 1, ...) {
+                                  tick_length = 0.2, order = 1,
+                                  variant = NULL, ...) {
   rlang::check_installed("ggplot2", "for `lap_coloursteps_guide()`")
-  tk <- lap_tokens()
+  grid_col <- lap_tokens(lap_variant(variant))$colour$grid
   ggplot2::guide_coloursteps(
     theme = ggplot2::theme(
       legend.key.width = grid::unit(thickness, "lines"),
@@ -395,9 +398,9 @@ lap_coloursteps_guide <- function(length = 18, thickness = 0.55,
         margin = ggplot2::margin(l = label_gap, unit = "lines")
       ),
       legend.ticks.length = grid::unit(tick_length, "lines"),
-      legend.ticks = ggplot2::element_line(colour = tk$colour$grid, linewidth = 0.4),
+      legend.ticks = ggplot2::element_line(colour = grid_col, linewidth = 0.4),
       legend.frame = ggplot2::element_rect(
-        colour = tk$colour$grid, fill = NA, linewidth = 0.3
+        colour = grid_col, fill = NA, linewidth = 0.3
       )
     ),
     show.limits = TRUE,
@@ -413,9 +416,10 @@ lap_coloursteps_guide <- function(length = 18, thickness = 0.55,
 #' swatch (an invisible layer on the unused `shape` aesthetic) for the
 #' `na.value` colour - e.g. hexagons with no wells.
 #'
-#' @param label Key label. Defaults to `"no data"`.
-#' @param colour Swatch colour. Defaults to the token `missing` colour (match
-#'   the scale's `na.value`).
+#' @param label Key label. Defaults to the localised `"no data"`.
+#' @param colour Swatch colour. `NULL` (default) uses the `variant`'s token
+#'   `missing` colour (matches the scale's `na.value`).
+#' @param variant `"light"` / `"dark"`. Defaults to [lap_variant()].
 #' @param order Legend order (passed to [ggplot2::guide_legend()]); the default
 #'   2 keeps the NA key below a [lap_coloursteps_guide()] bar (order 1).
 #'
@@ -431,11 +435,13 @@ lap_coloursteps_guide <- function(length = 18, thickness = 0.55,
 #'   scale_fill_lapidary_c("magnitude") +
 #'   lap_na_guide()
 #' }
-lap_na_guide <- function(label = "no data",
-                         colour = lap_tokens()$colour$missing,
+lap_na_guide <- function(label = lap_tr("no_data"),
+                         colour = NULL,
+                         variant = NULL,
                          order = 2) {
   rlang::check_installed("ggplot2", "for `lap_na_guide()`")
   label <- as.character(label)
+  colour <- colour %||% lap_tokens(lap_variant(variant))$colour$missing
   list(
     # an off-panel (NA-coord) point: never drawn, but it trains a `shape`
     # legend whose single key we recolour to the NA swatch

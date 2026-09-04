@@ -6,13 +6,18 @@
 #' can be rendered small for the web and large for an A0 poster just by
 #' changing `base_size` (see [ggsave_lapidary()], which does this for you).
 #'
-#' @param variant `"light"` (default) or `"dark"`.
+#' @param variant `"light"` or `"dark"`. Defaults to [lap_variant()].
 #' @param base_size Base font size in points. Downstream builders typically
 #'   leave this at the default and let [ggsave_lapidary()] override it.
-#' @param map If `TRUE` (default) also blanks axis text/ticks/grid, which is
-#'   what the hex-map builders want; set `FALSE` for time-series panels.
+#' @param panel Which panel furniture to blank, matched to the chart family:
+#'   `"map"` (default; no axes/grid, for choropleths), `"xy"` (Cartesian
+#'   time-series/scatter: keep the y grid, drop minor + x grid), `"ridge"`
+#'   (drop the y grid and y ticks, keep the x axis), `"polar"` (radial/month
+#'   rings: no axis titles/ticks, keep the radial grid).
 #' @param tokens A token list from [lap_tokens()]; computed from `variant`
 #'   if `NULL`.
+#' @param map Deprecated; use `panel` instead (`map = TRUE` -> `panel = "map"`,
+#'   `map = FALSE` -> `panel = "xy"`).
 #'
 #' @return A [ggplot2::theme] object.
 #' @export
@@ -21,14 +26,19 @@
 #' library(ggplot2)
 #' ggplot(mtcars, aes(mpg, wt)) +
 #'   geom_point() +
-#'   theme_lapidary(variant = "dark", map = FALSE)
+#'   theme_lapidary(variant = "dark", panel = "xy")
 #' }
-theme_lapidary <- function(variant = c("light", "dark"),
+theme_lapidary <- function(variant = lap_variant(),
                            base_size = 11,
-                           map = TRUE,
-                           tokens = NULL) {
+                           panel = c("map", "xy", "ridge", "polar"),
+                           tokens = NULL,
+                           map = NULL) {
   rlang::check_installed("ggplot2", "for `theme_lapidary()`")
-  variant <- rlang::arg_match(variant)
+  variant <- lap_variant(variant)
+  if (!is.null(map)) {
+    panel <- if (isTRUE(map)) "map" else "xy"
+  }
+  panel <- rlang::arg_match(panel)
   tk <- tokens %||% lap_tokens(variant)
 
   fam_title <- resolve_family(tk$font$title, tk$font$fallback_title)
@@ -78,19 +88,31 @@ theme_lapidary <- function(variant = c("light", "dark"),
     )
   )
 
-  if (map) {
-    t <- t + ggplot2::theme(
+  t <- t + switch(panel,
+    map = ggplot2::theme(
       axis.title = ggplot2::element_blank(),
       axis.text = ggplot2::element_blank(),
       axis.ticks = ggplot2::element_blank(),
       panel.grid = ggplot2::element_blank()
-    )
-  } else {
-    t <- t + ggplot2::theme(
+    ),
+    xy = ggplot2::theme(
       panel.grid.minor = ggplot2::element_blank(),
       panel.grid.major.x = ggplot2::element_blank()
+    ),
+    ridge = ggplot2::theme(
+      panel.grid = ggplot2::element_blank(),
+      panel.grid.major.x = ggplot2::element_line(colour = col$grid, linewidth = 0.3),
+      axis.ticks.y = ggplot2::element_blank(),
+      axis.line.x = ggplot2::element_line(colour = col$grid, linewidth = 0.3)
+    ),
+    polar = ggplot2::theme(
+      axis.title = ggplot2::element_blank(),
+      axis.ticks = ggplot2::element_blank(),
+      axis.text.y = ggplot2::element_blank(),
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.grid.major = ggplot2::element_line(colour = col$grid, linewidth = 0.3)
     )
-  }
+  )
   t
 }
 
