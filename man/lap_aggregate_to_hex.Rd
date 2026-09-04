@@ -9,6 +9,7 @@ lap_aggregate_to_hex(
   values = NULL,
   cols = NULL,
   circular = NULL,
+  by = NULL,
   grid = NULL,
   region = NULL,
   cellsize = 25000
@@ -22,10 +23,15 @@ aggregate, or \code{NULL} to use numeric columns already on \code{wells}.}
 
 \item{cols}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> value columns to
 aggregate (bare names, strings, helpers). Default: all numeric columns of
-\code{values} (or \code{wells}).}
+\code{values} (or \code{wells}), minus any \code{by} columns.}
 
 \item{circular}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> subset of \code{cols}
 to average circularly (months). Default: none.}
+
+\item{by}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> grouping column(s) in
+\code{values} (or \code{wells}) - the aggregation runs per hexagon \emph{and} group, and
+the output has one row per combination. Default: none. A grouping column's
+type (e.g. the ordered \code{period} factor) is preserved.}
 
 \item{grid}{A hex grid from \code{\link[=lap_make_hex_grid]{lap_make_hex_grid()}}. If \code{NULL}, one is built from
 \code{region}.}
@@ -36,12 +42,18 @@ to average circularly (months). Default: none.}
 \item{cellsize}{Passed to \code{\link[=lap_make_hex_grid]{lap_make_hex_grid()}}.}
 }
 \value{
-An \code{sf} polygon layer: the grid plus one column per aggregated value
-and \code{n_wells}. Hexagons with no wells keep \code{NA} values.
+An \code{sf} polygon layer: the grid plus one column per aggregated value,
+any \code{by} column(s), and \code{n_wells}. Hexagons with no wells keep \code{NA} values
+(and \code{NA} in the \code{by} column(s), so filter them out for a facetted map).
 }
 \description{
 Spatially joins well points to a hex grid and summarises one or more value
 columns per hexagon. Regular numeric columns are averaged (mean); columns
 named in \code{circular} are averaged with \code{\link[=lap_circular_mean_month]{lap_circular_mean_month()}}; a well count
 \code{n_wells} is always added.
+}
+\details{
+Pass \code{by} to aggregate \emph{within groups} - e.g. feed the long output of
+\code{\link[=lap_indicator_change]{lap_indicator_change()}} with \code{by = period} to get one row per hexagon and
+period (without \code{by}, the repeated \code{well_id}s would collapse the periods).
 }

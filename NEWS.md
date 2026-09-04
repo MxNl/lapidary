@@ -55,7 +55,10 @@ tidyselect helpers).
 * `lap_normalise_gwl()` — `range`, `zscore`, `sgi`.
 * `lap_gw_trend()` — Theil–Sen slope + Mann–Kendall test.
 * `lap_make_hex_grid()`, `lap_aggregate_to_hex()`, `lap_circular_mean_month()`,
-  `lap_germany_border()`.
+  `lap_germany_border()`. `lap_aggregate_to_hex(by = )` aggregates per hexagon
+  *and* group, so the long output of `lap_indicator_change()` can be mapped
+  without collapsing the periods (the grouping column's type, e.g. the ordered
+  `period` factor, is preserved).
 
 ## Time-series indicators (see `docs/adr/0009`, `docs/adr/0010`, `docs/adr/0011`)
 * `lap_indicators()` collector + `lap_add_indicators()` for step-by-step
@@ -67,11 +70,14 @@ tidyselect helpers).
   `lap_indicators()` / `lap_add_indicators()` / `lap_indicator_change()` is
   forwarded to every `lap_ind_*()` (`threshold`, `min_len`, `driver`, ...).
 * `lap_indicator_registry()` lists the catalogue (`key`, `columns`, `range`,
-  `needs_date`, `in_all`, `description`, `reference`). Each `lap_ind_*()` also
-  carries `@references`; `vignette("indicators")` is the long-form guide.
+  `units`, `needs_date`, `in_all`, `description`, `reference`). Each
+  `lap_ind_*()` also carries `@references`; `vignette("indicators")` is the
+  long-form guide. `lap_indicator_registry(long = TRUE)` returns one row per
+  emitted `ind_*` column, adding `delta_kind`.
 * `range` gives each `ind_*` column's theoretical value range in interval
-  notation (`[0, 1]`, `(-Inf, Inf)`, `{FALSE, TRUE}`, ...), `" | "`-separated
-  and aligned with `columns`.
+  notation (`[0, 1]`, `(-Inf, Inf)`, `{FALSE, TRUE}`, ...); `units` gives the
+  physical unit (`"m"`, `"months"`, `"weeks"`, `"m/year"`, ...) or `"-"` for a
+  dimensionless quantity. Both are `" | "`-separated and aligned with `columns`.
 * Catalogue: `amplitude`, `seasonal_amplitude`, `seasonality_strength`,
   `recharge_discharge`, `phase_regularity`, `extreme_months`, `flashiness`,
   `memory` (autocorrelation / e-folding), `rise_fall`, `trend`,

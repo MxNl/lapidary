@@ -89,6 +89,9 @@ lap_indicators <- function(x, .funs, by = well_id, value = gwl, date = "date", .
 #   range      - per output column, its theoretical value range in interval
 #                notation ("[0, 1]", "(-Inf, Inf)", "{FALSE, TRUE}"); NA where
 #                there is no meaningful fixed range. Surfaced in the registry.
+#   units      - per output column, the physical unit ("m", "months", "weeks",
+#                "m/year", "month", "year") or "-" for a dimensionless quantity.
+#                "m" / "m/year" assume the level column is in metres.
 #   description
 #   reference  - short literature citation for the metric (surfaced in the
 #                registry; the long form is vignette("indicators"))
@@ -100,6 +103,7 @@ indicator_catalog <- function() {
       fn = lap_ind_amplitude, columns = "ind_amplitude",
       needs_date = FALSE, in_all = TRUE, delta_kind = d("ind_amplitude"),
       range = r("ind_amplitude", "[0, Inf)"),
+      units = r("ind_amplitude", "m"),
       description = "max - min of the level over the slice",
       reference = "descriptive"
     ),
@@ -107,6 +111,7 @@ indicator_catalog <- function() {
       fn = lap_ind_seasonal_amplitude, columns = "ind_seasonal_amplitude",
       needs_date = TRUE, in_all = TRUE, delta_kind = d("ind_seasonal_amplitude"),
       range = r("ind_seasonal_amplitude", "[0, Inf)"),
+      units = r("ind_seasonal_amplitude", "m"),
       description = "mean over years of the annual (max - min)",
       reference = "descriptive"
     ),
@@ -114,6 +119,7 @@ indicator_catalog <- function() {
       fn = lap_ind_seasonality_strength, columns = "ind_seasonality_strength",
       needs_date = TRUE, in_all = TRUE, delta_kind = d("ind_seasonality_strength"),
       range = r("ind_seasonality_strength", "[0, 1]"),
+      units = r("ind_seasonality_strength", "-"),
       description = "STL variance ratio in [0, 1] on monthly means",
       reference = "Wang, Smith & Hyndman (2006) Data Min. Knowl. Discov. 13, 335"
     ),
@@ -123,6 +129,7 @@ indicator_catalog <- function() {
       needs_date = TRUE, in_all = TRUE,
       delta_kind = d(c("ind_recharge_months", "ind_discharge_months")),
       range = c(ind_recharge_months = "[1, 12]", ind_discharge_months = "[0, 11]"),
+      units = r(c("ind_recharge_months", "ind_discharge_months"), "months"),
       description = "length of the mean rising vs falling limb, in months",
       reference = "descriptive"
     ),
@@ -130,6 +137,7 @@ indicator_catalog <- function() {
       fn = lap_ind_phase_regularity, columns = "ind_min_month_sd",
       needs_date = TRUE, in_all = TRUE, delta_kind = d("ind_min_month_sd"),
       range = r("ind_min_month_sd", "[0, Inf)"),
+      units = r("ind_min_month_sd", "months"),
       description = "circular SD (months) of the annual-minimum month",
       reference = "Mardia & Jupp (2000) Directional Statistics"
     ),
@@ -138,6 +146,7 @@ indicator_catalog <- function() {
       needs_date = TRUE, in_all = TRUE,
       delta_kind = d(c("ind_min_month", "ind_max_month"), "circular"),
       range = r(c("ind_min_month", "ind_max_month"), "(0.5, 12.5]"),
+      units = r(c("ind_min_month", "ind_max_month"), "month"),
       description = "circular-mean month of the annual minimum / maximum level",
       reference = "Mardia & Jupp (2000) Directional Statistics"
     ),
@@ -145,6 +154,7 @@ indicator_catalog <- function() {
       fn = lap_ind_flashiness, columns = "ind_flashiness",
       needs_date = FALSE, in_all = TRUE, delta_kind = d("ind_flashiness"),
       range = r("ind_flashiness", "[1, Inf)"),
+      units = r("ind_flashiness", "-"),
       description = "sum(|diff(level)|) / range - path length per span",
       reference = "Baker et al. (2004) J. Am. Water Resour. Assoc. 40, 503"
     ),
@@ -153,6 +163,7 @@ indicator_catalog <- function() {
       needs_date = TRUE, in_all = TRUE,
       delta_kind = d(c("ind_acf1", "ind_memory_weeks")),
       range = c(ind_acf1 = "[-1, 1]", ind_memory_weeks = "[1, Inf)"),
+      units = c(ind_acf1 = "-", ind_memory_weeks = "weeks"),
       description = "lag-1 autocorr + e-folding lag of the deseasonalised series",
       reference = "Rinaldo et al. (2015); Barker et al. (2016) HESS 20, 2483"
     ),
@@ -161,6 +172,7 @@ indicator_catalog <- function() {
       needs_date = FALSE, in_all = TRUE,
       delta_kind = d(c("ind_rise_rate", "ind_fall_rate")),
       range = r(c("ind_rise_rate", "ind_fall_rate"), "(0, Inf)"),
+      units = r(c("ind_rise_rate", "ind_fall_rate"), "m per step"),
       description = "median rate of rising vs falling steps",
       reference = "descriptive (cf. hydrograph rise/recession analysis)"
     ),
@@ -176,6 +188,7 @@ indicator_catalog <- function() {
         ind_trend_slope = "(-Inf, Inf)", ind_trend_p_value = "[0, 1]",
         ind_trend_significant = "{FALSE, TRUE}"
       ),
+      units = c(ind_trend_slope = "m/year", ind_trend_p_value = "-", ind_trend_significant = "-"),
       description = "Theil-Sen slope + Mann-Kendall test on annual mean levels",
       reference = "Sen (1968) JASA 63, 1379; Mann (1945); Kendall (1975)"
     ),
@@ -185,6 +198,7 @@ indicator_catalog <- function() {
       needs_date = TRUE, in_all = TRUE,
       delta_kind = d(c("ind_trend_min_slope", "ind_trend_max_slope")),
       range = r(c("ind_trend_min_slope", "ind_trend_max_slope"), "(-Inf, Inf)"),
+      units = r(c("ind_trend_min_slope", "ind_trend_max_slope"), "m/year"),
       description = "Theil-Sen slope of the annual minima / maxima",
       reference = "Sen (1968) JASA 63, 1379"
     ),
@@ -200,6 +214,7 @@ indicator_catalog <- function() {
         ind_step_year = NA_character_, ind_step_magnitude = "(-Inf, Inf)",
         ind_step_p_value = "[0, 1]"
       ),
+      units = c(ind_step_year = "year", ind_step_magnitude = "m", ind_step_p_value = "-"),
       description = "Pettitt change-point year + magnitude on annual means",
       reference = "Pettitt (1979) J. R. Stat. Soc. C 28, 126"
     ),
@@ -207,6 +222,7 @@ indicator_catalog <- function() {
       fn = lap_ind_trend_acceleration, columns = "ind_trend_accel",
       needs_date = TRUE, in_all = TRUE, delta_kind = d("ind_trend_accel"),
       range = r("ind_trend_accel", "(-Inf, Inf)"),
+      units = r("ind_trend_accel", "m/year"),
       description = "Sen slope(2nd half) - Sen slope(1st half) of annual means",
       reference = "descriptive (piecewise Theil-Sen)"
     ),
@@ -229,6 +245,9 @@ indicator_catalog <- function() {
         ind_drought_duration_weeks = "[1, Inf)", ind_drought_max_weeks = "[0, Inf)",
         ind_drought_severity = "(0, Inf)", ind_drought_intensity = "(0, Inf)"
       ),
+      units = c(ind_drought_frequency = "-", ind_frac_below_normal = "-", ind_index_min = "-",
+        ind_drought_n_events = "-", ind_drought_duration_weeks = "weeks",
+        ind_drought_max_weeks = "weeks", ind_drought_severity = "-", ind_drought_intensity = "-"),
       description = "run-theory drought stats from a standardised index (needs an SGI column)",
       reference = "Bloomfield & Marchant (2013) HESS 17, 4769; Yevjevich (1967); Ebeling et al. (2025) HESS 29, 2925"
     ),
@@ -238,6 +257,7 @@ indicator_catalog <- function() {
       needs_date = FALSE, in_all = FALSE,
       delta_kind = d(c("ind_drought_recovery_weeks", "ind_drought_n_unrecovered")),
       range = r(c("ind_drought_recovery_weeks", "ind_drought_n_unrecovered"), "[0, Inf)"),
+      units = c(ind_drought_recovery_weeks = "weeks", ind_drought_n_unrecovered = "-"),
       description = "recovery time from drought minima on a standardised index (needs an SGI column)",
       reference = "Peterson, Saft & Peel (2021) Nature 591, 597"
     ),
@@ -261,6 +281,10 @@ indicator_catalog <- function() {
         ind_residual_trend_slope = "(-Inf, Inf)", ind_residual_trend_p_value = "[0, 1]",
         ind_residual_trend_significant = "{FALSE, TRUE}"
       ),
+      units = c(ind_accum_months = "months", ind_climate_lag_months = "months",
+        ind_response_months = "months", ind_climate_cc = "-",
+        ind_residual_trend_slope = "SGI/year", ind_residual_trend_p_value = "-",
+        ind_residual_trend_significant = "-"),
       description = "climate response time + climate-removed trend (needs an SGI column and a driver)",
       reference = "Ebeling et al. (2025) HESS 29, 2925; Retike et al. (2020) HESS 24, 501"
     ),
@@ -270,6 +294,7 @@ indicator_catalog <- function() {
       needs_date = FALSE, in_all = TRUE,
       delta_kind = d(c("ind_recession_weeks", "ind_recession_n_segments")),
       range = c(ind_recession_weeks = "(0, Inf)", ind_recession_n_segments = "[0, Inf)"),
+      units = c(ind_recession_weeks = "weeks", ind_recession_n_segments = "-"),
       description = "master-recession-curve e-folding time from falling segments",
       reference = "Posavec, Bacani & Nakic (2006) Ground Water 44, 764; Fiorillo (2014) Water Resour. Manag. 28, 1919"
     )
@@ -281,27 +306,60 @@ indicator_catalog <- function() {
 #' Lists what [lap_indicators()] can compute, so you do not have to memorise the
 #' `lap_ind_*` function names.
 #'
-#' @return A tibble with one row per indicator: `key` (use it in `.funs`),
-#'   `columns` (comma-separated `ind_*` columns it emits), `range` (those
-#'   columns' theoretical value ranges in interval notation, `" | "`-separated
-#'   and positionally aligned with `columns`), `needs_date`, `in_all` (whether
-#'   `.funs = "all"` includes it), `description` and `reference` (a short
-#'   citation; the long form is `vignette("indicators")`).
+#' @param long If `FALSE` (default) one row per indicator key, with the emitted
+#'   columns, ranges and units `" | "`-separated and positionally aligned. If
+#'   `TRUE`, one row per emitted `ind_*` column (`key`, `column`, `range`,
+#'   `units`, `delta_kind`, `needs_date`, `in_all`, `description`, `reference`).
+#'
+#' @return A tibble. Wide (`long = FALSE`): `key`, `columns`, `range`, `units`,
+#'   `needs_date`, `in_all`, `description`, `reference`. Long (`long = TRUE`):
+#'   one row per `ind_*` column with `column`, `range`, `units` and `delta_kind`
+#'   (how [lap_indicator_delta()] differences it). Units are `"m"`, `"months"`,
+#'   `"weeks"`, `"m/year"`, `"month"`, `"year"`, ... or `"-"` for a
+#'   dimensionless quantity (`"m"` assumes a level column in metres).
+#'   Value ranges use interval notation; the long form is `vignette("indicators")`.
 #' @export
 #' @examples
 #' lap_indicator_registry()
-lap_indicator_registry <- function() {
+#' lap_indicator_registry(long = TRUE)
+lap_indicator_registry <- function(long = FALSE) {
   reg <- indicator_catalog()
+
+  if (isTRUE(long)) {
+    rows <- lapply(names(reg), function(k) {
+      e <- reg[[k]]
+      tibble::tibble(
+        key = k,
+        column = e$columns,
+        range = unname(e$range[e$columns]),
+        units = unname(e$units[e$columns]),
+        delta_kind = unname(e$delta_kind[e$columns]),
+        needs_date = e$needs_date,
+        in_all = e$in_all,
+        description = e$description,
+        reference = e$reference %||% NA_character_
+      )
+    })
+    return(dplyr::bind_rows(rows))
+  }
+
+  joined <- function(field, sep) {
+    vapply(reg, function(e) {
+      paste(unname(e[[field]][e$columns]), collapse = sep)
+    }, character(1), USE.NAMES = FALSE)
+  }
   tibble::tibble(
     key = names(reg),
-    columns = vapply(reg, function(e) toString(e$columns), character(1)),
-    range = vapply(reg, function(e) {
-      paste(unname(e$range[e$columns]), collapse = " | ")
-    }, character(1)),
-    needs_date = vapply(reg, function(e) e$needs_date, logical(1)),
-    in_all = vapply(reg, function(e) e$in_all, logical(1)),
-    description = vapply(reg, function(e) e$description, character(1)),
-    reference = vapply(reg, function(e) e$reference %||% NA_character_, character(1))
+    columns = vapply(reg, function(e) toString(e$columns), character(1), USE.NAMES = FALSE),
+    range = joined("range", " | "),
+    units = joined("units", " | "),
+    needs_date = vapply(reg, function(e) e$needs_date, logical(1), USE.NAMES = FALSE),
+    in_all = vapply(reg, function(e) e$in_all, logical(1), USE.NAMES = FALSE),
+    description = vapply(reg, function(e) e$description, character(1), USE.NAMES = FALSE),
+    reference = vapply(
+      reg, function(e) e$reference %||% NA_character_, character(1),
+      USE.NAMES = FALSE
+    )
   )
 }
 
