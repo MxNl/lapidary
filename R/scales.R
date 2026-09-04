@@ -41,8 +41,10 @@ resolve_palette <- function(role) {
 #' The continuous (`_c`) scales are **binned** by default: the data is cut at
 #' pretty round breaks and shown as a long, thin colour-steps bar. The legend
 #' title is derived from the mapped variable with [lap_prettify_label()]
-#' (`ind_trend_slope` becomes `"Trend slope"`) unless you pass `name`. Pair with
-#' [lap_na_guide()] to add a "no data" key for `NA` regions (e.g. empty hexes).
+#' (`ind_trend_slope` becomes `"Trend slope"`) unless you pass `name`; with
+#' `range = TRUE` a known indicator column's theoretical range is appended
+#' (`"Trend slope  (-Inf, Inf)"`). Pair with [lap_na_guide()] to add a "no data"
+#' key for `NA` regions (e.g. empty hexes).
 #'
 #' @param role One of [lap_pal_roles()].
 #' @param ... Passed to the underlying scale ([ggplot2::binned_scale()] when
@@ -61,6 +63,11 @@ resolve_palette <- function(role) {
 #'   at the palette centre.
 #' @param guide Legend guide. Defaults to a long, thin
 #'   [ggplot2::guide_coloursteps()] (binned) or the scale default.
+#' @param range If `TRUE` and the mapped variable is a known `ind_*` column,
+#'   append that column's theoretical value range (interval notation, `Inf`
+#'   shown as an infinity symbol) to the auto-derived legend title. `_c` scales
+#'   only; ignored when `name` is an explicit string / `NULL` or the variable is
+#'   unknown. Default `getOption("lapidary.scale_range", FALSE)`.
 #'
 #' @return A ggplot2 scale.
 #' @name scale_lapidary
@@ -84,12 +91,13 @@ scale_fill_lapidary_c <- function(role = "magnitude", ...,
                                   na.value = lap_tokens()$colour$missing,
                                   binned = TRUE, bins = 8,
                                   begin = 0, end = 1, direction = 1,
-                                  midpoint = NULL, guide = NULL) {
+                                  midpoint = NULL, guide = NULL,
+                                  range = getOption("lapidary.scale_range", FALSE)) {
   lapidary_scale_c(
     "fill", role, ...,
     name = name, na.value = na.value, binned = binned, bins = bins,
     begin = begin, end = end, direction = direction, midpoint = midpoint,
-    guide = guide
+    guide = guide, range = range
   )
 }
 
@@ -100,12 +108,13 @@ scale_colour_lapidary_c <- function(role = "magnitude", ...,
                                     na.value = lap_tokens()$colour$missing,
                                     binned = TRUE, bins = 8,
                                     begin = 0, end = 1, direction = 1,
-                                    midpoint = NULL, guide = NULL) {
+                                    midpoint = NULL, guide = NULL,
+                                    range = getOption("lapidary.scale_range", FALSE)) {
   lapidary_scale_c(
     "colour", role, ...,
     name = name, na.value = na.value, binned = binned, bins = bins,
     begin = begin, end = end, direction = direction, midpoint = midpoint,
-    guide = guide
+    guide = guide, range = range
   )
 }
 
@@ -115,9 +124,30 @@ scale_color_lapidary_c <- scale_colour_lapidary_c
 
 # Shared builder for the continuous fill/colour scales.
 lapidary_scale_c <- function(aesthetic, role, ..., name, na.value, binned, bins,
-                             begin, end, direction, midpoint, guide) {
+                             begin, end, direction, midpoint, guide,
+                             range = FALSE) {
   rlang::check_installed(c("ggplot2", "scico"), "for the lapidary scales")
   pal <- resolve_palette(role)
+
+  # `range = TRUE` + a function `name`: wrap it to append the mapped indicator
+  # column's theoretical range to the auto-derived title. An explicit string /
+  # NULL `name` is left alone (the caller set the title deliberately).
+  if (isTRUE(range) && is.function(name)) {
+    inner <- name
+    name <- function(label) {
+      title <- inner(label)
+      rng <- if (is.character(label) && length(label) == 1L) {
+        column_range(label)
+      } else {
+        NA_character_
+      }
+      if (!is.na(rng) && is.character(title) && length(title) == 1L && !is.na(title)) {
+        paste0(title, "  ", lap_format_range(rng))
+      } else {
+        title
+      }
+    }
+  }
 
   if (!isTRUE(binned)) {
     scico_fn <- if (aesthetic == "fill") {
@@ -288,6 +318,15 @@ lap_prettify_label <- function(x) {
     substr(out, 1, 1) <- toupper(substr(out, 1, 1))
     out
   }, character(1), USE.NAMES = FALSE)
+}
+
+# ASCII interval-notation string -> display form: real minus sign + infinity
+# glyph. "(-Inf, 0]" -> "(<U+2212><U+221E>, 0]". NA propagates. Replace "Inf"
+# before "-" so "-Inf" collapses cleanly; interval strings use "-" only as a
+# minus sign (the separator is ", ").
+lap_format_range <- function(x) {
+  x <- gsub("Inf", "\u221e", as.character(x), fixed = TRUE)
+  gsub("-", "\u2212", x, fixed = TRUE)
 }
 
 #' @rdname scale_lapidary

@@ -39,7 +39,9 @@ The continuous `scale_*_lapidary_c()` scales are **binned** at pretty round
 breaks and drawn as a long, thin colour-steps bar; the legend title is
 prettified from the mapped variable (see `lap_prettify_label()`) unless you set
 `name`/`labs()`; and `lap_na_guide()` adds a "no data" key for `NA` regions such
-as empty hexes.
+as empty hexes. With `scale_fill_lapidary_c(range = TRUE)` — or
+`options(lapidary.scale_range = TRUE)` — a mapped indicator column's theoretical
+range is appended to the title (`"Trend slope  (-Inf, Inf)"`).
 
 ```{r}
 data(germany_hex_sample)

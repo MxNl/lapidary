@@ -21,7 +21,8 @@ scale_fill_lapidary_c(
   end = 1,
   direction = 1,
   midpoint = NULL,
-  guide = NULL
+  guide = NULL,
+  range = getOption("lapidary.scale_range", FALSE)
 )
 
 scale_colour_lapidary_c(
@@ -35,7 +36,8 @@ scale_colour_lapidary_c(
   end = 1,
   direction = 1,
   midpoint = NULL,
-  guide = NULL
+  guide = NULL,
+  range = getOption("lapidary.scale_range", FALSE)
 )
 
 scale_color_lapidary_c(
@@ -49,7 +51,8 @@ scale_color_lapidary_c(
   end = 1,
   direction = 1,
   midpoint = NULL,
-  guide = NULL
+  guide = NULL,
+  range = getOption("lapidary.scale_range", FALSE)
 )
 
 scale_fill_lapidary_d(
@@ -99,6 +102,12 @@ at the palette centre.}
 
 \item{guide}{Legend guide. Defaults to a long, thin
 \code{\link[ggplot2:guide_coloursteps]{ggplot2::guide_coloursteps()}} (binned) or the scale default.}
+
+\item{range}{If \code{TRUE} and the mapped variable is a known \verb{ind_*} column,
+append that column's theoretical value range (interval notation, \code{Inf}
+shown as an infinity symbol) to the auto-derived legend title. \verb{_c} scales
+only; ignored when \code{name} is an explicit string / \code{NULL} or the variable is
+unknown. Default \code{getOption("lapidary.scale_range", FALSE)}.}
 }
 \value{
 A ggplot2 scale.
@@ -112,8 +121,10 @@ A ggplot2 scale.
 The continuous (\verb{_c}) scales are \strong{binned} by default: the data is cut at
 pretty round breaks and shown as a long, thin colour-steps bar. The legend
 title is derived from the mapped variable with \code{\link[=lap_prettify_label]{lap_prettify_label()}}
-(\code{ind_trend_slope} becomes \code{"Trend slope"}) unless you pass \code{name}. Pair with
-\code{\link[=lap_na_guide]{lap_na_guide()}} to add a "no data" key for \code{NA} regions (e.g. empty hexes).
+(\code{ind_trend_slope} becomes \code{"Trend slope"}) unless you pass \code{name}; with
+\code{range = TRUE} a known indicator column's theoretical range is appended
+(\code{"Trend slope  (-Inf, Inf)"}). Pair with \code{\link[=lap_na_guide]{lap_na_guide()}} to add a "no data"
+key for \code{NA} regions (e.g. empty hexes).
 }
 \examples{
 \dontrun{

@@ -85,3 +85,46 @@ test_that("lap_na_guide adds a second legend and the plot still renders", {
   aes_mapped <- unlist(lapply(p$scales$scales, function(s) s$aesthetics))
   expect_true(all(c("fill", "shape") %in% aes_mapped)) # dummy shape scale added
 })
+
+test_that("lap_format_range swaps ASCII Inf / minus for real glyphs", {
+  minus_inf <- "(−∞, 0]"
+  expect_identical(lap_format_range("(-Inf, 0]"), minus_inf)
+  expect_identical(lap_format_range("[1, Inf)"), "[1, ∞)")
+  expect_identical(lap_format_range("[-1, 1]"), "[−1, 1]")
+  expect_identical(lap_format_range("[0, 1]"), "[0, 1]")
+  expect_identical(lap_format_range(NA_character_), NA_character_)
+})
+
+test_that("scale_*_lapidary_c can append an indicator range to the legend title", {
+  skip_if_not_installed("ggplot2")
+  skip_if_not_installed("scico")
+  inf <- "∞"
+  w <- ggplot2::waiver()
+
+  on <- scale_fill_lapidary_c("magnitude", range = TRUE)
+  ttl <- on$make_title(w, on$name, "ind_trend_slope")
+  expect_match(ttl, "Trend slope", fixed = TRUE)
+  expect_match(ttl, inf, fixed = TRUE)
+
+  off <- scale_fill_lapidary_c("magnitude")
+  expect_identical(off$make_title(w, off$name, "ind_trend_slope"), "Trend slope")
+
+  # unknown variable -> no range, just the prettified name
+  expect_identical(on$make_title(w, on$name, "mean_gwl"), "Mean GWL")
+
+  # explicit string name wins, no range
+  ex <- scale_fill_lapidary_c("magnitude", name = "Custom", range = TRUE)
+  expect_identical(ex$make_title(w, ex$name, "ind_trend_slope"), "Custom")
+
+  # smooth (binned = FALSE) path also appends
+  sm <- scale_fill_lapidary_c("magnitude", binned = FALSE, range = TRUE)
+  expect_match(
+    sm$make_title(w, sm$name, "ind_seasonality_strength"), "[0, 1]",
+    fixed = TRUE
+  )
+
+  # the option flips the default
+  withr::local_options(lapidary.scale_range = TRUE)
+  opt <- scale_fill_lapidary_c("magnitude")
+  expect_match(opt$make_title(w, opt$name, "ind_trend_slope"), inf, fixed = TRUE)
+})

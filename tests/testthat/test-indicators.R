@@ -82,9 +82,25 @@ test_that("lap_indicator_registry lists one row per registered indicator", {
   expect_type(reg$in_all, "logical")
   expect_true(all(nzchar(reg$columns)))
   expect_true(all(nzchar(reg$description)))
+  expect_true("range" %in% names(reg))
+  expect_true(all(nzchar(reg$range)))
   # every catalogued column is unique across indicators
   cols <- unlist(strsplit(reg$columns, ", "))
   expect_equal(anyDuplicated(cols), 0L)
+})
+
+test_that("the registry carries a theoretical range aligned with every column", {
+  reg <- lap_indicator_registry()
+  expect_equal(
+    lengths(strsplit(reg$range, " | ", fixed = TRUE)),
+    lengths(strsplit(reg$columns, ", "))
+  )
+  expect_identical(column_range("ind_trend_slope"), "(-Inf, Inf)")
+  expect_identical(column_range("ind_seasonality_strength"), "[0, 1]")
+  expect_identical(column_range("ind_trend_significant"), "{FALSE, TRUE}")
+  expect_true(is.na(column_range("ind_step_year")))       # a year, no fixed range
+  expect_true(is.na(column_range("not_an_indicator")))
+  expect_identical(column_range(c("ind_acf1", "bogus")), c("[-1, 1]", NA))
 })
 
 test_that("a date-needing indicator on a frame without a date column errors cleanly", {
