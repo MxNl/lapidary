@@ -14,6 +14,7 @@ lap_aggregate_to_hex(
   values = NULL,
   cols = NULL,
   circular = NULL,
+  by = NULL,
   grid = NULL,
   region = NULL,
   cellsize = 25000
@@ -35,12 +36,20 @@ lap_aggregate_to_hex(
 
   \<[`tidy-select`](https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html)\>
   value columns to aggregate (bare names, strings, helpers). Default:
-  all numeric columns of `values` (or `wells`).
+  all numeric columns of `values` (or `wells`), minus any `by` columns.
 
 - circular:
 
   \<[`tidy-select`](https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html)\>
   subset of `cols` to average circularly (months). Default: none.
+
+- by:
+
+  \<[`tidy-select`](https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html)\>
+  grouping column(s) in `values` (or `wells`) - the aggregation runs per
+  hexagon *and* group, and the output has one row per combination.
+  Default: none. A grouping column's type (e.g. the ordered `period`
+  factor) is preserved.
 
 - grid:
 
@@ -62,5 +71,14 @@ lap_aggregate_to_hex(
 
 ## Value
 
-An `sf` polygon layer: the grid plus one column per aggregated value and
-`n_wells`. Hexagons with no wells keep `NA` values.
+An `sf` polygon layer: the grid plus one column per aggregated value,
+any `by` column(s), and `n_wells`. Hexagons with no wells keep `NA`
+values (and `NA` in the `by` column(s), so filter them out for a
+facetted map).
+
+## Details
+
+Pass `by` to aggregate *within groups* - e.g. feed the long output of
+[`lap_indicator_change()`](https://mxnl.github.io/lapidary/reference/lap_indicator_change.md)
+with `by = period` to get one row per hexagon and period (without `by`,
+the repeated `well_id`s would collapse the periods).

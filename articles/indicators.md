@@ -8,18 +8,22 @@ runs a selection of them and returns one row per well;
 is the index. This vignette is the long form: for every catalogue key,
 what it measures, how it is computed, and what a high or low value tells
 you hydrogeologically. The one-line version, the emitted columns, each
-column’s theoretical range and a short citation are in the registry:
+column’s theoretical range and unit, and a short citation are in the
+registry:
 
 ``` r
 
 lap_indicator_registry()[, c("key", "description", "reference")]
-lap_indicator_registry()[, c("key", "columns", "range")]
+lap_indicator_registry()[, c("key", "columns", "range", "units")]
+lap_indicator_registry(long = TRUE) # one row per ind_* column
 ```
 
-`range` is `" | "`-separated and lines up with `columns` (e.g. `drought`
-emits `ind_drought_frequency` in `[0, 1]` and `ind_index_min` in
-`(-Inf, Inf)`). Every section below also states its range in interval
-notation — `[`/`]` closed, `(`/`)` open, `Inf` unbounded,
+`range` and `units` are `" | "`-separated and line up with `columns`
+(e.g. `drought` emits `ind_drought_frequency` in `[0, 1]` (unit `-`) and
+`ind_index_min` in `(-Inf, Inf)`). `units` is `"-"` for a dimensionless
+quantity, else `"m"` / `"m/year"` (assuming a level column in metres),
+`"months"`, `"weeks"`, … Every section below also states its range in
+interval notation — `[`/`]` closed, `(`/`)` open, `Inf` unbounded,
 `{FALSE, TRUE}` for the logical flags.
 
 All indicators take `value` / `date` as

@@ -59,6 +59,7 @@ named in <code>circular</code> are averaged with <code><a href="lap_circular_mea
 <span>  values <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cols <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  circular <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  by <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  grid <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  region <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cellsize <span class="op">=</span> <span class="fl">25000</span></span>
@@ -81,12 +82,19 @@ aggregate, or <code>NULL</code> to use numeric columns already on <code>wells</c
 <dt id="arg-cols">cols<a class="anchor" aria-label="anchor" href="#arg-cols"></a></dt>
 <dd><p>&lt;<code><a href="https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html" class="external-link">tidy-select</a></code>&gt; value columns to
 aggregate (bare names, strings, helpers). Default: all numeric columns of
-<code>values</code> (or <code>wells</code>).</p></dd>
+<code>values</code> (or <code>wells</code>), minus any <code>by</code> columns.</p></dd>
 
 
 <dt id="arg-circular">circular<a class="anchor" aria-label="anchor" href="#arg-circular"></a></dt>
 <dd><p>&lt;<code><a href="https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html" class="external-link">tidy-select</a></code>&gt; subset of <code>cols</code>
 to average circularly (months). Default: none.</p></dd>
+
+
+<dt id="arg-by">by<a class="anchor" aria-label="anchor" href="#arg-by"></a></dt>
+<dd><p>&lt;<code><a href="https://dplyr.tidyverse.org/reference/dplyr_tidy_select.html" class="external-link">tidy-select</a></code>&gt; grouping column(s) in
+<code>values</code> (or <code>wells</code>) - the aggregation runs per hexagon <em>and</em> group, and
+the output has one row per combination. Default: none. A grouping column's
+type (e.g. the ordered <code>period</code> factor) is preserved.</p></dd>
 
 
 <dt id="arg-grid">grid<a class="anchor" aria-label="anchor" href="#arg-grid"></a></dt>
@@ -105,8 +113,15 @@ to average circularly (months). Default: none.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>An <code>sf</code> polygon layer: the grid plus one column per aggregated value
-and <code>n_wells</code>. Hexagons with no wells keep <code>NA</code> values.</p>
+    <p>An <code>sf</code> polygon layer: the grid plus one column per aggregated value,
+any <code>by</code> column(s), and <code>n_wells</code>. Hexagons with no wells keep <code>NA</code> values
+(and <code>NA</code> in the <code>by</code> column(s), so filter them out for a facetted map).</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Pass <code>by</code> to aggregate <em>within groups</em> - e.g. feed the long output of
+<code><a href="lap_indicator_change.html">lap_indicator_change()</a></code> with <code>by = period</code> to get one row per hexagon and
+period (without <code>by</code>, the repeated <code>well_id</code>s would collapse the periods).</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

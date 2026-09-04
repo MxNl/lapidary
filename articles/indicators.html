@@ -73,18 +73,23 @@ them and returns one row per well; <code><a href="../reference/lap_indicator_reg
 is the index. This vignette is the long form: for every catalogue key,
 what it measures, how it is computed, and what a high or low value tells
 you hydrogeologically. The one-line version, the emitted columns, each
-column’s theoretical range and a short citation are in the registry:</p>
+column’s theoretical range and unit, and a short citation are in the
+registry:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/lap_indicator_registry.html">lap_indicator_registry</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"key"</span>, <span class="st">"description"</span>, <span class="st">"reference"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="fu"><a href="../reference/lap_indicator_registry.html">lap_indicator_registry</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"key"</span>, <span class="st">"columns"</span>, <span class="st">"range"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
-<p><code>range</code> is <code>" | "</code>-separated and lines up with
-<code>columns</code> (e.g. <code>drought</code> emits
-<code>ind_drought_frequency</code> in <code>[0, 1]</code> and
-<code>ind_index_min</code> in <code>(-Inf, Inf)</code>). Every section
-below also states its range in interval notation —
-<code>[</code>/<code>]</code> closed, <code>(</code>/<code>)</code>
-open, <code>Inf</code> unbounded, <code>{FALSE, TRUE}</code> for the
-logical flags.</p>
+<span><span class="fu"><a href="../reference/lap_indicator_registry.html">lap_indicator_registry</a></span><span class="op">(</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"key"</span>, <span class="st">"columns"</span>, <span class="st">"range"</span>, <span class="st">"units"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="fu"><a href="../reference/lap_indicator_registry.html">lap_indicator_registry</a></span><span class="op">(</span>long <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co"># one row per ind_* column</span></span></code></pre></div>
+<p><code>range</code> and <code>units</code> are
+<code>" | "</code>-separated and line up with <code>columns</code> (e.g.
+<code>drought</code> emits <code>ind_drought_frequency</code> in
+<code>[0, 1]</code> (unit <code>-</code>) and <code>ind_index_min</code>
+in <code>(-Inf, Inf)</code>). <code>units</code> is <code>"-"</code> for
+a dimensionless quantity, else <code>"m"</code> / <code>"m/year"</code>
+(assuming a level column in metres), <code>"months"</code>,
+<code>"weeks"</code>, … Every section below also states its range in
+interval notation — <code>[</code>/<code>]</code> closed,
+<code>(</code>/<code>)</code> open, <code>Inf</code> unbounded,
+<code>{FALSE, TRUE}</code> for the logical flags.</p>
 <p>All indicators take <code>value</code> / <code>date</code> as
 [tidy-select][dplyr::dplyr_tidy_select] arguments and NA-guard short
 input. Extra arguments (<code>threshold</code>, <code>min_len</code>,

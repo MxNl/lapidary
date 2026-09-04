@@ -111,6 +111,11 @@ strings, or tidyselect helpers).
   [`lap_aggregate_to_hex()`](https://mxnl.github.io/lapidary/reference/lap_aggregate_to_hex.md),
   [`lap_circular_mean_month()`](https://mxnl.github.io/lapidary/reference/lap_circular_mean_month.md),
   [`lap_germany_border()`](https://mxnl.github.io/lapidary/reference/lap_germany_border.md).
+  `lap_aggregate_to_hex(by = )` aggregates per hexagon *and* group, so
+  the long output of
+  [`lap_indicator_change()`](https://mxnl.github.io/lapidary/reference/lap_indicator_change.md)
+  can be mapped without collapsing the periods (the grouping column’s
+  type, e.g. the ordered `period` factor, is preserved).
 
 ### Time-series indicators (see `docs/adr/0009`, `docs/adr/0010`, `docs/adr/0011`)
 
@@ -132,13 +137,16 @@ strings, or tidyselect helpers).
   is forwarded to every `lap_ind_*()` (`threshold`, `min_len`, `driver`,
   …).
 - [`lap_indicator_registry()`](https://mxnl.github.io/lapidary/reference/lap_indicator_registry.md)
-  lists the catalogue (`key`, `columns`, `range`, `needs_date`,
+  lists the catalogue (`key`, `columns`, `range`, `units`, `needs_date`,
   `in_all`, `description`, `reference`). Each `lap_ind_*()` also carries
   `@references`;
   [`vignette("indicators")`](https://mxnl.github.io/lapidary/articles/indicators.md)
-  is the long-form guide.
+  is the long-form guide. `lap_indicator_registry(long = TRUE)` returns
+  one row per emitted `ind_*` column, adding `delta_kind`.
 - `range` gives each `ind_*` column’s theoretical value range in
-  interval notation (`[0, 1]`, `(-Inf, Inf)`, `{FALSE, TRUE}`, …),
+  interval notation (`[0, 1]`, `(-Inf, Inf)`, `{FALSE, TRUE}`, …);
+  `units` gives the physical unit (`"m"`, `"months"`, `"weeks"`,
+  `"m/year"`, …) or `"-"` for a dimensionless quantity. Both are
   `" | "`-separated and aligned with `columns`.
 - Catalogue: `amplitude`, `seasonal_amplitude`, `seasonality_strength`,
   `recharge_discharge`, `phase_regularity`, `extreme_months`,
