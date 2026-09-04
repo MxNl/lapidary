@@ -13,46 +13,92 @@
 scale_fill_lapidary_c(
   role = "magnitude",
   ...,
-  na.value = lap_tokens()$colour$missing
+  name = lap_prettify_label,
+  na.value = lap_tokens()$colour$missing,
+  binned = TRUE,
+  bins = 8,
+  begin = 0,
+  end = 1,
+  direction = 1,
+  midpoint = NULL,
+  guide = NULL
 )
 
 scale_colour_lapidary_c(
   role = "magnitude",
   ...,
-  na.value = lap_tokens()$colour$missing
+  name = lap_prettify_label,
+  na.value = lap_tokens()$colour$missing,
+  binned = TRUE,
+  bins = 8,
+  begin = 0,
+  end = 1,
+  direction = 1,
+  midpoint = NULL,
+  guide = NULL
 )
 
 scale_color_lapidary_c(
   role = "magnitude",
   ...,
-  na.value = lap_tokens()$colour$missing
+  name = lap_prettify_label,
+  na.value = lap_tokens()$colour$missing,
+  binned = TRUE,
+  bins = 8,
+  begin = 0,
+  end = 1,
+  direction = 1,
+  midpoint = NULL,
+  guide = NULL
 )
 
 scale_fill_lapidary_d(
   role = "magnitude",
   ...,
+  name = lap_prettify_label,
   na.value = lap_tokens()$colour$missing
 )
 
 scale_colour_lapidary_d(
   role = "magnitude",
   ...,
+  name = lap_prettify_label,
   na.value = lap_tokens()$colour$missing
 )
 
 scale_color_lapidary_d(
   role = "magnitude",
   ...,
+  name = lap_prettify_label,
   na.value = lap_tokens()$colour$missing
 )
 }
 \arguments{
 \item{role}{One of \code{\link[=lap_pal_roles]{lap_pal_roles()}}.}
 
-\item{...}{Passed to \code{\link[scico:ggplot2-scales]{scico::scale_fill_scico()}} /
-\code{\link[scico:ggplot2-scales]{scico::scale_colour_scico()}} (e.g. \code{limits}, \code{direction}, \code{na.value}).}
+\item{...}{Passed to the underlying scale (\code{\link[ggplot2:binned_scale]{ggplot2::binned_scale()}} when
+\code{binned = TRUE}, else \code{\link[scico:ggplot2-scales]{scico::scale_fill_scico()}} /
+\code{\link[scico:ggplot2-scales]{scico::scale_colour_scico()}}) - e.g. \code{limits}, \code{breaks}, \code{labels}.}
+
+\item{name}{Legend title. A string, \code{NULL} to drop it, or a function of the
+default (auto-derived) title. Defaults to \code{\link[=lap_prettify_label]{lap_prettify_label()}}.}
 
 \item{na.value}{Colour for \code{NA}. Defaults to the token \code{missing} colour.}
+
+\item{binned}{If \code{TRUE} (default, \verb{_c} only) cut the scale at pretty breaks
+and use a colour-steps guide; \code{FALSE} gives a smooth gradient.}
+
+\item{bins}{Target number of bins (passed to \code{binned_scale()} as \code{n.breaks}).
+Default 8; \code{NULL} lets ggplot2 choose.}
+
+\item{begin, end, direction}{Passed to \code{\link[scico:scico]{scico::scico()}} to trim / flip the
+palette.}
+
+\item{midpoint}{For a divergent \code{role} (\code{"anomaly"}), the data value placed
+at the palette centre.}
+
+\item{guide}{Legend guide. Defaults to a long, thin
+\code{\link[ggplot2:guide_coloursteps]{ggplot2::guide_coloursteps()}} (binned) or the scale default.}
 }
 \value{
 A ggplot2 scale.
@@ -62,11 +108,24 @@ A ggplot2 scale.
 \code{"months"} (cyclic), \code{"magnitude"}/\code{"magnitude_dark"} (sequential),
 \code{"density"} (sequential greys), \code{"anomaly"} (divergent).
 }
+\details{
+The continuous (\verb{_c}) scales are \strong{binned} by default: the data is cut at
+pretty round breaks and shown as a long, thin colour-steps bar. The legend
+title is derived from the mapped variable with \code{\link[=lap_prettify_label]{lap_prettify_label()}}
+(\code{ind_trend_slope} becomes \code{"Trend slope"}) unless you pass \code{name}. Pair with
+\code{\link[=lap_na_guide]{lap_na_guide()}} to add a "no data" key for \code{NA} regions (e.g. empty hexes).
+}
 \examples{
 \dontrun{
 library(ggplot2)
-ggplot(faithfuld, aes(waiting, eruptions, fill = density)) +
-  geom_raster() +
-  scale_fill_lapidary_c("magnitude")
+data(germany_hex_sample, package = "lapidary")
+ggplot(germany_hex_sample) +
+  geom_sf(aes(fill = mean_gwl)) +
+  scale_fill_lapidary_c("magnitude") +
+  lap_na_guide() +
+  theme_lapidary()
 }
+}
+\seealso{
+\code{\link[=lap_na_guide]{lap_na_guide()}}, \code{\link[=lap_prettify_label]{lap_prettify_label()}}
 }

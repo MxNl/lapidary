@@ -35,13 +35,19 @@ scales from web to A0.
 
 ## Theme and scales
 
+The continuous `scale_*_lapidary_c()` scales are **binned** at pretty round
+breaks and drawn as a long, thin colour-steps bar; the legend title is
+prettified from the mapped variable (see `lap_prettify_label()`) unless you set
+`name`/`labs()`; and `lap_na_guide()` adds a "no data" key for `NA` regions such
+as empty hexes.
+
 ```{r}
 data(germany_hex_sample)
-hex <- subset(germany_hex_sample, n_wells > 0)
 
-p <- ggplot(hex) +
+p <- ggplot(germany_hex_sample) +
   geom_sf(aes(fill = mean_gwl), colour = "white", linewidth = 0.1) +
   scale_fill_lapidary_c("magnitude") +
+  lap_na_guide() +
   labs(title = lap_tr("app_title"), fill = lap_tr("groundwater_level"))
 
 p + theme_lapidary("light")

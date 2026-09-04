@@ -39,3 +39,49 @@ test_that("scale + theme render without a font/dpi error at web and a1", {
     expect_true(file.exists(f))
   }
 })
+
+test_that("lap_prettify_label cleans variable names and passes non-strings through", {
+  expect_equal(
+    lap_prettify_label(c("mean_gwl", "ind_trend_slope", "ind_climate_cc", "n_wells")),
+    c("Mean GWL", "Trend slope", "Climate CC", "N wells")
+  )
+  expect_identical(lap_prettify_label(NA_character_), NA_character_)
+  expect_identical(lap_prettify_label(ggplot2::waiver()), ggplot2::waiver())
+})
+
+test_that("scale_*_lapidary_c is binned with a prettified title, or smooth on demand", {
+  skip_if_not_installed("ggplot2")
+  skip_if_not_installed("scico")
+  binned <- scale_fill_lapidary_c("magnitude")
+  expect_s3_class(binned, "ScaleBinned")
+  # the `name` function turns the auto label into a readable title
+  expect_equal(binned$make_title(ggplot2::waiver(), binned$name, "mean_gwl"), "Mean GWL")
+
+  smooth <- scale_fill_lapidary_c("magnitude", binned = FALSE)
+  expect_false(inherits(smooth, "ScaleBinned"))
+
+  # an explicit name wins over the prettifier
+  expect_equal(
+    scale_fill_lapidary_c("magnitude", name = "Custom")$make_title(
+      ggplot2::waiver(), "Custom", "mean_gwl"
+    ),
+    "Custom"
+  )
+})
+
+test_that("lap_na_guide adds a second legend and the plot still renders", {
+  skip_if_not_installed("ggplot2")
+  skip_if_not_installed("scico")
+  library(ggplot2)
+  d <- data.frame(x = 1:6, y = 1, z = c(NA, NA, 1, 2, 3, 4))
+  p <- ggplot(d, aes(x, y, fill = z)) +
+    geom_tile() +
+    scale_fill_lapidary_c("magnitude") +
+    lap_na_guide(label = "no data") +
+    theme_lapidary(map = FALSE)
+  f <- withr::local_tempfile(fileext = ".png")
+  expect_no_error(suppressWarnings(ggsave_lapidary(p, f, preset = "web")))
+  expect_true(file.exists(f))
+  aes_mapped <- unlist(lapply(p$scales$scales, function(s) s$aesthetics))
+  expect_true(all(c("fill", "shape") %in% aes_mapped)) # dummy shape scale added
+})
