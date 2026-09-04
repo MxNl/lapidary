@@ -80,7 +80,12 @@ tidyselect helpers).
   `lap_germany_border()`. `lap_aggregate_to_hex(by = )` aggregates per hexagon
   *and* group, so the long output of `lap_indicator_change()` can be mapped
   without collapsing the periods (the grouping column's type, e.g. the ordered
-  `period` factor, is preserved).
+  `period` factor, is preserved). `complete = TRUE` (default, when `by` is
+  set) fills in every hexagon for every observed group, not just the ones that
+  had wells, so `facet_wrap(vars(period))` draws the full grid - including
+  empty "no data" hexes - in every panel instead of dropping them into an
+  `NA` facet; `complete = FALSE` keeps the old sparse shape (one `NA`-group
+  row for a hexagon with no wells in any group).
 
 ## Time-series indicators (see `docs/adr/0009`, `docs/adr/0010`, `docs/adr/0011`)
 * `lap_indicators()` collector + `lap_add_indicators()` for step-by-step
