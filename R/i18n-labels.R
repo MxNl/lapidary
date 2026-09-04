@@ -90,5 +90,22 @@ lap_labels <- list(
   howto_point_map = list(
     en = "One mark per monitoring well, coloured by its value.",
     de = "Eine Markierung je Messstelle, eingef\u00e4rbt nach ihrem Wert."
+  ),
+  howto_distribution = list(
+    en = paste(
+      "Each well contributes one value; the bars / curve show how those values",
+      "are spread, coloured on the same scale as the maps."
+    ),
+    de = paste(
+      "Jede Messstelle liefert einen Wert; die Balken / die Kurve zeigen deren",
+      "Verteilung, eingef\u00e4rbt in derselben Skala wie die Karten."
+    )
+  ),
+  howto_indicator_scatter = list(
+    en = "One point per well. A rising cloud means the two metrics go together.",
+    de = paste(
+      "Ein Punkt je Messstelle. Eine steigende Punktwolke hei\u00dft, die beiden",
+      "Kenngr\u00f6\u00dfen h\u00e4ngen zusammen."
+    )
   )
 )

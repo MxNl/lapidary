@@ -29,6 +29,11 @@
 #'   the hexes, with a drop shadow (needs \pkg{ggfx}; degrades to no shadow).
 #' @param na_guide (`hex_map`) Add a [lap_na_guide()] "no data" key when the
 #'   value column has `NA`s.
+#' @param margin,margin_side (`hex_map`) Attach a marginal distribution of the
+#'   mapped values (`"histogram"` / `"density"` / `"raincloud"`) on the
+#'   `"bottom"` (default) or `"right"`; with `margin != "none"` the return is a
+#'   [patchwork::patchwork]. Ignored for a circular-month column. See
+#'   [lap_attach_margin()].
 #' @param basemap (`point_map`) Draw [lap_germany_border()] behind the points
 #'   (needs \pkg{rnaturalearth}).
 #' @param size (`point_map`) Point size.
@@ -42,7 +47,8 @@
 #'   supplies it (e.g. `preset = "a1"` for poster-size text).
 #' @param title,subtitle,caption Plot labels; `NULL` leaves them unset.
 #'
-#' @return A [ggplot2::ggplot].
+#' @return A [ggplot2::ggplot], or a [patchwork::patchwork] when
+#'   `lap_plot_hex_map(margin = )` is set.
 #' @name lap_plot_map
 #' @seealso [lap_aggregate_to_hex()], [lap_annotate_howto()]
 #' @examples
@@ -62,11 +68,15 @@ lap_plot_hex_map <- function(data, value, ...,
                              range = getOption("lapidary.scale_range", FALSE),
                              hull = TRUE, hull_shadow = TRUE, na_guide = TRUE,
                              border_colour = NULL,
+                             margin = c("none", "histogram", "density", "raincloud"),
+                             margin_side = c("bottom", "right"),
                              variant = lap_variant(), lang = NULL,
                              annotate = getOption("lapidary.annotate", "caption"),
                              base_size = NULL, preset = NULL,
                              title = NULL, subtitle = NULL, caption = NULL) {
   rlang::check_installed(c("ggplot2", "sf"), "for `lap_plot_hex_map()`")
+  margin <- rlang::arg_match(margin)
+  margin_side <- rlang::arg_match(margin_side)
 
   if (inherits(data, "sf") &&
     all(grepl("POINT", as.character(sf::st_geometry_type(data, by_geometry = FALSE))))) {
@@ -147,7 +157,17 @@ lap_plot_hex_map <- function(data, value, ...,
     ) +
     theme_lapidary(a$variant, base_size = a$base_size, panel = "map")
 
-  apply_howto(p, annotate, "hex_map", a$lang, a$variant, a$tokens)
+  p <- apply_howto(p, annotate, "hex_map", a$lang, a$variant, a$tokens)
+
+  if (margin != "none" && !is_month) {
+    p <- lap_attach_margin(
+      p, data, dplyr::all_of(value),
+      side = margin_side, type = margin,
+      role = role, direction = direction, robust = robust, range = range,
+      variant = a$variant, lang = a$lang
+    )
+  }
+  p
 }
 
 #' @rdname lap_plot_map

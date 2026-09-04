@@ -21,6 +21,8 @@ lap_plot_hex_map(
   hull_shadow = TRUE,
   na_guide = TRUE,
   border_colour = NULL,
+  margin = c("none", "histogram", "density", "raincloud"),
+  margin_side = c("bottom", "right"),
   variant = lap_variant(),
   lang = NULL,
   annotate = getOption("lapidary.annotate", "caption"),
@@ -75,6 +77,12 @@ value column has \code{NA}s.}
 
 \item{border_colour}{(\code{hex_map}) Hex border colour; default the background.}
 
+\item{margin, margin_side}{(\code{hex_map}) Attach a marginal distribution of the
+mapped values (\code{"histogram"} / \code{"density"} / \code{"raincloud"}) on the
+\code{"bottom"} (default) or \code{"right"}; with \code{margin != "none"} the return is a
+\link[patchwork:patchwork-package]{patchwork::patchwork}. Ignored for a circular-month column. See
+\code{\link[=lap_attach_margin]{lap_attach_margin()}}.}
+
 \item{variant}{\code{"light"} / \code{"dark"}; defaults to \code{\link[=lap_variant]{lap_variant()}}.}
 
 \item{lang}{Language code; defaults to \code{\link[=lap_lang]{lap_lang()}}.}
@@ -94,7 +102,8 @@ supplies it (e.g. \code{preset = "a1"} for poster-size text).}
 (needs \pkg{rnaturalearth}).}
 }
 \value{
-A \link[ggplot2:ggplot]{ggplot2::ggplot}.
+A \link[ggplot2:ggplot]{ggplot2::ggplot}, or a \link[patchwork:patchwork-package]{patchwork::patchwork} when
+\code{lap_plot_hex_map(margin = )} is set.
 }
 \description{
 Two "status quo" builders that show one value per well over the whole

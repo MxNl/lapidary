@@ -9,12 +9,21 @@ names. Column arguments use tidy evaluation (bare names, strings, or
 tidyselect helpers).
 
 ## Plot builders (milestone 2, see `docs/adr/0012`)
-* `lap_plot_hex_map()` / `lap_plot_point_map()` — the first `lap_plot_*` chart
-  builders: a themed choropleth of a hex grid (or coloured well points) in one
-  call, replacing the hand-written `geom_sf() + scale_fill_lapidary_c() +
-  theme_lapidary()` block. Return a bare ggplot; auto-add a `lap_na_guide()`
-  when the value column has `NA`s; use the cyclic palette for circular-month
-  columns; a POINT layer to `lap_plot_hex_map()` dispatches to the point map.
+* `lap_plot_hex_map()` / `lap_plot_point_map()` — a themed choropleth of a hex
+  grid (or coloured well points) in one call, replacing the hand-written
+  `geom_sf() + scale_fill_lapidary_c() + theme_lapidary()` block. Return a bare
+  ggplot; auto-add a `lap_na_guide()` when the value column has `NA`s; use the
+  cyclic palette for circular-month columns; a POINT layer to
+  `lap_plot_hex_map()` dispatches to the point map.
+* `lap_plot_distribution()` — histogram / density / raincloud / dots of one
+  indicator, gradient-coloured on the same palette as the maps (raincloud and
+  dots need \pkg{ggdist}).
+* `lap_plot_indicator_scatter()` — one indicator against another, optionally
+  coloured by a third, with `smooth`. Axis labels carry the catalogue unit.
+* `lap_plot_hex_map(margin = "histogram" / "density" / "raincloud")` attaches a
+  marginal distribution of the mapped values, sharing the fill scale (returns a
+  `patchwork`). `lap_attach_margin()` is the standalone helper.
+* `patchwork` moved from Suggests to Imports; `ggdist` added to Suggests.
 * Every builder appends a localised "how to read this chart" explainer to
   `plot.caption` (`annotate = "caption"` default; `"callout"` /`NA` / a string;
   `options(lapidary.annotate = )`). `lap_howto()` / `lap_annotate_howto()`.

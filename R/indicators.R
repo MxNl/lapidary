@@ -376,7 +376,18 @@ column_delta_kind <- function(col) {
 # An `ind_*` column's theoretical value range (interval-notation string);
 # NA when the column is not catalogued. Vectorised over `col`.
 column_range <- function(col) {
-  lookup <- unlist(lapply(indicator_catalog(), `[[`, "range"))
+  catalog_lookup("range", col)
+}
+
+# An `ind_*` column's physical unit ("m", "weeks", "-", ...); NA when the
+# column is not catalogued. Vectorised over `col`.
+column_units <- function(col) {
+  catalog_lookup("units", col)
+}
+
+# Look up a per-column catalogue field, unnamed, vectorised over `col`.
+catalog_lookup <- function(field, col) {
+  lookup <- unlist(lapply(indicator_catalog(), `[[`, field))
   names(lookup) <- sub("^[^.]*\\.", "", names(lookup))
   unname(lookup[col])
 }
