@@ -133,6 +133,17 @@ strings, or tidyselect helpers).
   `scale_fill/colour_lapidary_c/d()`,
   [`lap_accents()`](https://mxnl.github.io/lapidary/reference/lap_accents.md),
   [`lap_fonts()`](https://mxnl.github.io/lapidary/reference/lap_fonts.md).
+- The continuous `scale_*_lapidary_c()` scales are now **binned** at
+  pretty round breaks with a long, thin
+  [`guide_coloursteps()`](https://ggplot2.tidyverse.org/reference/guide_coloursteps.html)
+  bar
+  ([`lap_coloursteps_guide()`](https://mxnl.github.io/lapidary/reference/lap_coloursteps_guide.md));
+  pass `binned = FALSE` for a smooth gradient. Their legend title
+  defaults to
+  [`lap_prettify_label()`](https://mxnl.github.io/lapidary/reference/lap_prettify_label.md)
+  of the mapped variable (`ind_trend_slope` -\> `"Trend slope"`).
+  [`lap_na_guide()`](https://mxnl.github.io/lapidary/reference/lap_na_guide.md)
+  adds a “no data” key for `NA` regions (e.g. empty hexes).
 - [`ggsave_lapidary()`](https://mxnl.github.io/lapidary/reference/ggsave_lapidary.md)
   with web/A4–A0 presets that also fix `showtext` DPI.
 - Bilingual (`en`/`de`) string registry:

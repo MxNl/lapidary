@@ -201,6 +201,12 @@ for the long-form guide.
   [`scale_colour_lapidary_d()`](https://mxnl.github.io/lapidary/reference/scale_lapidary.md)
   [`scale_color_lapidary_d()`](https://mxnl.github.io/lapidary/reference/scale_lapidary.md)
   : lapidary continuous fill / colour scales
+- [`lap_coloursteps_guide()`](https://mxnl.github.io/lapidary/reference/lap_coloursteps_guide.md)
+  : A long, thin colour-steps legend guide
+- [`lap_na_guide()`](https://mxnl.github.io/lapidary/reference/lap_na_guide.md)
+  : Add a "no data" key for NA regions
+- [`lap_prettify_label()`](https://mxnl.github.io/lapidary/reference/lap_prettify_label.md)
+  : Turn a variable name into a readable label
 - [`lap_tokens()`](https://mxnl.github.io/lapidary/reference/lap_tokens.md)
   : lapidary design tokens
 - [`lap_pal_roles()`](https://mxnl.github.io/lapidary/reference/lap_pal_roles.md)

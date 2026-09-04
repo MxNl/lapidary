@@ -304,9 +304,10 @@ populated.
 
 library(ggplot2)
 
-ggplot(subset(germany_hex_sample, n_wells > 0)) +
+ggplot(germany_hex_sample) +
   geom_sf(aes(fill = mean_gwl), colour = "white", linewidth = 0.1) +
   scale_fill_lapidary_c("magnitude") +
+  lap_na_guide() +
   theme_lapidary(variant = "light") +
   labs(title = lap_tr("app_title"), fill = lap_tr("groundwater_level"))
 ```

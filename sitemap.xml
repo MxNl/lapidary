@@ -25,6 +25,7 @@
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_cache_info.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_cache_source_dir.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_circular_mean_month.html</loc></url>
+<url><loc>https://mxnl.github.io/lapidary/reference/lap_coloursteps_guide.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_correctiv_build_parquet.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_correctiv_download.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_correctiv_meta.html</loc></url>
@@ -67,12 +68,14 @@
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_lang.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_langs.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_make_hex_grid.html</loc></url>
+<url><loc>https://mxnl.github.io/lapidary/reference/lap_na_guide.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_normalise_gwl.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_pal_roles.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_parquet_dir.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_period_windows.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_preset.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_preset_names.html</loc></url>
+<url><loc>https://mxnl.github.io/lapidary/reference/lap_prettify_label.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_read_correctiv.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_read_correctiv_wells.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_read_gems_ger.html</loc></url>
