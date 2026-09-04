@@ -53,8 +53,8 @@ resolve_palette <- function(role) {
 #' @param na.value Colour for `NA`. Defaults to the token `missing` colour.
 #' @param binned If `TRUE` (default, `_c` only) cut the scale at pretty breaks
 #'   and use a colour-steps guide; `FALSE` gives a smooth gradient.
-#' @param bins Target number of bins (passed to `binned_scale()` as `n.breaks`);
-#'   `NULL` lets ggplot2 choose.
+#' @param bins Target number of bins (passed to `binned_scale()` as `n.breaks`).
+#'   Default 8; `NULL` lets ggplot2 choose.
 #' @param begin,end,direction Passed to [scico::scico()] to trim / flip the
 #'   palette.
 #' @param midpoint For a divergent `role` (`"anomaly"`), the data value placed
@@ -82,7 +82,7 @@ NULL
 scale_fill_lapidary_c <- function(role = "magnitude", ...,
                                   name = lap_prettify_label,
                                   na.value = lap_tokens()$colour$missing,
-                                  binned = TRUE, bins = NULL,
+                                  binned = TRUE, bins = 8,
                                   begin = 0, end = 1, direction = 1,
                                   midpoint = NULL, guide = NULL) {
   lapidary_scale_c(
@@ -98,7 +98,7 @@ scale_fill_lapidary_c <- function(role = "magnitude", ...,
 scale_colour_lapidary_c <- function(role = "magnitude", ...,
                                     name = lap_prettify_label,
                                     na.value = lap_tokens()$colour$missing,
-                                    binned = TRUE, bins = NULL,
+                                    binned = TRUE, bins = 8,
                                     begin = 0, end = 1, direction = 1,
                                     midpoint = NULL, guide = NULL) {
   lapidary_scale_c(

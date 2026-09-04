@@ -16,7 +16,7 @@ scale_fill_lapidary_c(
   name = lap_prettify_label,
   na.value = lap_tokens()$colour$missing,
   binned = TRUE,
-  bins = NULL,
+  bins = 8,
   begin = 0,
   end = 1,
   direction = 1,
@@ -30,7 +30,7 @@ scale_colour_lapidary_c(
   name = lap_prettify_label,
   na.value = lap_tokens()$colour$missing,
   binned = TRUE,
-  bins = NULL,
+  bins = 8,
   begin = 0,
   end = 1,
   direction = 1,
@@ -44,7 +44,7 @@ scale_color_lapidary_c(
   name = lap_prettify_label,
   na.value = lap_tokens()$colour$missing,
   binned = TRUE,
-  bins = NULL,
+  bins = 8,
   begin = 0,
   end = 1,
   direction = 1,
@@ -88,8 +88,8 @@ default (auto-derived) title. Defaults to \code{\link[=lap_prettify_label]{lap_p
 \item{binned}{If \code{TRUE} (default, \verb{_c} only) cut the scale at pretty breaks
 and use a colour-steps guide; \code{FALSE} gives a smooth gradient.}
 
-\item{bins}{Target number of bins (passed to \code{binned_scale()} as \code{n.breaks});
-\code{NULL} lets ggplot2 choose.}
+\item{bins}{Target number of bins (passed to \code{binned_scale()} as \code{n.breaks}).
+Default 8; \code{NULL} lets ggplot2 choose.}
 
 \item{begin, end, direction}{Passed to \code{\link[scico:scico]{scico::scico()}} to trim / flip the
 palette.}
