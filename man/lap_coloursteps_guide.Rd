@@ -4,11 +4,11 @@
 \alias{lap_coloursteps_guide}
 \title{A long, thin colour-steps legend guide}
 \usage{
-lap_coloursteps_guide(length = 9, thickness = 0.55, order = 1, ...)
+lap_coloursteps_guide(length = 18, thickness = 0.55, order = 1, ...)
 }
 \arguments{
 \item{length, thickness}{Bar length and thickness, in text \code{"lines"} (so they
-scale with the legend text size). Defaults 9 and 0.55.}
+scale with the legend text size). Defaults 18 and 0.55.}
 
 \item{order}{Guide order (default 1), so it sits above a \code{\link[=lap_na_guide]{lap_na_guide()}} key.}
 

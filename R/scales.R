@@ -162,13 +162,13 @@ lapidary_scale_c <- function(aesthetic, role, ..., name, na.value, binned, bins,
 #' [ggplot2::guide_coloursteps()] bar with a subtle frame and tick marks.
 #'
 #' @param length,thickness Bar length and thickness, in text `"lines"` (so they
-#'   scale with the legend text size). Defaults 9 and 0.55.
+#'   scale with the legend text size). Defaults 18 and 0.55.
 #' @param order Guide order (default 1), so it sits above a [lap_na_guide()] key.
 #' @param ... Passed to [ggplot2::guide_coloursteps()].
 #'
 #' @return A ggplot2 guide.
 #' @export
-lap_coloursteps_guide <- function(length = 9, thickness = 0.55, order = 1, ...) {
+lap_coloursteps_guide <- function(length = 18, thickness = 0.55, order = 1, ...) {
   rlang::check_installed("ggplot2", "for `lap_coloursteps_guide()`")
   tk <- lap_tokens()
   ggplot2::guide_coloursteps(
