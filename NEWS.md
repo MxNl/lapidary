@@ -47,9 +47,12 @@ tidyselect helpers).
   "trend")`) or `lap_ind_*` functions, and is required. `...` on
   `lap_indicators()` / `lap_add_indicators()` / `lap_indicator_change()` is
   forwarded to every `lap_ind_*()` (`threshold`, `min_len`, `driver`, ...).
-* `lap_indicator_registry()` lists the catalogue (`key`, `columns`,
+* `lap_indicator_registry()` lists the catalogue (`key`, `columns`, `range`,
   `needs_date`, `in_all`, `description`, `reference`). Each `lap_ind_*()` also
   carries `@references`; `vignette("indicators")` is the long-form guide.
+* `range` gives each `ind_*` column's theoretical value range in interval
+  notation (`[0, 1]`, `(-Inf, Inf)`, `{FALSE, TRUE}`, ...), `" | "`-separated
+  and aligned with `columns`.
 * Catalogue: `amplitude`, `seasonal_amplitude`, `seasonality_strength`,
   `recharge_discharge`, `phase_regularity`, `extreme_months`, `flashiness`,
   `memory` (autocorrelation / e-folding), `rise_fall`, `trend`,
@@ -78,8 +81,17 @@ tidyselect helpers).
   round breaks with a long, thin `guide_coloursteps()` bar
   (`lap_coloursteps_guide()`); pass `binned = FALSE` for a smooth gradient.
   Their legend title defaults to `lap_prettify_label()` of the mapped variable
-  (`ind_trend_slope` -> `"Trend slope"`). `lap_na_guide()` adds a "no data" key
-  for `NA` regions (e.g. empty hexes).
+  (`ind_trend_slope` -> `"Trend slope"`); `range = TRUE` (or
+  `options(lapidary.scale_range = TRUE)`) appends a known indicator's
+  theoretical range, e.g. `"Trend slope  (−∞, ∞)"`.
+  `lap_na_guide()` adds a "no data" key for `NA` regions (e.g. empty hexes).
+* `scale_fill/colour_lapidary_c(robust = TRUE)` (or a percentile spec, or
+  `options(lapidary.scale_robust = TRUE)`) clips the colour limits to
+  distribution-aware percentiles (default 2nd / 98th) so a few extreme values
+  stop flattening the pattern for the bulk of the data. Out-of-range values take
+  the end colour; on the binned default the clipped legend end is marked
+  "≤" / "≥". Off by default; an explicit `limits` wins; with `midpoint` the
+  limits stay symmetric about the centre.
 * `ggsave_lapidary()` with web/A4–A0 presets that also fix `showtext` DPI.
 * Bilingual (`en`/`de`) string registry: `lap_tr()`, `lap_lang()`,
   `lap_langs()`.

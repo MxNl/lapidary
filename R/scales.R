@@ -32,6 +32,131 @@ resolve_palette <- function(role) {
   pal
 }
 
+
+# --- robust (outlier-squishing) colour limits ----------------------------
+
+# Resolve the `robust` argument to a length-2 vector of probabilities, or NULL
+# when the feature is off. FALSE/NULL -> NULL; TRUE -> c(0.02, 0.98); a single
+# p in (0.5, 1) -> c(1 - p, p); two probs -> sorted and validated.
+resolve_robust_probs <- function(robust, call = rlang::caller_env()) {
+  if (is.null(robust) || isFALSE(robust)) {
+    return(NULL)
+  }
+  if (isTRUE(robust)) {
+    return(c(0.02, 0.98))
+  }
+  if (!is.numeric(robust) || anyNA(robust)) {
+    cli::cli_abort(c(
+      "{.arg robust} must be {.code FALSE}, {.code TRUE}, one number in \\
+       (0.5, 1), or two probabilities in [0, 1].",
+      i = "Got {.obj_type_friendly {robust}}."
+    ), call = call)
+  }
+  robust <- as.numeric(robust)
+  if (length(robust) == 1L) {
+    if (robust <= 0.5 || robust >= 1) {
+      cli::cli_abort(
+        "A single {.arg robust} value must be strictly between 0.5 and 1, \\
+         not {.val {robust}}.",
+        call = call
+      )
+    }
+    return(c(1 - robust, robust))
+  }
+  if (length(robust) == 2L) {
+    robust <- sort(robust)
+    if (robust[[1L]] < 0 || robust[[2L]] > 1 || robust[[1L]] >= robust[[2L]]) {
+      cli::cli_abort(
+        "Two {.arg robust} values must satisfy {.code 0 <= lo < hi <= 1}, \\
+         not {.val {robust}}.",
+        call = call
+      )
+    }
+    return(robust)
+  }
+  cli::cli_abort(
+    "{.arg robust} must have length 1 or 2, not {length(robust)}.",
+    call = call
+  )
+}
+
+# Distribution-aware limits from accumulated finite training values. With
+# `midpoint` set, widen to the symmetric interval about it so the palette
+# centre stays put.
+lap_robust_limits <- function(values, probs, midpoint = NULL) {
+  q <- stats::quantile(values, probs, names = FALSE, type = 7, na.rm = TRUE)
+  if (!is.null(midpoint)) {
+    m <- max(abs(q - midpoint))
+    q <- c(midpoint - m, midpoint + m)
+  }
+  q
+}
+
+# Prefix a "<=" / ">=" glyph to the label of whichever break sits on a clipped
+# limit, but only when the data actually extends past that limit. Glyphs built
+# at runtime so the source stays ASCII.
+lap_mark_squished_labels <- function(labels, breaks, limits, values) {
+  if (is.null(labels) || is.null(breaks) || !is.character(labels) ||
+    !length(values) || length(limits) != 2L || anyNA(limits)) {
+    return(labels)
+  }
+  le <- "\u2264 " # LESS-THAN OR EQUAL TO
+  ge <- "\u2265 " # GREATER-THAN OR EQUAL TO
+  span <- diff(range(breaks, na.rm = TRUE))
+  tol <- 1e-6 * max(1, if (is.finite(span)) span else 1)
+  drng <- range(values)
+  lo <- !is.na(breaks) & abs(breaks - limits[[1L]]) <= tol
+  hi <- !is.na(breaks) & abs(breaks - limits[[2L]]) <= tol
+  if (any(lo) && drng[[1L]] < limits[[1L]] - tol) labels[lo] <- paste0(le, labels[lo])
+  if (any(hi) && drng[[2L]] > limits[[2L]] + tol) labels[hi] <- paste0(ge, labels[hi])
+  labels
+}
+
+# Method set for a "robust-limits" scale, parameterised by the ggplot2 parent
+# proto (ScaleBinned or ScaleContinuous). See `robust` in ?scale_lapidary.
+lap_robust_scale_methods <- function(parent) {
+  list(
+    lap_values = NULL,
+    lap_probs = NULL,
+    lap_midpoint = NULL,
+    lap_user_limits = FALSE,
+    train = function(self, x) {
+      keep <- x[is.finite(x)]
+      if (length(keep)) self$lap_values <- c(self$lap_values, keep)
+      ggplot2::ggproto_parent(parent, self)$train(x)
+    },
+    reset = function(self) {
+      self$lap_values <- NULL
+      ggplot2::ggproto_parent(parent, self)$reset()
+    },
+    get_limits = function(self) {
+      if (!is.null(self$lap_probs) && is.null(self$limits) &&
+        length(self$lap_values)) {
+        return(lap_robust_limits(self$lap_values, self$lap_probs, self$lap_midpoint))
+      }
+      ggplot2::ggproto_parent(parent, self)$get_limits()
+    },
+    get_labels = function(self, breaks = self$get_breaks()) {
+      labels <- ggplot2::ggproto_parent(parent, self)$get_labels(breaks)
+      if (is.null(self$lap_probs) || isTRUE(self$lap_user_limits)) {
+        return(labels)
+      }
+      lap_mark_squished_labels(labels, breaks, self$get_limits(), self$lap_values)
+    }
+  )
+}
+
+# A fresh ggproto scale that clips its limits to robust percentiles, for the
+# binned (`ScaleBinned`) or smooth (`ScaleContinuous`) path.
+lap_robust_super <- function(binned) {
+  parent <- if (binned) ggplot2::ScaleBinned else ggplot2::ScaleContinuous
+  cls <- if (binned) "LapScaleBinnedRobust" else "LapScaleContinuousRobust"
+  do.call(
+    ggplot2::ggproto,
+    c(cls, list(parent), lap_robust_scale_methods(parent))
+  )
+}
+
 #' lapidary continuous fill / colour scales
 #'
 #' `role` selects a scico palette by its purpose:
@@ -41,8 +166,13 @@ resolve_palette <- function(role) {
 #' The continuous (`_c`) scales are **binned** by default: the data is cut at
 #' pretty round breaks and shown as a long, thin colour-steps bar. The legend
 #' title is derived from the mapped variable with [lap_prettify_label()]
-#' (`ind_trend_slope` becomes `"Trend slope"`) unless you pass `name`. Pair with
-#' [lap_na_guide()] to add a "no data" key for `NA` regions (e.g. empty hexes).
+#' (`ind_trend_slope` becomes `"Trend slope"`) unless you pass `name`; with
+#' `range = TRUE` a known indicator column's theoretical range is appended
+#' (`"Trend slope  (-Inf, Inf)"`). With `robust = TRUE` the limits are clipped to
+#' distribution-aware percentiles so a few extreme values no longer flatten the
+#' colour range for the rest; out-of-range values take the end colour and the
+#' binned legend end is marked `<=` / `>=`. Pair with [lap_na_guide()] to add a
+#' "no data" key for `NA` regions (e.g. empty hexes).
 #'
 #' @param role One of [lap_pal_roles()].
 #' @param ... Passed to the underlying scale ([ggplot2::binned_scale()] when
@@ -61,6 +191,21 @@ resolve_palette <- function(role) {
 #'   at the palette centre.
 #' @param guide Legend guide. Defaults to a long, thin
 #'   [ggplot2::guide_coloursteps()] (binned) or the scale default.
+#' @param range If `TRUE` and the mapped variable is a known `ind_*` column,
+#'   append that column's theoretical value range (interval notation, `Inf`
+#'   shown as an infinity symbol) to the auto-derived legend title. `_c` scales
+#'   only; ignored when `name` is an explicit string / `NULL` or the variable is
+#'   unknown. Default `getOption("lapidary.scale_range", FALSE)`.
+#' @param robust Clip the colour limits to distribution-aware percentiles so
+#'   extreme outliers do not compress the range for the bulk of the data.
+#'   `FALSE` (default) is off; `TRUE` uses the 2nd / 98th percentiles; a single
+#'   number `p` with `0.5 < p < 1` uses `c(1 - p, p)`; a length-2 vector gives
+#'   the lower / upper percentiles directly. Out-of-range values take the end
+#'   colour (`scales::oob_squish`); on the binned default the clipped legend
+#'   end gets a `<=` / `>=` prefix when data really extends past it (the smooth
+#'   path clips but is not marked). When `midpoint` is also set the limits are
+#'   made symmetric about it. An explicit `limits` in `...` always wins.
+#'   `_c` scales only. Default `getOption("lapidary.scale_robust", FALSE)`.
 #'
 #' @return A ggplot2 scale.
 #' @name scale_lapidary
@@ -84,12 +229,14 @@ scale_fill_lapidary_c <- function(role = "magnitude", ...,
                                   na.value = lap_tokens()$colour$missing,
                                   binned = TRUE, bins = 8,
                                   begin = 0, end = 1, direction = 1,
-                                  midpoint = NULL, guide = NULL) {
+                                  midpoint = NULL, guide = NULL,
+                                  range = getOption("lapidary.scale_range", FALSE),
+                                  robust = getOption("lapidary.scale_robust", FALSE)) {
   lapidary_scale_c(
     "fill", role, ...,
     name = name, na.value = na.value, binned = binned, bins = bins,
     begin = begin, end = end, direction = direction, midpoint = midpoint,
-    guide = guide
+    guide = guide, range = range, robust = robust
   )
 }
 
@@ -100,12 +247,14 @@ scale_colour_lapidary_c <- function(role = "magnitude", ...,
                                     na.value = lap_tokens()$colour$missing,
                                     binned = TRUE, bins = 8,
                                     begin = 0, end = 1, direction = 1,
-                                    midpoint = NULL, guide = NULL) {
+                                    midpoint = NULL, guide = NULL,
+                                    range = getOption("lapidary.scale_range", FALSE),
+                                    robust = getOption("lapidary.scale_robust", FALSE)) {
   lapidary_scale_c(
     "colour", role, ...,
     name = name, na.value = na.value, binned = binned, bins = bins,
     begin = begin, end = end, direction = direction, midpoint = midpoint,
-    guide = guide
+    guide = guide, range = range, robust = robust
   )
 }
 
@@ -115,11 +264,34 @@ scale_color_lapidary_c <- scale_colour_lapidary_c
 
 # Shared builder for the continuous fill/colour scales.
 lapidary_scale_c <- function(aesthetic, role, ..., name, na.value, binned, bins,
-                             begin, end, direction, midpoint, guide) {
+                             begin, end, direction, midpoint, guide,
+                             range = FALSE, robust = FALSE) {
   rlang::check_installed(c("ggplot2", "scico"), "for the lapidary scales")
   pal <- resolve_palette(role)
+  probs <- resolve_robust_probs(robust) # NULL when off
 
-  if (!isTRUE(binned)) {
+  # `range = TRUE` + a function `name`: wrap it to append the mapped indicator
+  # column's theoretical range to the auto-derived title. An explicit string /
+  # NULL `name` is left alone (the caller set the title deliberately).
+  if (isTRUE(range) && is.function(name)) {
+    inner <- name
+    name <- function(label) {
+      title <- inner(label)
+      rng <- if (is.character(label) && length(label) == 1L) {
+        column_range(label)
+      } else {
+        NA_character_
+      }
+      if (!is.na(rng) && is.character(title) && length(title) == 1L && !is.na(title)) {
+        paste0(title, "  ", lap_format_range(rng))
+      } else {
+        title
+      }
+    }
+  }
+
+  # Smooth path without robust clipping: the plain scico wrapper (unchanged).
+  if (!isTRUE(binned) && is.null(probs)) {
     scico_fn <- if (aesthetic == "fill") {
       scico::scale_fill_scico
     } else {
@@ -138,22 +310,58 @@ lapidary_scale_c <- function(aesthetic, role, ..., name, na.value, binned, bins,
   rescaler <- if (is.null(midpoint)) {
     scales::rescale
   } else {
-    function(x, to = c(0, 1), from = range(x, na.rm = TRUE)) {
+    function(x, to = c(0, 1), from = base::range(x, na.rm = TRUE)) {
       scales::rescale_mid(x, to, from, mid = midpoint)
     }
   }
-  ggplot2::binned_scale(
-    aesthetics = aesthetic,
-    palette = scales::gradient_n_pal(cols),
-    name = name,
-    na.value = na.value,
-    rescaler = rescaler,
-    nice.breaks = TRUE,
-    n.breaks = bins,
-    show.limits = TRUE,
-    guide = guide %||% lap_coloursteps_guide(),
-    ...
+
+  set_robust_fields <- function(sc) {
+    if (!is.null(probs)) {
+      sc$lap_probs <- probs
+      sc$lap_midpoint <- midpoint
+      sc$lap_user_limits <- !is.null(sc$limits)
+    }
+    sc
+  }
+
+  # Smooth path with robust clipping: scico's wrapper hides `super`, so build
+  # continuous_scale() directly with the scico palette.
+  if (!isTRUE(binned)) {
+    sc <- do.call(ggplot2::continuous_scale, c(
+      list(
+        aesthetics = aesthetic,
+        palette = scales::gradient_n_pal(cols),
+        name = name, na.value = na.value,
+        rescaler = rescaler,
+        oob = scales::oob_squish,
+        guide = guide %||% "colourbar",
+        super = lap_robust_super(binned = FALSE)
+      ),
+      list(...)
+    ))
+    return(set_robust_fields(sc))
+  }
+
+  # Binned path (robust or not).
+  bs_args <- c(
+    list(
+      aesthetics = aesthetic,
+      palette = scales::gradient_n_pal(cols),
+      name = name,
+      na.value = na.value,
+      rescaler = rescaler,
+      nice.breaks = TRUE,
+      n.breaks = bins,
+      show.limits = TRUE,
+      guide = guide %||% lap_coloursteps_guide()
+    ),
+    list(...)
   )
+  if (!is.null(probs)) {
+    bs_args$oob <- scales::oob_squish
+    bs_args$super <- lap_robust_super(binned = TRUE)
+  }
+  set_robust_fields(do.call(ggplot2::binned_scale, bs_args))
 }
 
 #' A long, thin colour-steps legend guide
@@ -288,6 +496,15 @@ lap_prettify_label <- function(x) {
     substr(out, 1, 1) <- toupper(substr(out, 1, 1))
     out
   }, character(1), USE.NAMES = FALSE)
+}
+
+# ASCII interval-notation string -> display form: real minus sign + infinity
+# glyph. "(-Inf, 0]" -> "(<U+2212><U+221E>, 0]". NA propagates. Replace "Inf"
+# before "-" so "-Inf" collapses cleanly; interval strings use "-" only as a
+# minus sign (the separator is ", ").
+lap_format_range <- function(x) {
+  x <- gsub("Inf", "\u221e", as.character(x), fixed = TRUE)
+  gsub("-", "\u2212", x, fixed = TRUE)
 }
 
 #' @rdname scale_lapidary

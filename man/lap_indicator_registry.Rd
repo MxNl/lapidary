@@ -8,7 +8,9 @@ lap_indicator_registry()
 }
 \value{
 A tibble with one row per indicator: \code{key} (use it in \code{.funs}),
-\code{columns} (the \verb{ind_*} columns it emits), \code{needs_date}, \code{in_all} (whether
+\code{columns} (comma-separated \verb{ind_*} columns it emits), \code{range} (those
+columns' theoretical value ranges in interval notation, \code{" | "}-separated
+and positionally aligned with \code{columns}), \code{needs_date}, \code{in_all} (whether
 \code{.funs = "all"} includes it), \code{description} and \code{reference} (a short
 citation; the long form is \code{vignette("indicators")}).
 }

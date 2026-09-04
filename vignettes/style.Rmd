@@ -39,7 +39,9 @@ The continuous `scale_*_lapidary_c()` scales are **binned** at pretty round
 breaks and drawn as a long, thin colour-steps bar; the legend title is
 prettified from the mapped variable (see `lap_prettify_label()`) unless you set
 `name`/`labs()`; and `lap_na_guide()` adds a "no data" key for `NA` regions such
-as empty hexes.
+as empty hexes. With `scale_fill_lapidary_c(range = TRUE)` — or
+`options(lapidary.scale_range = TRUE)` — a mapped indicator column's theoretical
+range is appended to the title (`"Trend slope  (-Inf, Inf)"`).
 
 ```{r}
 data(germany_hex_sample)
@@ -55,6 +57,24 @@ p + theme_lapidary("light")
 
 ```{r}
 p + theme_lapidary("dark")
+```
+
+A handful of extreme values can flatten the colour range for everywhere else.
+`robust = TRUE` clips the limits to the 2nd and 98th percentiles (pass a number
+like `0.95`, or `c(0.05, 0.95)`, to choose them; `options(lapidary.scale_robust
+= TRUE)` sets the default). Clipped values take the end colour and the binned
+legend marks that end with `≤` / `≥`:
+
+```{r}
+set.seed(1)
+hex_spike <- germany_hex_sample
+hex_spike$mean_gwl[sample(which(!is.na(hex_spike$mean_gwl)), 5)] <- 5000
+
+ggplot(hex_spike) +
+  geom_sf(aes(fill = mean_gwl), colour = "white", linewidth = 0.1) +
+  scale_fill_lapidary_c("magnitude", robust = TRUE) +
+  lap_na_guide() +
+  theme_lapidary("light")
 ```
 
 Palette roles decouple intent from the underlying scico palette:
