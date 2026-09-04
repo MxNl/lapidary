@@ -107,5 +107,62 @@ lap_labels <- list(
       "Ein Punkt je Messstelle. Eine steigende Punktwolke hei\u00dft, die beiden",
       "Kenngr\u00f6\u00dfen h\u00e4ngen zusammen."
     )
+  ),
+  howto_delta_map_change = list(
+    en = paste(
+      "Each hexagon is the average change between the two periods. Gold cells",
+      "increased, blue cells decreased; near-white changed little. Grey cells",
+      "have no wells."
+    ),
+    de = paste(
+      "Jede Wabe ist die mittlere Ver\u00e4nderung zwischen den beiden Zeitr\u00e4umen.",
+      "Goldene Zellen sind gestiegen, blaue gesunken; nahezu wei\u00df hei\u00dft kaum",
+      "Ver\u00e4nderung. Graue Zellen haben keine Messstellen."
+    )
+  ),
+  howto_delta_map_paired = list(
+    en = paste(
+      "The same indicator in each period, on one shared colour scale. Compare",
+      "a hexagon between the two maps to read its shift."
+    ),
+    de = paste(
+      "Dieselbe Kenngr\u00f6\u00dfe je Zeitraum, auf einer gemeinsamen Farbskala.",
+      "Vergleiche eine Wabe zwischen den beiden Karten, um ihre Verschiebung",
+      "zu erkennen."
+    )
+  ),
+  howto_delta_map_arrow = list(
+    en = paste(
+      "Each hexagon carries an arrow: its length and direction show how far",
+      "and which way the indicator moved between the two periods."
+    ),
+    de = paste(
+      "Jede Wabe tr\u00e4gt einen Pfeil: L\u00e4nge und Richtung zeigen, wie weit und",
+      "in welche Richtung sich die Kenngr\u00f6\u00dfe zwischen den Zeitr\u00e4umen bewegt hat."
+    )
+  ),
+  howto_period_ridges = list(
+    en = paste(
+      "Each ridge is the distribution of one period's well values; reading",
+      "bottom to top follows time. A sideways shift means the whole population",
+      "moved."
+    ),
+    de = paste(
+      "Jeder Kamm ist die Verteilung der Messstellenwerte eines Zeitraums; von",
+      "unten nach oben verl\u00e4uft die Zeit. Eine seitliche Verschiebung hei\u00dft,",
+      "die gesamte Verteilung hat sich verschoben."
+    )
+  ),
+  howto_change_scatter = list(
+    en = paste(
+      "One point per well: its starting value against its change. A tilted",
+      "cloud means wells that started high changed differently from wells that",
+      "started low."
+    ),
+    de = paste(
+      "Ein Punkt je Messstelle: Ausgangswert gegen Ver\u00e4nderung. Eine geneigte",
+      "Punktwolke hei\u00dft, hoch startende Messstellen haben sich anders",
+      "ver\u00e4ndert als niedrig startende."
+    )
   )
 )

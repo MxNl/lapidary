@@ -103,51 +103,46 @@ lap_plot_hex_map <- function(data, value, ...,
   } else {
     "magnitude"
   }
-  border_colour <- border_colour %||% a$tokens$colour$background
-
-  p <- ggplot2::ggplot(data)
-
-  if (isTRUE(hull)) {
-    hull_layer <- ggplot2::geom_sf(
-      data = sf::st_sf(geometry = sf::st_union(sf::st_geometry(data))),
-      fill = a$tokens$colour$panel, colour = NA
-    )
-    if (isTRUE(hull_shadow) && requireNamespace("ggfx", quietly = TRUE)) {
-      hull_layer <- ggfx::with_shadow(
-        hull_layer,
-        sigma = a$tokens$effect$shadow_sigma,
-        colour = a$tokens$effect$shadow_colour,
-        x_offset = a$tokens$effect$shadow_offset,
-        y_offset = a$tokens$effect$shadow_offset
-      )
-    }
-    p <- p + hull_layer
-  }
-
-  p <- p +
-    ggplot2::geom_sf(
-      ggplot2::aes(fill = .data[[value]]),
-      colour = border_colour, linewidth = 0.1
-    ) +
-    ggplot2::coord_sf(datum = NA)
-
   if (is_month) {
-    p <- p + scale_fill_lapidary_c(
-      "months",
-      binned = FALSE, direction = direction,
-      limits = c(0.5, 12.5), breaks = 1:12,
-      labels = lap_tr("months_short", a$lang), ...
-    )
+    border_colour <- border_colour %||% a$tokens$colour$background
+    p <- ggplot2::ggplot(data)
+    if (isTRUE(hull)) {
+      hull_layer <- ggplot2::geom_sf(
+        data = sf::st_sf(geometry = sf::st_union(sf::st_geometry(data))),
+        fill = a$tokens$colour$panel, colour = NA
+      )
+      if (isTRUE(hull_shadow) && requireNamespace("ggfx", quietly = TRUE)) {
+        hull_layer <- ggfx::with_shadow(
+          hull_layer,
+          sigma = a$tokens$effect$shadow_sigma,
+          colour = a$tokens$effect$shadow_colour,
+          x_offset = a$tokens$effect$shadow_offset,
+          y_offset = a$tokens$effect$shadow_offset
+        )
+      }
+      p <- p + hull_layer
+    }
+    p <- p +
+      ggplot2::geom_sf(
+        ggplot2::aes(fill = .data[[value]]),
+        colour = border_colour, linewidth = 0.1
+      ) +
+      ggplot2::coord_sf(datum = NA) +
+      scale_fill_lapidary_c(
+        "months",
+        binned = FALSE, direction = direction,
+        limits = c(0.5, 12.5), breaks = 1:12,
+        labels = lap_tr("months_short", a$lang), ...
+      )
   } else {
-    p <- p + scale_fill_lapidary_c(
-      role,
-      binned = binned, bins = bins, direction = direction,
+    p <- hex_fill_plot(
+      data, value, a,
+      role = role, direction = direction, binned = binned, bins = bins,
       midpoint = midpoint, robust = robust, range = range,
-      guide = lap_coloursteps_guide(variant = a$variant), ...
+      hull = hull, hull_shadow = hull_shadow,
+      border_colour = border_colour, na_guide = na_guide,
+      scale_args = rlang::list2(...)
     )
-  }
-  if (isTRUE(na_guide) && anyNA(data[[value]])) {
-    p <- p + lap_na_guide(variant = a$variant)
   }
 
   p <- p +

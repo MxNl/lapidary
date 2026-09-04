@@ -51,7 +51,11 @@ lap_plot_xxx(data, ..., variant = lap_variant(), lang = NULL,
 - `data` is **one** documented canonical shape; wrong shape → `cli::cli_abort()`
   that names the shape **and the primitive that produces it**.
 - Column args are tidy-select (`lap_eval_select_one()`); `...` forwards to the
-  builder's `scale_*_lapidary_*`.
+  builder's `scale_*_lapidary_*`. Exception: where the arg names a *derived*
+  column family rather than a literal column (the `value` of `lap_plot_delta_map()`
+  / `lap_plot_change_scatter()` is a base indicator name whose `_<from>` /
+  `_<to>` / `_change` columns are resolved via `resolve_delta_columns()`), it is
+  taken as a bare symbol / string with `rlang::ensym()`.
 - Returns a **bare `ggplot`**; composite / `margin` builders return `patchwork`
   (documented in `@return`).
 - No global state, RNG, file IO, `ggsave()` or `options()` calls. Deterministic:

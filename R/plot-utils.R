@@ -80,23 +80,103 @@ howto_caption_element <- function(tokens) {
   }
 }
 
-# Append the builder's how-to explainer per `annotate`:
-#   NA / FALSE       -> unchanged
-#   "caption" / TRUE -> lap_howto(builder) into plot.caption
-#   "callout"        -> lap_howto(builder) as an on-panel corner box
-#   any other string -> that string, as the caption
-apply_howto <- function(plot, annotate, builder, lang, variant, tokens) {
+# Resolve `annotate` to the explainer string (or NULL for "no annotation"):
+#   NA / FALSE       -> NULL
+#   "caption" / "callout" / TRUE -> lap_howto(builder)
+#   any other string -> that string
+howto_text <- function(annotate, builder, lang, variant) {
   if (length(annotate) != 1L || is.na(annotate) || isFALSE(annotate)) {
-    return(plot)
+    return(NULL)
   }
-  as_key <- isTRUE(annotate) || annotate %in% c("caption", "callout")
-  text <- if (as_key) {
+  if (isTRUE(annotate) || annotate %in% c("caption", "callout")) {
     lap_howto(builder, lang = lang, variant = variant)
   } else {
     as.character(annotate)
+  }
+}
+
+# Append the builder's how-to explainer per `annotate` (see `howto_text()`).
+# `"callout"` places an on-panel box; anything else that annotates goes to
+# `plot.caption`.
+apply_howto <- function(plot, annotate, builder, lang, variant, tokens) {
+  text <- howto_text(annotate, builder, lang, variant)
+  if (is.null(text)) {
+    return(plot)
   }
   placement <- if (identical(annotate, "callout")) "callout" else "caption"
   lap_annotate_howto(
     plot, text = text, placement = placement, tokens = tokens
   )
+}
+
+# Locate the `<value>_<from>` / `<value>_<to>` / `<value>_change` columns that
+# lap_indicator_delta() emits for the base indicator column `value`.
+resolve_delta_columns <- function(data, value, call = rlang::caller_env()) {
+  nms <- names(data)
+  prefix <- paste0(value, "_")
+  change <- paste0(value, "_change")
+  paired <- setdiff(nms[startsWith(nms, prefix)], change)
+  if (length(paired) < 2L) {
+    cli::cli_abort(c(
+      "Couldn't find the {.val {value}} period columns in {.arg data}.",
+      i = "Expected {.field {value}_<from>} / {.field {value}_<to>} \\
+           (and {.field {value}_change}) from {.fn lap_indicator_delta}."
+    ), call = call)
+  }
+  list(
+    from = paired[[1L]], to = paired[[2L]],
+    change = if (change %in% nms) change else NA_character_,
+    labels = sub(paste0("^", prefix), "", paired[1:2])
+  )
+}
+
+# The shared hex-choropleth body: the dissolved hull (optionally shadowed), the
+# `fill = value` polygon layer, `coord_sf(datum = NA)`, one
+# `scale_fill_lapidary_c()` and - when the column has `NA`s - a `lap_na_guide()`.
+# Returns a ggplot without labs / theme / how-to / margin (the callers add those).
+hex_fill_plot <- function(data, value, a, role, direction, binned, bins,
+                          midpoint = NULL, robust = FALSE, range = FALSE,
+                          hull = TRUE, hull_shadow = TRUE,
+                          border_colour = NULL, na_guide = TRUE,
+                          scale_args = list()) {
+  border_colour <- border_colour %||% a$tokens$colour$background
+  p <- ggplot2::ggplot(data)
+
+  if (isTRUE(hull)) {
+    hull_layer <- ggplot2::geom_sf(
+      data = sf::st_sf(geometry = sf::st_union(sf::st_geometry(data))),
+      fill = a$tokens$colour$panel, colour = NA
+    )
+    if (isTRUE(hull_shadow) && requireNamespace("ggfx", quietly = TRUE)) {
+      hull_layer <- ggfx::with_shadow(
+        hull_layer,
+        sigma = a$tokens$effect$shadow_sigma,
+        colour = a$tokens$effect$shadow_colour,
+        x_offset = a$tokens$effect$shadow_offset,
+        y_offset = a$tokens$effect$shadow_offset
+      )
+    }
+    p <- p + hull_layer
+  }
+
+  p <- p +
+    ggplot2::geom_sf(
+      ggplot2::aes(fill = .data[[value]]),
+      colour = border_colour, linewidth = 0.1
+    ) +
+    ggplot2::coord_sf(datum = NA) +
+    do.call(scale_fill_lapidary_c, c(
+      list(
+        role,
+        binned = binned, bins = bins, direction = direction,
+        midpoint = midpoint, robust = robust, range = range,
+        guide = lap_coloursteps_guide(variant = a$variant)
+      ),
+      scale_args
+    ))
+
+  if (isTRUE(na_guide) && anyNA(data[[value]])) {
+    p <- p + lap_na_guide(variant = a$variant)
+  }
+  p
 }

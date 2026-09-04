@@ -24,6 +24,19 @@ tidyselect helpers).
   marginal distribution of the mapped values, sharing the fill scale (returns a
   `patchwork`). `lap_attach_margin()` is the standalone helper.
 * `patchwork` moved from Suggests to Imports; `ggdist` added to Suggests.
+* Change-over-periods builders on the output of `lap_indicator_change()` /
+  `lap_indicator_delta()`:
+  * `lap_plot_delta_map()` — the per-hexagon change in one indicator between two
+    periods: `display = "change"` a divergent choropleth about zero (also takes
+    `margin =`), `"paired"` two shared-scale period maps (`patchwork`),
+    `"arrow"` a per-hexagon glyph. Resolves the `_<from>` / `_<to>` / `_change`
+    columns from the base indicator name; a `delta_kind = "none"` column (a
+    p-value, a year) gets a pointed error.
+  * `lap_plot_period_ridges()` — one density ridge per period, stacked, each
+    filled by its median on the map palette.
+  * `lap_plot_change_scatter()` — a well's starting value against its change,
+    with a zero line and an `lm` fit, to see whether the change is
+    level-dependent.
 * Every builder appends a localised "how to read this chart" explainer to
   `plot.caption` (`annotate = "caption"` default; `"callout"` /`NA` / a string;
   `options(lapidary.annotate = )`). `lap_howto()` / `lap_annotate_howto()`.

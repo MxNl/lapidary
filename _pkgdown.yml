@@ -86,6 +86,7 @@ reference:
     themed and annotated, ready to compose.
   contents:
   - starts_with("lap_plot_")
+  - lap_attach_margin
   - lap_annotate_howto
   - lap_howto
 
