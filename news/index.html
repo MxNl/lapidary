@@ -45,7 +45,23 @@
 <div class="section level3">
 <h3 id="plot-builders-milestone-see-docsadr0012-0-0-0-9000">Plot builders (milestone 2, see <code>docs/adr/0012</code>)<a class="anchor" aria-label="anchor" href="#plot-builders-milestone-see-docsadr0012-0-0-0-9000"></a></h3>
 <ul><li>
-<code><a href="../reference/lap_plot_map.html">lap_plot_hex_map()</a></code> / <code><a href="../reference/lap_plot_map.html">lap_plot_point_map()</a></code> — the first <code>lap_plot_*</code> chart builders: a themed choropleth of a hex grid (or coloured well points) in one call, replacing the hand-written <code>geom_sf() + scale_fill_lapidary_c() + theme_lapidary()</code> block. Return a bare ggplot; auto-add a <code><a href="../reference/lap_na_guide.html">lap_na_guide()</a></code> when the value column has <code>NA</code>s; use the cyclic palette for circular-month columns; a POINT layer to <code><a href="../reference/lap_plot_map.html">lap_plot_hex_map()</a></code> dispatches to the point map.</li>
+<code><a href="../reference/lap_plot_map.html">lap_plot_hex_map()</a></code> / <code><a href="../reference/lap_plot_map.html">lap_plot_point_map()</a></code> — a themed choropleth of a hex grid (or coloured well points) in one call, replacing the hand-written <code>geom_sf() + scale_fill_lapidary_c() + theme_lapidary()</code> block. Return a bare ggplot; auto-add a <code><a href="../reference/lap_na_guide.html">lap_na_guide()</a></code> when the value column has <code>NA</code>s; use the cyclic palette for circular-month columns; a POINT layer to <code><a href="../reference/lap_plot_map.html">lap_plot_hex_map()</a></code> dispatches to the point map.</li>
+<li>
+<code><a href="../reference/lap_plot_distribution.html">lap_plot_distribution()</a></code> — histogram / density / raincloud / dots of one indicator, gradient-coloured on the same palette as the maps (raincloud and dots need ).</li>
+<li>
+<code><a href="../reference/lap_plot_indicator_scatter.html">lap_plot_indicator_scatter()</a></code> — one indicator against another, optionally coloured by a third, with <code>smooth</code>. Axis labels carry the catalogue unit.</li>
+<li>
+<code>lap_plot_hex_map(margin = "histogram" / "density" / "raincloud")</code> attaches a marginal distribution of the mapped values, sharing the fill scale (returns a <code>patchwork</code>). <code><a href="../reference/lap_attach_margin.html">lap_attach_margin()</a></code> is the standalone helper.</li>
+<li>
+<code>patchwork</code> moved from Suggests to Imports; <code>ggdist</code> added to Suggests.</li>
+<li>Change-over-periods builders on the output of <code><a href="../reference/lap_indicator_change.html">lap_indicator_change()</a></code> / <code><a href="../reference/lap_indicator_delta.html">lap_indicator_delta()</a></code>:
+<ul><li>
+<code><a href="../reference/lap_plot_delta_map.html">lap_plot_delta_map()</a></code> — the per-hexagon change in one indicator between two periods: <code>display = "change"</code> a divergent choropleth about zero (also takes <code>margin =</code>), <code>"paired"</code> two shared-scale period maps (<code>patchwork</code>), <code>"arrow"</code> a per-hexagon glyph. Resolves the <code>_&lt;from&gt;</code> / <code>_&lt;to&gt;</code> / <code>_change</code> columns from the base indicator name; a <code>delta_kind = "none"</code> column (a p-value, a year) gets a pointed error.</li>
+<li>
+<code><a href="../reference/lap_plot_period_ridges.html">lap_plot_period_ridges()</a></code> — one density ridge per period, stacked, each filled by its median on the map palette.</li>
+<li>
+<code><a href="../reference/lap_plot_change_scatter.html">lap_plot_change_scatter()</a></code> — a well’s starting value against its change, with a zero line and an <code>lm</code> fit, to see whether the change is level-dependent.</li>
+</ul></li>
 <li>Every builder appends a localised “how to read this chart” explainer to <code>plot.caption</code> (<code>annotate = "caption"</code> default; <code>"callout"</code> /<code>NA</code> / a string; <code>options(lapidary.annotate = )</code>). <code><a href="../reference/lap_howto.html">lap_howto()</a></code> / <code><a href="../reference/lap_annotate_howto.html">lap_annotate_howto()</a></code>.</li>
 <li>
 <code><a href="../reference/lap_variant.html">lap_variant()</a></code> — light/dark resolver mirroring <code><a href="../reference/lap_lang.html">lap_lang()</a></code> (<code>options(lapidary.variant = )</code> / <code>LAPIDARY_VARIANT</code>).</li>

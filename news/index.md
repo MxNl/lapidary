@@ -19,8 +19,8 @@ strings, or tidyselect helpers).
 - [`lap_plot_hex_map()`](https://mxnl.github.io/lapidary/reference/lap_plot_map.md)
   /
   [`lap_plot_point_map()`](https://mxnl.github.io/lapidary/reference/lap_plot_map.md)
-  — the first `lap_plot_*` chart builders: a themed choropleth of a hex
-  grid (or coloured well points) in one call, replacing the hand-written
+  — a themed choropleth of a hex grid (or coloured well points) in one
+  call, replacing the hand-written
   `geom_sf() + scale_fill_lapidary_c() + theme_lapidary()` block. Return
   a bare ggplot; auto-add a
   [`lap_na_guide()`](https://mxnl.github.io/lapidary/reference/lap_na_guide.md)
@@ -28,6 +28,38 @@ strings, or tidyselect helpers).
   circular-month columns; a POINT layer to
   [`lap_plot_hex_map()`](https://mxnl.github.io/lapidary/reference/lap_plot_map.md)
   dispatches to the point map.
+- [`lap_plot_distribution()`](https://mxnl.github.io/lapidary/reference/lap_plot_distribution.md)
+  — histogram / density / raincloud / dots of one indicator,
+  gradient-coloured on the same palette as the maps (raincloud and dots
+  need ).
+- [`lap_plot_indicator_scatter()`](https://mxnl.github.io/lapidary/reference/lap_plot_indicator_scatter.md)
+  — one indicator against another, optionally coloured by a third, with
+  `smooth`. Axis labels carry the catalogue unit.
+- `lap_plot_hex_map(margin = "histogram" / "density" / "raincloud")`
+  attaches a marginal distribution of the mapped values, sharing the
+  fill scale (returns a `patchwork`).
+  [`lap_attach_margin()`](https://mxnl.github.io/lapidary/reference/lap_attach_margin.md)
+  is the standalone helper.
+- `patchwork` moved from Suggests to Imports; `ggdist` added to
+  Suggests.
+- Change-over-periods builders on the output of
+  [`lap_indicator_change()`](https://mxnl.github.io/lapidary/reference/lap_indicator_change.md)
+  /
+  [`lap_indicator_delta()`](https://mxnl.github.io/lapidary/reference/lap_indicator_delta.md):
+  - [`lap_plot_delta_map()`](https://mxnl.github.io/lapidary/reference/lap_plot_delta_map.md)
+    — the per-hexagon change in one indicator between two periods:
+    `display = "change"` a divergent choropleth about zero (also takes
+    `margin =`), `"paired"` two shared-scale period maps (`patchwork`),
+    `"arrow"` a per-hexagon glyph. Resolves the `_<from>` / `_<to>` /
+    `_change` columns from the base indicator name; a
+    `delta_kind = "none"` column (a p-value, a year) gets a pointed
+    error.
+  - [`lap_plot_period_ridges()`](https://mxnl.github.io/lapidary/reference/lap_plot_period_ridges.md)
+    — one density ridge per period, stacked, each filled by its median
+    on the map palette.
+  - [`lap_plot_change_scatter()`](https://mxnl.github.io/lapidary/reference/lap_plot_change_scatter.md)
+    — a well’s starting value against its change, with a zero line and
+    an `lm` fit, to see whether the change is level-dependent.
 - Every builder appends a localised “how to read this chart” explainer
   to `plot.caption` (`annotate = "caption"` default; `"callout"` /`NA` /
   a string; `options(lapidary.annotate = )`).

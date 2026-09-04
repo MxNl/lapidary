@@ -195,9 +195,21 @@ for the long-form guide.
 Reusable ggplot2 chart builders. Each returns a bare ggplot (or
 patchwork), themed and annotated, ready to compose.
 
+- [`lap_plot_change_scatter()`](https://mxnl.github.io/lapidary/reference/lap_plot_change_scatter.md)
+  : Starting value against its change
+- [`lap_plot_delta_map()`](https://mxnl.github.io/lapidary/reference/lap_plot_delta_map.md)
+  : Map the change in an indicator between two periods
+- [`lap_plot_distribution()`](https://mxnl.github.io/lapidary/reference/lap_plot_distribution.md)
+  : Distribution of one indicator across wells
+- [`lap_plot_indicator_scatter()`](https://mxnl.github.io/lapidary/reference/lap_plot_indicator_scatter.md)
+  : Two indicators against each other
 - [`lap_plot_hex_map()`](https://mxnl.github.io/lapidary/reference/lap_plot_map.md)
   [`lap_plot_point_map()`](https://mxnl.github.io/lapidary/reference/lap_plot_map.md)
   : lapidary map builders
+- [`lap_plot_period_ridges()`](https://mxnl.github.io/lapidary/reference/lap_plot_period_ridges.md)
+  : Stacked period distributions (ridgelines)
+- [`lap_attach_margin()`](https://mxnl.github.io/lapidary/reference/lap_attach_margin.md)
+  : Attach a marginal distribution to a plot
 - [`lap_annotate_howto()`](https://mxnl.github.io/lapidary/reference/lap_annotate_howto.md)
   : Add a "how to read this chart" explainer to a plot
 - [`lap_howto()`](https://mxnl.github.io/lapidary/reference/lap_howto.md)

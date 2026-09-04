@@ -21,6 +21,8 @@ lap_plot_hex_map(
   hull_shadow = TRUE,
   na_guide = TRUE,
   border_colour = NULL,
+  margin = c("none", "histogram", "density", "raincloud"),
+  margin_side = c("bottom", "right"),
   variant = lap_variant(),
   lang = NULL,
   annotate = getOption("lapidary.annotate", "caption"),
@@ -95,6 +97,15 @@ lap_plot_point_map(
 
   (`hex_map`) Hex border colour; default the background.
 
+- margin, margin_side:
+
+  (`hex_map`) Attach a marginal distribution of the mapped values
+  (`"histogram"` / `"density"` / `"raincloud"`) on the `"bottom"`
+  (default) or `"right"`; with `margin != "none"` the return is a
+  [patchwork::patchwork](https://patchwork.data-imaginist.com/reference/patchwork-package.html).
+  Ignored for a circular-month column. See
+  [`lap_attach_margin()`](https://mxnl.github.io/lapidary/reference/lap_attach_margin.md).
+
 - variant:
 
   `"light"` / `"dark"`; defaults to
@@ -134,7 +145,10 @@ lap_plot_point_map(
 ## Value
 
 A
-[ggplot2::ggplot](https://ggplot2.tidyverse.org/reference/ggplot.html).
+[ggplot2::ggplot](https://ggplot2.tidyverse.org/reference/ggplot.html),
+or a
+[patchwork::patchwork](https://patchwork.data-imaginist.com/reference/patchwork-package.html)
+when `lap_plot_hex_map(margin = )` is set.
 
 ## Details
 

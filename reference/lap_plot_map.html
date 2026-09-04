@@ -63,6 +63,8 @@ record on a map of Germany:</p>
 <span>  hull_shadow <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  na_guide <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  border_colour <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  margin <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"histogram"</span>, <span class="st">"density"</span>, <span class="st">"raincloud"</span><span class="op">)</span>,</span>
+<span>  margin_side <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"bottom"</span>, <span class="st">"right"</span><span class="op">)</span>,</span>
 <span>  variant <span class="op">=</span> <span class="fu"><a href="lap_variant.html">lap_variant</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  lang <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  annotate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"lapidary.annotate"</span>, <span class="st">"caption"</span><span class="op">)</span>,</span>
@@ -137,6 +139,14 @@ value column has <code>NA</code>s.</p></dd>
 <dd><p>(<code>hex_map</code>) Hex border colour; default the background.</p></dd>
 
 
+<dt id="arg-margin-margin-side">margin, margin_side<a class="anchor" aria-label="anchor" href="#arg-margin-margin-side"></a></dt>
+<dd><p>(<code>hex_map</code>) Attach a marginal distribution of the
+mapped values (<code>"histogram"</code> / <code>"density"</code> / <code>"raincloud"</code>) on the
+<code>"bottom"</code> (default) or <code>"right"</code>; with <code>margin != "none"</code> the return is a
+<a href="https://patchwork.data-imaginist.com/reference/patchwork-package.html" class="external-link">patchwork::patchwork</a>. Ignored for a circular-month column. See
+<code><a href="lap_attach_margin.html">lap_attach_margin()</a></code>.</p></dd>
+
+
 <dt id="arg-variant">variant<a class="anchor" aria-label="anchor" href="#arg-variant"></a></dt>
 <dd><p><code>"light"</code> / <code>"dark"</code>; defaults to <code><a href="lap_variant.html">lap_variant()</a></code>.</p></dd>
 
@@ -171,7 +181,8 @@ supplies it (e.g. <code>preset = "a1"</code> for poster-size text).</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A <a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot2::ggplot</a>.</p>
+    <p>A <a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot2::ggplot</a>, or a <a href="https://patchwork.data-imaginist.com/reference/patchwork-package.html" class="external-link">patchwork::patchwork</a> when
+<code>lap_plot_hex_map(margin = )</code> is set.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

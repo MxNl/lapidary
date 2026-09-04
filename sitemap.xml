@@ -22,6 +22,7 @@
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_add_reference_period.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_aggregate_to_hex.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_annotate_howto.html</loc></url>
+<url><loc>https://mxnl.github.io/lapidary/reference/lap_attach_margin.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_cache_dir.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_cache_info.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_cache_source_dir.html</loc></url>
@@ -75,7 +76,12 @@
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_pal_roles.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_parquet_dir.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_period_windows.html</loc></url>
+<url><loc>https://mxnl.github.io/lapidary/reference/lap_plot_change_scatter.html</loc></url>
+<url><loc>https://mxnl.github.io/lapidary/reference/lap_plot_delta_map.html</loc></url>
+<url><loc>https://mxnl.github.io/lapidary/reference/lap_plot_distribution.html</loc></url>
+<url><loc>https://mxnl.github.io/lapidary/reference/lap_plot_indicator_scatter.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_plot_map.html</loc></url>
+<url><loc>https://mxnl.github.io/lapidary/reference/lap_plot_period_ridges.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_preset.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_preset_names.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_prettify_label.html</loc></url>
