@@ -25,6 +25,29 @@ resolve_builder_args <- function(variant = NULL, lang = NULL,
   )
 }
 
+# "Trend slope (m/year)" - the prettified column name plus its catalogue unit,
+# unless the name already ends with that unit word (e.g. "Memory weeks").
+lap_axis_label <- function(col) {
+  lbl <- lap_prettify_label(col)
+  u <- column_units(col)
+  if (length(u) == 1L && !is.na(u) && nzchar(u) && u != "-" &&
+    !endsWith(tolower(lbl), tolower(u))) {
+    lbl <- paste0(lbl, " (", u, ")")
+  }
+  lbl
+}
+
+# Assert `data` is a plain data frame (an indicators / summary table).
+check_table <- function(data, arg = "data", call = rlang::caller_env()) {
+  if (!is.data.frame(data) || inherits(data, "sf")) {
+    cli::cli_abort(c(
+      "{.arg {arg}} must be a plain data frame.",
+      i = "e.g. from {.fn lap_indicators} or {.fn lap_summarise_wells}."
+    ), call = call)
+  }
+  invisible(data)
+}
+
 # Assert `data` is an sf POLYGON layer (a hex grid from lap_aggregate_to_hex()).
 check_hex_layer <- function(data, arg = "data", call = rlang::caller_env()) {
   ok <- inherits(data, "sf") &&
