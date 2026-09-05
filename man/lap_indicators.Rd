@@ -51,11 +51,18 @@ with \code{\link[=lap_normalise_gwl]{lap_normalise_gwl()}} \code{method = "sgi"}
 }
 \code{"all"} finds those columns itself (\verb{<value>_norm}, \code{precip}) and passes them
 to those indicators instead of \code{value}, reporting what it added and - when a
-prerequisite is missing - what it had to skip and why. A single series whose
-index is unusable over the window at hand yields \code{NA} for that indicator, with
-a warning, rather than failing the whole table. Requesting one of the three by
-key is stricter: pass \code{value = gwl_norm} (and \verb{driver =}) yourself, and an
-unusable series is an error.
+prerequisite is missing - what it had to skip and why.
+
+Having established that the column is standardised over the whole record,
+\code{"all"} also passes \code{check = FALSE} to the drought indicators. This matters
+for \code{\link[=lap_indicator_change]{lap_indicator_change()}}: a \emph{window} of a valid SGI may sit far from zero
+\itemize{
+\item a well in drought for the whole decade - and re-checking each window would
+reject precisely the driest series, biasing every period mean towards the
+wells that were not in drought. Requesting an indicator by key is stricter:
+pass \code{value = gwl_norm} (and \verb{driver =}) yourself, and the check applies
+unless you also pass \code{check = FALSE}.
+}
 }
 
 \examples{

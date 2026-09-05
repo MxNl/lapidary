@@ -645,6 +645,11 @@ lap_ind_trend_acceleration <- function(data, value = gwl, date = "date",
 #'
 #' @inheritParams lap_ind_flashiness
 #' @param threshold Drought threshold on the index. Default `-1`.
+#' @param check Verify that `value` really looks like a standardised index.
+#'   Set `FALSE` when you have already established that elsewhere - notably for
+#'   a **window** of a longer standardised record, where the index legitimately
+#'   sits far from zero (a well in drought for the whole window) and the check
+#'   would otherwise reject exactly the driest series.
 #' @param ... Ignored (uniform indicator signature).
 #' @return A one-row tibble with the columns above.
 #' @references Bloomfield, J.P. & Marchant, B.P. (2013) *HESS* 17, 4769.
@@ -653,7 +658,7 @@ lap_ind_trend_acceleration <- function(data, value = gwl, date = "date",
 #' @family indicators
 #' @export
 lap_ind_drought <- function(data, value = gwl_norm, date = "date",
-                            threshold = -1, ...) {
+                            threshold = -1, check = TRUE, ...) {
   value <- lap_eval_select_one(data, rlang::enquo(value), arg = "value")
   date <- lap_eval_select_one(data, rlang::enquo(date), arg = "date", null_ok = TRUE)
   x <- ind_series(data, value, date)$v
@@ -666,7 +671,7 @@ lap_ind_drought <- function(data, value = gwl_norm, date = "date",
   if (length(x) < 12) {
     return(na_row)
   }
-  check_standardised(x, value)
+  if (check) check_standardised(x, value)
   ev <- drought_runs(x, threshold)
   tibble::tibble(
     ind_drought_frequency = mean(x < threshold),
@@ -700,7 +705,7 @@ lap_ind_drought <- function(data, value = gwl_norm, date = "date",
 #' @family indicators
 #' @export
 lap_ind_drought_recovery <- function(data, value = gwl_norm, date = "date",
-                                     threshold = -1, ...) {
+                                     threshold = -1, check = TRUE, ...) {
   value <- lap_eval_select_one(data, rlang::enquo(value), arg = "value")
   date <- lap_eval_select_one(data, rlang::enquo(date), arg = "date", null_ok = TRUE)
   x <- ind_series(data, value, date)$v
@@ -710,7 +715,7 @@ lap_ind_drought_recovery <- function(data, value = gwl_norm, date = "date",
   if (length(x) < 12) {
     return(na_row)
   }
-  check_standardised(x, value)
+  if (check) check_standardised(x, value)
   ev <- drought_runs(x, threshold)
   rec <- ev$recovery[ev$recovered]
   tibble::tibble(

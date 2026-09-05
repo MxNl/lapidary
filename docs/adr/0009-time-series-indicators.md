@@ -129,3 +129,12 @@ Because the per-series `check_standardised()` can still reject one well over one
 window even when the pooled column looks fine, an indicator that `"all"` chose
 itself degrades to its `NA` row for that series (with a warning) rather than
 aborting the table. Asking for it by key stays strict.
+
+`check_standardised()` is scoped to the record the index was built from, not to
+each analysis window: `lap_normalise_gwl("sgi")` guarantees median ~0 and sd ~1
+over a well's *full* series, and any decade sliced out of it may legitimately sit
+far from that - which is what a multi-year drought looks like. Re-applying the
+guard per window therefore rejected the driest well-decades (on GEMS-GER, ~37%
+of wells in 2021-2022, whose mean fraction below SGI -1 was 0.54 against 0.16 for
+the wells it kept). The drought indicators take `check` so the caller can say the
+index is already established; `"all"` sets it, having done that check itself.

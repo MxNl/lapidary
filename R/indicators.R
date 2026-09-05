@@ -53,11 +53,16 @@
 #' }
 #' `"all"` finds those columns itself (`<value>_norm`, `precip`) and passes them
 #' to those indicators instead of `value`, reporting what it added and - when a
-#' prerequisite is missing - what it had to skip and why. A single series whose
-#' index is unusable over the window at hand yields `NA` for that indicator, with
-#' a warning, rather than failing the whole table. Requesting one of the three by
-#' key is stricter: pass `value = gwl_norm` (and `driver =`) yourself, and an
-#' unusable series is an error.
+#' prerequisite is missing - what it had to skip and why.
+#'
+#' Having established that the column is standardised over the whole record,
+#' `"all"` also passes `check = FALSE` to the drought indicators. This matters
+#' for [lap_indicator_change()]: a *window* of a valid SGI may sit far from zero
+#' - a well in drought for the whole decade - and re-checking each window would
+#' reject precisely the driest series, biasing every period mean towards the
+#' wells that were not in drought. Requesting an indicator by key is stricter:
+#' pass `value = gwl_norm` (and `driver =`) yourself, and the check applies
+#' unless you also pass `check = FALSE`.
 #'
 #' @return A tibble: the `by` column(s) plus one column per indicator output
 #'   (all `ind_`-prefixed).
@@ -94,7 +99,7 @@ lap_indicators <- function(x, .funs, by = well_id, value = gwl, date = "date", .
     # sees a plain column name, not an external vector
     extra <- e$args[setdiff(names(e$args), dots_nms)]
     val <- if ("value" %in% names(extra)) extra[["value"]] else value
-    extra <- as.list(extra[setdiff(names(extra), "value")])
+    extra <- extra[setdiff(names(extra), "value")]
     run <- function(p) rlang::inject(
       e$fn(p, value = !!val, date = !!date_col, !!!extra, ...)
     )
@@ -461,16 +466,17 @@ catalog_lookup <- function(field, col) {
   unname(lookup[col])
 }
 
-# Can `entry` run against `x`? Returns `list(ok = TRUE, args = <named chr>)`
-# with the `arg = column` overrides to inject, or `list(ok = FALSE, why = )`
-# with an already-formatted explanation.
+# Can `entry` run against `x`? Returns `list(ok = TRUE, args = <named list>,
+# cols = <chr>)` with the arguments to inject and the columns they resolved to,
+# or `list(ok = FALSE, why = )` with an already-formatted explanation.
 ind_inputs_available <- function(entry, x, value, date_col) {
   no <- function(...) list(ok = FALSE, why = cli::format_inline(...))
   fix <- cli::format_inline('{.code lap_normalise_gwl("sgi")}')
   if (isTRUE(entry$needs_date) && is.null(date_col)) {
     return(no("needs a date column"))
   }
-  args <- character()
+  args <- list()
+  cols <- character()
   for (arg in names(entry$inputs)) {
     req <- entry$inputs[[arg]]
     if (identical(req, "standardised")) {
@@ -484,15 +490,22 @@ ind_inputs_available <- function(entry, x, value, date_col) {
           "{.field {cand[[1]]}} is not a standardised index - use {fix}"
         ))
       }
+      # the column is standardised over the whole record, which is the scope
+      # that matters. Any single series or window of it may legitimately sit
+      # far from zero - a well in drought throughout - so re-checking further
+      # down would reject exactly the driest series. See lap_ind_drought().
+      args[["check"]] <- FALSE
       args[[arg]] <- cand[[1]]
+      cols <- c(cols, cand[[1]])
     } else {
       if (!req %in% names(x)) {
         return(no("no {.field {req}} column - add it with {.fn lap_join_meteo}"))
       }
       args[[arg]] <- req
+      cols <- c(cols, req)
     }
   }
-  list(ok = TRUE, args = args)
+  list(ok = TRUE, args = args, cols = cols)
 }
 
 # One selected indicator: the function plus the `arg = column` overrides that
@@ -502,7 +515,7 @@ ind_selection <- function(x) structure(x, class = "lap_ind_selection")
 # The unconditional indicators, with no input overrides.
 in_all_selection <- function(reg) {
   lapply(Filter(function(e) e$in_all, reg), function(e) {
-    list(fn = e$fn, args = character())
+    list(fn = e$fn, args = list())
   })
 }
 
@@ -522,7 +535,7 @@ all_ind_selection <- function(reg, x, value, date_col) {
       next
     }
     out[[k]] <- list(fn = opt[[k]]$fn, args = got$args, auto = TRUE)
-    cols <- c(cols, unname(got$args))
+    cols <- c(cols, got$cols)
   }
   if (length(cols)) {
     added <- setdiff(names(out), unconditional)
@@ -569,7 +582,7 @@ resolve_ind_funs <- function(.funs, x = NULL, value = NULL, date_col = NULL,
           i = "Did you mean the string {.val all}?"
         ), call = call)
       }
-      return(list(fn = it, args = character()))
+      return(list(fn = it, args = list()))
     }
     if (is.character(it) && length(it) == 1L) {
       entry <- reg[[it]]
@@ -579,7 +592,7 @@ resolve_ind_funs <- function(.funs, x = NULL, value = NULL, date_col = NULL,
           i = "Keys: {.val {names(reg)}} (or {.val all})."
         ), call = call)
       }
-      return(list(fn = entry$fn, args = character()))
+      return(list(fn = entry$fn, args = list()))
     }
     cli::cli_abort(
       "{.arg .funs} entries must be indicator keys or {.fn lap_ind_*} functions.",
