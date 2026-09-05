@@ -79,9 +79,14 @@ tidyselect helpers).
   once the data has an SGI column (`lap_normalise_gwl("sgi")`) and
   `climate_signal` once a driver is joined too (`lap_join_meteo()`). They
   receive `gwl_norm` / `precip` in place of `value`; when a prerequisite is
-  missing `"all"` says which indicators it skipped and why. A series whose index
-  is unusable over the window at hand yields `NA` with a warning instead of
-  failing the whole table — requesting the indicator by key stays strict.
+  missing `"all"` says which indicators it skipped and why.
+* `lap_ind_drought()` and `lap_ind_drought_recovery()` gain `check`, which turns
+  off the "does this look like a standardised index?" guard. `.funs = "all"`
+  sets it once it has verified the column over the whole record. Without it, a
+  *window* of a valid SGI that sits far from zero — a well in drought for the
+  whole decade — was rejected as if it were not an index at all, so
+  `lap_indicator_change()` dropped exactly the driest series and biased every
+  period mean towards the wells that were not in drought.
 * `lap_normalise_gwl()` — `range`, `zscore`, `sgi`.
 * `lap_gw_trend()` — Theil–Sen slope + Mann–Kendall test.
 * `lap_make_hex_grid()`, `lap_aggregate_to_hex()`, `lap_circular_mean_month()`,

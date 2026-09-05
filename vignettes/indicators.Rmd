@@ -169,7 +169,14 @@ positive = a recovering or decelerating well.
 
 Add one first with `lap_normalise_gwl("sgi")`. `.funs = "all"` then picks these
 up on its own, using the `gwl_norm` column in place of `value`; to request them
-by key instead, pass `value = gwl_norm` yourself. The
+by key instead, pass `value = gwl_norm` yourself.
+
+The SGI is standardised over a well's **whole** record. A window of it - a decade
+in `lap_indicator_change()` - may sit far below zero, which is exactly what a
+multi-year drought is. `lap_indicators("all")` therefore checks the index once,
+on the full record, and passes `check = FALSE` down; if you slice windows
+yourself and request `drought` by key, pass `check = FALSE` too, or the guard
+will reject your driest series. The
 **SGI** (Standardised Groundwater Index, Bloomfield & Marchant 2013) is a
 non-parametric normal-scores transform applied per calendar month: within each
 month the values are ranked and mapped through `qnorm(rank / (n + 1))`, giving a

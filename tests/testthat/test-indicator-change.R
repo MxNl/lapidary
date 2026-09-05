@@ -83,24 +83,34 @@ test_that('lap_indicator_change resolves "all" once, for every period alike', {
   )
 })
 
-test_that('an auto-included indicator degrades to NA instead of aborting', {
-  # well "a" declines steeply after 2010, so its SGI within one window is
-  # skewed and check_standardised() rejects it - that must not kill the table
+test_that("a window far from zero is a drought, not an unusable series", {
+  # well "a" declines steeply after 2010, so its SGI over the recent window
+  # sits well below zero. That is a drought - the whole point of the metric -
+  # and must not be mistaken for "this column is not a standardised index".
   x <- lap_normalise_gwl(new_gwl_ts(make_two_period_ts()), "sgi")
-  w <- testthat::capture_warnings(
-    chg <- suppressMessages(lap_indicator_change(
-      x, "all",
-      periods = list(reference = c(1991, 2010), recent = c(2011, 2022))
-    ))
+  periods <- list(reference = c(1991, 2010), recent = c(2011, 2022))
+  expect_no_warning(
+    chg <- suppressMessages(lap_indicator_change(x, "all", periods = periods))
   )
-  # one warning per affected indicator, naming the series it gave up on
-  expect_length(w, 2L)
-  expect_true(all(grepl("could not handle", w)))
-  na <- chg[is.na(chg$ind_drought_frequency), ]
-  expect_equal(nrow(na), 1L)
-  expect_identical(na$well_id, "a")
-  # the other well, and well "a" in the other period, are computed normally
-  expect_true(all(is.finite(chg$ind_drought_frequency[chg$well_id == "b"])))
-  # the unconditional indicators are unaffected for that same row
-  expect_true(is.finite(na$ind_amplitude))
+  expect_true(all(is.finite(chg$ind_drought_frequency)))
+  # the declining well is drier in the recent window than in the reference one
+  a <- chg[chg$well_id == "a", ]
+  expect_gt(
+    a$ind_drought_frequency[a$period == "recent"],
+    a$ind_drought_frequency[a$period == "reference"]
+  )
+  # the index really was off-centre there - the old check would have rejected it
+  sgi <- x$gwl_norm[x$well_id == "a" & format(as.Date(x$date), "%Y") >= "2011"]
+  expect_false(is_standardised(sgi))
+})
+
+test_that("requesting drought by key still checks, unless check = FALSE", {
+  x <- lap_normalise_gwl(new_gwl_ts(make_two_period_ts()), "sgi")
+  recent <- x[format(as.Date(x$date), "%Y") >= "2011" & x$well_id == "a", ]
+  expect_error(
+    lap_indicators(recent, "drought", value = gwl_norm),
+    "standardised index"
+  )
+  ind <- lap_indicators(recent, "drought", value = gwl_norm, check = FALSE)
+  expect_true(is.finite(ind$ind_drought_frequency))
 })

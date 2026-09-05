@@ -9,6 +9,7 @@ lap_ind_drought_recovery(
   value = gwl_norm,
   date = "date",
   threshold = -1,
+  check = TRUE,
   ...
 )
 }
@@ -21,6 +22,12 @@ lap_ind_drought_recovery(
 (used only to order the series).}
 
 \item{threshold}{Drought threshold on the index. Default \code{-1}.}
+
+\item{check}{Verify that \code{value} really looks like a standardised index.
+Set \code{FALSE} when you have already established that elsewhere - notably for
+a \strong{window} of a longer standardised record, where the index legitimately
+sits far from zero (a well in drought for the whole window) and the check
+would otherwise reject exactly the driest series.}
 
 \item{...}{Ignored (uniform indicator signature).}
 }
