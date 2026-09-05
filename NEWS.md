@@ -74,6 +74,14 @@ tidyselect helpers).
   `lap_add_reference_period()` without hand-writing year pairs.
 * `lap_summarise_wells()` (in-memory or pushed down to DuckDB),
   `lap_wells_with_coverage()`.
+* `.funs = "all"` is data-aware: besides the always-on indicators it runs the
+  ones whose inputs are present, so `drought` / `drought_recovery` are included
+  once the data has an SGI column (`lap_normalise_gwl("sgi")`) and
+  `climate_signal` once a driver is joined too (`lap_join_meteo()`). They
+  receive `gwl_norm` / `precip` in place of `value`; when a prerequisite is
+  missing `"all"` says which indicators it skipped and why. A series whose index
+  is unusable over the window at hand yields `NA` with a warning instead of
+  failing the whole table — requesting the indicator by key stays strict.
 * `lap_normalise_gwl()` — `range`, `zscore`, `sgi`.
 * `lap_gw_trend()` — Theil–Sen slope + Mann–Kendall test.
 * `lap_make_hex_grid()`, `lap_aggregate_to_hex()`, `lap_circular_mean_month()`,

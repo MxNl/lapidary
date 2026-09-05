@@ -20,7 +20,9 @@ lap_add_indicators(
 
 \item{x}{The time series the indicators are computed from.}
 
-\item{.funs}{Which indicators to compute; see \code{\link[=lap_indicators]{lap_indicators()}}.}
+\item{.funs}{Which indicators to compute; see \code{\link[=lap_indicators]{lap_indicators()}}. \code{"all"}
+is data-aware - it covers the drought and climate indicators too once \code{x}
+carries an SGI column (and a driver).}
 
 \item{by}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> join key(s), present in
 both \code{data} and \code{x}. Default \code{well_id}.}

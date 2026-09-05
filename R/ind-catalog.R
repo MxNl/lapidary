@@ -103,11 +103,16 @@ run_length_max <- function(x) {
   max(r$lengths[!is.na(r$values) & r$values])
 }
 
+# Does `x` look like an approximately standard-normal index (SGI etc.)?
+is_standardised <- function(x) {
+  sdv <- stats::sd(x, na.rm = TRUE)
+  md <- stats::median(x, na.rm = TRUE)
+  is.finite(md) && abs(md) <= 0.75 && is.finite(sdv) && sdv >= 0.4 && sdv <= 2.5
+}
+
 # Abort unless `x` looks like an approximately standard-normal index (SGI etc.).
 check_standardised <- function(x, value, call = rlang::caller_env()) {
-  sdv <- stats::sd(x, na.rm = TRUE)
-  if (abs(stats::median(x, na.rm = TRUE)) > 0.75 || !is.finite(sdv) ||
-    sdv < 0.4 || sdv > 2.5) {
+  if (!is_standardised(x)) {
     cli::cli_abort(c(
       "{.arg value} ({.field {value}}) does not look like a standardised index.",
       i = 'Add one first: {.code lap_normalise_gwl("sgi")}, then {.code value = gwl_norm}.'

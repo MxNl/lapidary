@@ -53,8 +53,9 @@ you want both. No `lap_ind_*()` is ever handed two frames.
 `.funs` is **required** (running the whole catalogue on thousands of wells
 should be a deliberate choice) and accepts:
 
-- `"all"` - every indicator whose `in_all` flag is set (`drought` is excluded:
-  it needs an SGI column, so it is opt-in);
+- `"all"` - every indicator whose `in_all` flag is set, **plus** (amended, see
+  below) each `in_all = FALSE` indicator whose declared inputs are present in
+  the data;
 - a character vector of registry **keys** (`c("amplitude", "trend")`);
 - one or more `lap_ind_*` functions, or a mix of keys and functions.
 
@@ -104,3 +105,27 @@ The catalogue as of this milestone: `amplitude`, `seasonal_amplitude`,
   rejected as the default: heavier, does not survive a DuckDB round-trip, and
   steeper for casual use. It remains available to power users via
   `tidyr::nest()` + `purrr::map()`.
+
+## Amendment: `"all"` is data-aware
+
+Originally `"all"` was exactly `in_all = TRUE`, and `drought` (later also
+`drought_recovery` and `climate_signal`) was permanently unreachable through it:
+the flag is static, so preparing the data made no difference. That was
+surprising - `lap_join_meteo() |> lap_normalise_gwl("sgi") |>
+lap_indicators("all")` still returned no drought columns - and the documented
+promise ("every indicator in the registry") was untrue.
+
+The flag could not simply be flipped, because `lap_indicators()` injects one
+`value` into every indicator: under `"all"` that is `gwl`, and
+`check_standardised()` would abort.
+
+So a catalogue entry may now declare `inputs`, an `arg = requirement` list
+(`"standardised"`, or a literal default column name). `"all"` resolves those
+against the data: found, and the indicator runs with those columns substituted
+for `value`; missing, and it is skipped with a message naming it and the reason.
+`in_all` keeps its meaning - "runs unconditionally" - and stays in the registry.
+
+Because the per-series `check_standardised()` can still reject one well over one
+window even when the pooled column looks fine, an indicator that `"all"` chose
+itself degrades to its `NA` row for that series (with a warning) rather than
+aborting the table. Asking for it by key stays strict.
