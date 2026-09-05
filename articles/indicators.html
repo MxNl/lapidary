@@ -274,15 +274,22 @@ slope is steeper); positive = a recovering or decelerating well.</p>
 <p>Add one first with <code>lap_normalise_gwl("sgi")</code>.
 <code>.funs = "all"</code> then picks these up on its own, using the
 <code>gwl_norm</code> column in place of <code>value</code>; to request
-them by key instead, pass <code>value = gwl_norm</code> yourself. The
-<strong>SGI</strong> (Standardised Groundwater Index, Bloomfield &amp;
-Marchant 2013) is a non-parametric normal-scores transform applied per
-calendar month: within each month the values are ranked and mapped
-through <code>qnorm(rank / (n + 1))</code>, giving a deseasonalised,
-unit-variance index directly comparable across wells with very different
-dynamic ranges. A <strong>drought event</strong> is a maximal run of
-<code>SGI &lt; threshold</code> (default <code>-1</code>), i.e. run
-theory (Yevjevich 1967).</p>
+them by key instead, pass <code>value = gwl_norm</code> yourself.</p>
+<p>The SGI is standardised over a well’s <strong>whole</strong> record.
+A window of it - a decade in <code><a href="../reference/lap_indicator_change.html">lap_indicator_change()</a></code> - may
+sit far below zero, which is exactly what a multi-year drought is.
+<code>lap_indicators("all")</code> therefore checks the index once, on
+the full record, and passes <code>check = FALSE</code> down; if you
+slice windows yourself and request <code>drought</code> by key, pass
+<code>check = FALSE</code> too, or the guard will reject your driest
+series. The <strong>SGI</strong> (Standardised Groundwater Index,
+Bloomfield &amp; Marchant 2013) is a non-parametric normal-scores
+transform applied per calendar month: within each month the values are
+ranked and mapped through <code>qnorm(rank / (n + 1))</code>, giving a
+deseasonalised, unit-variance index directly comparable across wells
+with very different dynamic ranges. A <strong>drought event</strong> is
+a maximal run of <code>SGI &lt; threshold</code> (default
+<code>-1</code>), i.e. run theory (Yevjevich 1967).</p>
 <div class="section level3">
 <h3 id="drought-eight-columns">
 <code>drought</code> — eight columns<a class="anchor" aria-label="anchor" href="#drought-eight-columns"></a>

@@ -10,7 +10,14 @@ not look standardised. A **drought event** is a maximal run of
 ## Usage
 
 ``` r
-lap_ind_drought(data, value = gwl_norm, date = "date", threshold = -1, ...)
+lap_ind_drought(
+  data,
+  value = gwl_norm,
+  date = "date",
+  threshold = -1,
+  check = TRUE,
+  ...
+)
 ```
 
 ## Arguments
@@ -32,6 +39,15 @@ lap_ind_drought(data, value = gwl_norm, date = "date", threshold = -1, ...)
 - threshold:
 
   Drought threshold on the index. Default `-1`.
+
+- check:
+
+  Verify that `value` really looks like a standardised index. Set
+  `FALSE` when you have already established that elsewhere - notably for
+  a **window** of a longer standardised record, where the index
+  legitimately sits far from zero (a well in drought for the whole
+  window) and the check would otherwise reject exactly the driest
+  series.
 
 - ...:
 

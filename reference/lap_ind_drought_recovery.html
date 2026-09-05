@@ -56,6 +56,7 @@ minimum forward to the first <code>value &gt;= 0</code>.</p>
 <span>  value <span class="op">=</span> <span class="va">gwl_norm</span>,</span>
 <span>  date <span class="op">=</span> <span class="st">"date"</span>,</span>
 <span>  threshold <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>,</span>
+<span>  check <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -79,6 +80,14 @@ minimum forward to the first <code>value &gt;= 0</code>.</p>
 
 <dt id="arg-threshold">threshold<a class="anchor" aria-label="anchor" href="#arg-threshold"></a></dt>
 <dd><p>Drought threshold on the index. Default <code>-1</code>.</p></dd>
+
+
+<dt id="arg-check">check<a class="anchor" aria-label="anchor" href="#arg-check"></a></dt>
+<dd><p>Verify that <code>value</code> really looks like a standardised index.
+Set <code>FALSE</code> when you have already established that elsewhere - notably for
+a <strong>window</strong> of a longer standardised record, where the index legitimately
+sits far from zero (a well in drought for the whole window) and the check
+would otherwise reject exactly the driest series.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

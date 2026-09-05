@@ -143,9 +143,18 @@ strings, or tidyselect helpers).
   ([`lap_join_meteo()`](https://mxnl.github.io/lapidary/reference/lap_join_meteo.md)).
   They receive `gwl_norm` / `precip` in place of `value`; when a
   prerequisite is missing `"all"` says which indicators it skipped and
-  why. A series whose index is unusable over the window at hand yields
-  `NA` with a warning instead of failing the whole table — requesting
-  the indicator by key stays strict.
+  why.
+- [`lap_ind_drought()`](https://mxnl.github.io/lapidary/reference/lap_ind_drought.md)
+  and
+  [`lap_ind_drought_recovery()`](https://mxnl.github.io/lapidary/reference/lap_ind_drought_recovery.md)
+  gain `check`, which turns off the “does this look like a standardised
+  index?” guard. `.funs = "all"` sets it once it has verified the column
+  over the whole record. Without it, a *window* of a valid SGI that sits
+  far from zero — a well in drought for the whole decade — was rejected
+  as if it were not an index at all, so
+  [`lap_indicator_change()`](https://mxnl.github.io/lapidary/reference/lap_indicator_change.md)
+  dropped exactly the driest series and biased every period mean towards
+  the wells that were not in drought.
 - [`lap_normalise_gwl()`](https://mxnl.github.io/lapidary/reference/lap_normalise_gwl.md)
   — `range`, `zscore`, `sgi`.
 - [`lap_gw_trend()`](https://mxnl.github.io/lapidary/reference/lap_gw_trend.md)

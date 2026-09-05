@@ -93,12 +93,18 @@ only when `x` actually carries what they need:
 
 `"all"` finds those columns itself (`<value>_norm`, `precip`) and passes
 them to those indicators instead of `value`, reporting what it added
-and - when a prerequisite is missing - what it had to skip and why. A
-single series whose index is unusable over the window at hand yields
-`NA` for that indicator, with a warning, rather than failing the whole
-table. Requesting one of the three by key is stricter: pass
-`value = gwl_norm` (and `driver =`) yourself, and an unusable series is
-an error.
+and - when a prerequisite is missing - what it had to skip and why.
+
+Having established that the column is standardised over the whole
+record, `"all"` also passes `check = FALSE` to the drought indicators.
+This matters for `lap_indicator_change()`: a *window* of a valid SGI may
+sit far from zero
+
+- a well in drought for the whole decade - and re-checking each window
+  would reject precisely the driest series, biasing every period mean
+  towards the wells that were not in drought. Requesting an indicator by
+  key is stricter: pass `value = gwl_norm` (and `driver =`) yourself,
+  and the check applies unless you also pass `check = FALSE`.
 
 ## See also
 

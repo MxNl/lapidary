@@ -125,12 +125,15 @@ with <code><a href="lap_normalise_gwl.html">lap_normalise_gwl()</a></code> <code
 <code><a href="lap_join_meteo.html">lap_join_meteo()</a></code>.</p></li>
 </ul><p><code>"all"</code> finds those columns itself (<code>&lt;value&gt;_norm</code>, <code>precip</code>) and passes them
 to those indicators instead of <code>value</code>, reporting what it added and - when a
-prerequisite is missing - what it had to skip and why. A single series whose
-index is unusable over the window at hand yields <code>NA</code> for that indicator, with
-a warning, rather than failing the whole table. Requesting one of the three by
-key is stricter: pass <code>value = gwl_norm</code> (and <code>driver =</code>) yourself, and an
-unusable series is an error.</p>
-    </div>
+prerequisite is missing - what it had to skip and why.</p>
+<p>Having established that the column is standardised over the whole record,
+<code>"all"</code> also passes <code>check = FALSE</code> to the drought indicators. This matters
+for <code>lap_indicator_change()</code>: a <em>window</em> of a valid SGI may sit far from zero</p><ul><li><p>a well in drought for the whole decade - and re-checking each window would
+reject precisely the driest series, biasing every period mean towards the
+wells that were not in drought. Requesting an indicator by key is stricter:
+pass <code>value = gwl_norm</code> (and <code>driver =</code>) yourself, and the check applies
+unless you also pass <code>check = FALSE</code>.</p></li>
+</ul></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="lap_indicator_delta.html">lap_indicator_delta()</a></code> to turn this into one row per well with
