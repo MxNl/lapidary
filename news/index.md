@@ -135,6 +135,17 @@ strings, or tidyselect helpers).
 - [`lap_summarise_wells()`](https://mxnl.github.io/lapidary/reference/lap_summarise_wells.md)
   (in-memory or pushed down to DuckDB),
   [`lap_wells_with_coverage()`](https://mxnl.github.io/lapidary/reference/lap_wells_with_coverage.md).
+- `.funs = "all"` is data-aware: besides the always-on indicators it
+  runs the ones whose inputs are present, so `drought` /
+  `drought_recovery` are included once the data has an SGI column
+  (`lap_normalise_gwl("sgi")`) and `climate_signal` once a driver is
+  joined too
+  ([`lap_join_meteo()`](https://mxnl.github.io/lapidary/reference/lap_join_meteo.md)).
+  They receive `gwl_norm` / `precip` in place of `value`; when a
+  prerequisite is missing `"all"` says which indicators it skipped and
+  why. A series whose index is unusable over the window at hand yields
+  `NA` with a warning instead of failing the whole table — requesting
+  the indicator by key stays strict.
 - [`lap_normalise_gwl()`](https://mxnl.github.io/lapidary/reference/lap_normalise_gwl.md)
   — `range`, `zscore`, `sgi`.
 - [`lap_gw_trend()`](https://mxnl.github.io/lapidary/reference/lap_gw_trend.md)

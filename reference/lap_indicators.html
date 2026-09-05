@@ -60,7 +60,8 @@ x and column-binds the results into a well-level table."></head><body>
 
 
 <dt id="arg--funs">.funs<a class="anchor" aria-label="anchor" href="#arg--funs"></a></dt>
-<dd><p>Which indicators to compute. Required. One of:</p><ul><li><p><code>"all"</code> - every indicator in <code><a href="lap_indicator_registry.html">lap_indicator_registry()</a></code>;</p></li>
+<dd><p>Which indicators to compute. Required. One of:</p><ul><li><p><code>"all"</code> - every indicator in <code><a href="lap_indicator_registry.html">lap_indicator_registry()</a></code> whose inputs
+are present in <code>x</code> (see the section below);</p></li>
 <li><p>a character vector of registry keys, e.g. <code>c("amplitude", "trend")</code>;</p></li>
 <li><p>one or more <code>lap_ind_*</code> functions, e.g. <code>c(lap_ind_amplitude, lap_ind_trend)</code>;</p></li>
 <li><p>a mix of keys and functions.</p></li>
@@ -93,6 +94,24 @@ Default <code>gwl</code>.</p></dd>
 (all <code>ind_</code>-prefixed).</p>
     </div>
     <div class="section level2">
+    <h2 id="which-indicators-all-runs">Which indicators "all" runs<a class="anchor" aria-label="anchor" href="#which-indicators-all-runs"></a></h2>
+
+
+<p>Most indicators run off <code>value</code> and are always included (<code>in_all</code> in the
+registry). Three need more than a level column and are therefore added only
+when <code>x</code> actually carries what they need:</p><ul><li><p><code>drought</code> and <code>drought_recovery</code> need a standardised index - add one
+with <code><a href="lap_normalise_gwl.html">lap_normalise_gwl()</a></code> <code>method = "sgi"</code>;</p></li>
+<li><p><code>climate_signal</code> needs that <strong>and</strong> a climate driver - join one with
+<code><a href="lap_join_meteo.html">lap_join_meteo()</a></code>.</p></li>
+</ul><p><code>"all"</code> finds those columns itself (<code>&lt;value&gt;_norm</code>, <code>precip</code>) and passes them
+to those indicators instead of <code>value</code>, reporting what it added and - when a
+prerequisite is missing - what it had to skip and why. A single series whose
+index is unusable over the window at hand yields <code>NA</code> for that indicator, with
+a warning, rather than failing the whole table. Requesting one of the three by
+key is stricter: pass <code>value = gwl_norm</code> (and <code>driver =</code>) yourself, and an
+unusable series is an error.</p>
+    </div>
+    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="lap_indicator_registry.html">lap_indicator_registry()</a></code>, <code><a href="lap_add_indicators.html">lap_add_indicators()</a></code></p></div>
     </div>
@@ -101,6 +120,8 @@ Default <code>gwl</code>.</p></dd>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">gems_ger_sample</span>, package <span class="op">=</span> <span class="st">"lapidary"</span>, envir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/environment.html" class="external-link">environment</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">lap_indicators</span><span class="op">(</span><span class="va">gems_ger_sample</span>, <span class="st">"all"</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> <span style="color: #0000BB;">"all"</span> skipped <span style="color: #0000BB;">"drought"</span>, <span style="color: #0000BB;">"drought_recovery"</span>, and <span style="color: #0000BB;">"climate_signal"</span>: no</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   standardised column - add `lap_normalise_gwl("sgi")`.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 40 × 25</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    well_id ind_amplitude ind_seasonal_amplitude ind_seasonality_strength</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>                  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>                    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
@@ -136,6 +157,31 @@ Default <code>gwl</code>.</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> MW_1342          2.34         1.20           6.63</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> MW_1419         21.9         12.2            3.78</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 30 more rows</span></span>
+<span class="r-in"><span><span class="co"># with an SGI column, "all" also covers the drought indicators</span></span></span>
+<span class="r-in"><span><span class="fu">lap_indicators</span><span class="op">(</span><span class="fu"><a href="lap_normalise_gwl.html">lap_normalise_gwl</a></span><span class="op">(</span><span class="va">gems_ger_sample</span>, <span class="st">"sgi"</span><span class="op">)</span>, <span class="st">"all"</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> <span style="color: #0000BB;">"all"</span> also ran <span style="color: #0000BB;">"drought"</span> and <span style="color: #0000BB;">"drought_recovery"</span>, using <span style="color: #00BB00;">gwl_norm</span>.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> <span style="color: #0000BB;">"all"</span> skipped <span style="color: #0000BB;">"climate_signal"</span>: no <span style="color: #00BB00;">precip</span> column - add it with</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   `lap_join_meteo()`.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 40 × 35</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    well_id ind_amplitude ind_seasonal_amplitude ind_seasonality_strength</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>                  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>                    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> MW_1039          2.38                  1.21                    0.060<span style="text-decoration: underline;">1</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> MW_1051          2.44                  1.15                    0.132 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> MW_1105          1.19                  0.449                   0.084<span style="text-decoration: underline;">0</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> MW_1230          1.12                  0.469                   0.060<span style="text-decoration: underline;">2</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> MW_1249          1.49                  0.755                   0.348 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> MW_1268          2.99                  1.12                    0.109 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> MW_1325          2.31                  1.18                    0.316 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> MW_1333          2.73                  1.47                    0.065<span style="text-decoration: underline;">0</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> MW_1342          2.34                  1.07                    0.574 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> MW_1419         21.9                  10.2                     0.462 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 30 more rows</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 31 more variables: ind_recharge_months &lt;dbl&gt;, ind_discharge_months &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   ind_min_month_sd &lt;dbl&gt;, ind_min_month &lt;dbl&gt;, ind_max_month &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   ind_flashiness &lt;dbl&gt;, ind_acf1 &lt;dbl&gt;, ind_memory_weeks &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   ind_rise_rate &lt;dbl&gt;, ind_fall_rate &lt;dbl&gt;, ind_trend_slope &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   ind_trend_p_value &lt;dbl&gt;, ind_trend_significant &lt;lgl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   ind_trend_min_slope &lt;dbl&gt;, ind_trend_max_slope &lt;dbl&gt;, …</span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

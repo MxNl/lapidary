@@ -34,7 +34,8 @@ lap_indicator_change(
   Which indicators to compute. Required. One of:
 
   - `"all"` - every indicator in
-    [`lap_indicator_registry()`](https://mxnl.github.io/lapidary/reference/lap_indicator_registry.md);
+    [`lap_indicator_registry()`](https://mxnl.github.io/lapidary/reference/lap_indicator_registry.md)
+    whose inputs are present in `x` (see the section below);
 
   - a character vector of registry keys, e.g. `c("amplitude", "trend")`;
 
@@ -75,6 +76,29 @@ lap_indicator_change(
 
 A long tibble: the `by` column(s), a `period` **ordered factor** (levels
 in the order of `periods`), and the `ind_*` columns.
+
+## Which indicators "all" runs
+
+Most indicators run off `value` and are always included (`in_all` in the
+registry). Three need more than a level column and are therefore added
+only when `x` actually carries what they need:
+
+- `drought` and `drought_recovery` need a standardised index - add one
+  with
+  [`lap_normalise_gwl()`](https://mxnl.github.io/lapidary/reference/lap_normalise_gwl.md)
+  `method = "sgi"`;
+
+- `climate_signal` needs that **and** a climate driver - join one with
+  [`lap_join_meteo()`](https://mxnl.github.io/lapidary/reference/lap_join_meteo.md).
+
+`"all"` finds those columns itself (`<value>_norm`, `precip`) and passes
+them to those indicators instead of `value`, reporting what it added
+and - when a prerequisite is missing - what it had to skip and why. A
+single series whose index is unusable over the window at hand yields
+`NA` for that indicator, with a warning, rather than failing the whole
+table. Requesting one of the three by key is stricter: pass
+`value = gwl_norm` (and `driver =`) yourself, and an unusable series is
+an error.
 
 ## See also
 

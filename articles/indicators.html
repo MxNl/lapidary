@@ -271,12 +271,14 @@ slope is steeper); positive = a recovering or decelerating well.</p>
 <div class="section level2">
 <h2 id="d--drought-and-low-water-need-a-standardised-index">D. Drought and low water (need a standardised index)<a class="anchor" aria-label="anchor" href="#d--drought-and-low-water-need-a-standardised-index"></a>
 </h2>
-<p>Add one first with <code>lap_normalise_gwl("sgi")</code> and pass
-<code>value = gwl_norm</code>. The <strong>SGI</strong> (Standardised
-Groundwater Index, Bloomfield &amp; Marchant 2013) is a non-parametric
-normal-scores transform applied per calendar month: within each month
-the values are ranked and mapped through
-<code>qnorm(rank / (n + 1))</code>, giving a deseasonalised,
+<p>Add one first with <code>lap_normalise_gwl("sgi")</code>.
+<code>.funs = "all"</code> then picks these up on its own, using the
+<code>gwl_norm</code> column in place of <code>value</code>; to request
+them by key instead, pass <code>value = gwl_norm</code> yourself. The
+<strong>SGI</strong> (Standardised Groundwater Index, Bloomfield &amp;
+Marchant 2013) is a non-parametric normal-scores transform applied per
+calendar month: within each month the values are ranked and mapped
+through <code>qnorm(rank / (n + 1))</code>, giving a deseasonalised,
 unit-variance index directly comparable across wells with very different
 dynamic ranges. A <strong>drought event</strong> is a maximal run of
 <code>SGI &lt; threshold</code> (default <code>-1</code>), i.e. run
@@ -378,6 +380,14 @@ build P–PET yourself), then:</p>
 <span>  <span class="fu"><a href="../reference/lap_join_meteo.html">lap_join_meteo</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>precip <span class="op">=</span> <span class="st">"HYRAS_pr"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/lap_normalise_gwl.html">lap_normalise_gwl</a></span><span class="op">(</span><span class="st">"sgi"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="../reference/lap_indicators.html">lap_indicators</a></span><span class="op">(</span><span class="st">"climate_signal"</span>, value <span class="op">=</span> <span class="va">gwl_norm</span>, driver <span class="op">=</span> <span class="va">precip</span><span class="op">)</span></span></code></pre></div>
+<p>With both columns in place, <code>.funs = "all"</code> includes this
+indicator too, finding <code>gwl_norm</code> and <code>precip</code> by
+itself — so the whole catalogue is one call:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/lap_read_gems_ger.html">lap_read_gems_ger</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/lap_join_meteo.html">lap_join_meteo</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>precip <span class="op">=</span> <span class="st">"HYRAS_pr"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/lap_normalise_gwl.html">lap_normalise_gwl</a></span><span class="op">(</span><span class="st">"sgi"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="../reference/lap_indicators.html">lap_indicators</a></span><span class="op">(</span><span class="st">"all"</span><span class="op">)</span></span></code></pre></div>
 <p>The driver is accumulated over windows of 1..<code>max_acc</code>
 months and standardised per calendar month (an SPI/SPEI-analog, reusing
 the SGI machinery). A grid search over accumulation and lag

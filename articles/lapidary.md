@@ -136,12 +136,23 @@ or append them to an existing well-level table with
 [`lap_add_indicators()`](https://mxnl.github.io/lapidary/reference/lap_add_indicators.md).
 `.funs` takes `"all"`, registry keys, or `lap_ind_*()` functions.
 
+`"all"` is data-aware: it runs every indicator whose inputs are in the
+data. Most need only the level column, but the drought and climate ones
+need a standardised index (`lap_normalise_gwl("sgi")`) and, for
+`climate_signal`, a joined driver
+([`lap_join_meteo()`](https://mxnl.github.io/lapidary/reference/lap_join_meteo.md)).
+Add those columns and `"all"` picks the indicators up by itself, using
+`gwl_norm` and `precip` in place of `value`; if they are missing it says
+which indicators it skipped and why.
+
 ``` r
 
 lap_summarise_wells(gems_ger_sample, by = well_id) |>
   lap_add_indicators(gems_ger_sample, "all") |>
   dplyr::select(well_id, mean_gwl, dplyr::starts_with("ind_")) |>
   head()
+#> ℹ "all" skipped "drought", "drought_recovery", and "climate_signal": no
+#>   standardised column - add `lap_normalise_gwl("sgi")`.
 #> # A tibble: 6 × 26
 #>   well_id mean_gwl ind_amplitude ind_seasonal_amplitude ind_seasonality_strength
 #>   <chr>      <dbl>         <dbl>                  <dbl>                    <dbl>

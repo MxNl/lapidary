@@ -173,14 +173,16 @@ steeper); positive = a recovering or decelerating well.
 
 ## D. Drought and low water (need a standardised index)
 
-Add one first with `lap_normalise_gwl("sgi")` and pass
-`value = gwl_norm`. The **SGI** (Standardised Groundwater Index,
-Bloomfield & Marchant 2013) is a non-parametric normal-scores transform
-applied per calendar month: within each month the values are ranked and
-mapped through `qnorm(rank / (n + 1))`, giving a deseasonalised,
-unit-variance index directly comparable across wells with very different
-dynamic ranges. A **drought event** is a maximal run of
-`SGI < threshold` (default `-1`), i.e. run theory (Yevjevich 1967).
+Add one first with `lap_normalise_gwl("sgi")`. `.funs = "all"` then
+picks these up on its own, using the `gwl_norm` column in place of
+`value`; to request them by key instead, pass `value = gwl_norm`
+yourself. The **SGI** (Standardised Groundwater Index, Bloomfield &
+Marchant 2013) is a non-parametric normal-scores transform applied per
+calendar month: within each month the values are ranked and mapped
+through `qnorm(rank / (n + 1))`, giving a deseasonalised, unit-variance
+index directly comparable across wells with very different dynamic
+ranges. A **drought event** is a maximal run of `SGI < threshold`
+(default `-1`), i.e. run theory (Yevjevich 1967).
 
 ### `drought` — eight columns
 
@@ -225,6 +227,18 @@ lap_read_gems_ger() |>
   lap_join_meteo(c(precip = "HYRAS_pr")) |>
   lap_normalise_gwl("sgi") |>
   lap_indicators("climate_signal", value = gwl_norm, driver = precip)
+```
+
+With both columns in place, `.funs = "all"` includes this indicator too,
+finding `gwl_norm` and `precip` by itself — so the whole catalogue is
+one call:
+
+``` r
+
+lap_read_gems_ger() |>
+  lap_join_meteo(c(precip = "HYRAS_pr")) |>
+  lap_normalise_gwl("sgi") |>
+  lap_indicators("all")
 ```
 
 The driver is accumulated over windows of 1..`max_acc` months and

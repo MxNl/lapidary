@@ -34,6 +34,8 @@ lap_add_indicators(
 
   Which indicators to compute; see
   [`lap_indicators()`](https://mxnl.github.io/lapidary/reference/lap_indicators.md).
+  `"all"` is data-aware - it covers the drought and climate indicators
+  too once `x` carries an SGI column (and a driver).
 
 - by:
 
@@ -60,6 +62,8 @@ lap_add_indicators(
 data(gems_ger_sample, package = "lapidary", envir = environment())
 lap_summarise_wells(gems_ger_sample, by = well_id) |>
   lap_add_indicators(gems_ger_sample, "all")
+#> ℹ "all" skipped "drought", "drought_recovery", and "climate_signal": no
+#>   standardised column - add `lap_normalise_gwl("sgi")`.
 #> # A tibble: 40 × 32
 #>    well_id min_gwl max_gwl mean_gwl median_gwl sd_gwl n_obs coverage
 #>    <chr>     <dbl>   <dbl>    <dbl>      <dbl>  <dbl> <int>    <dbl>
