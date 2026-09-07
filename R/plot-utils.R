@@ -70,7 +70,9 @@ howto_caption_element <- function(tokens) {
       family = fam, size = ggplot2::rel(tokens$size$caption),
       colour = tokens$colour$ink_muted, lineheight = 1.3,
       halign = 0, width = grid::unit(1, "npc"),
-      margin = ggplot2::margin(t = tokens$size$caption * 5)
+      margin = ggplot2::margin(
+        t = tokens$size$caption * 5, b = tokens$size$caption * 3
+      )
     )
   } else {
     ggplot2::element_text(

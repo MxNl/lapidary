@@ -100,6 +100,18 @@ placeholders from the tokens so the prose colour-matches the plot.
 `lap_reference_envelope()` (for `lap_plot_reference_band()`) are added only
 because a chart needs them, next to the existing primitives, with a note.
 
+### Ridgeline builders and the interpretation registry
+
+`lap_plot_period_ridges()` is the first builder backed by `ggridges`
+(`geom_density_ridges_gradient()`, along-value-axis gradient fill, background
+-colour cut-out outline); `lap_plot_ridgeline()` (temporal evolution) follows
+the same pattern. A `lap_interpretations` lookup (`R/indicator-interpretation.R`,
+bilingual, keyed by `ind_*` column) glosses what a low vs a high value means;
+builders render it as a directional value-axis label and it is shared
+infrastructure for later builders. Framed panels (`panel = "xy" / "ridge" /
+"polar"`) carry a non-zero `plot.margin` — only the edge-to-edge map panel
+wants zero.
+
 ## Consequences
 
 - Every builder is testable at three levels: cheap assertions (run everywhere),

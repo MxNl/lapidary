@@ -143,14 +143,15 @@ lap_labels <- list(
   ),
   howto_period_ridges = list(
     en = paste(
-      "Each ridge is the distribution of one period's well values; reading",
-      "bottom to top follows time. A sideways shift means the whole population",
-      "moved."
+      "Each ridge is the distribution of one period's well values, coloured",
+      "along the value axis; reading top to bottom follows time. A sideways",
+      "shift means the whole population moved."
     ),
     de = paste(
-      "Jeder Kamm ist die Verteilung der Messstellenwerte eines Zeitraums; von",
-      "unten nach oben verl\u00e4uft die Zeit. Eine seitliche Verschiebung hei\u00dft,",
-      "die gesamte Verteilung hat sich verschoben."
+      "Jeder Kamm ist die Verteilung der Messstellenwerte eines Zeitraums,",
+      "entlang der Wertachse eingef\u00e4rbt; von oben nach unten verl\u00e4uft die",
+      "Zeit. Eine seitliche Verschiebung hei\u00dft, die gesamte Verteilung hat",
+      "sich verschoben."
     )
   ),
   howto_change_scatter = list(
