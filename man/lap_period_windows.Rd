@@ -8,7 +8,8 @@ lap_period_windows(
   x,
   scheme = c("first_vs_last_decade", "first_vs_last_half", "decade_per_decade"),
   date = "date",
-  width = 10L
+  width = 10L,
+  labels = c("span", "role", "both")
 )
 }
 \arguments{
@@ -20,18 +21,24 @@ lap_period_windows(
 \item \code{"first_vs_last_decade"} - the first and last \code{width} years;
 \item \code{"first_vs_last_half"} - the record split at its midpoint;
 \item \code{"decade_per_decade"} - one window per 10-year block from the first
-year of the record, the last block clipped to the end. Names are the
-actual spans, e.g. \code{"1991-2000"}.
+year of the record, the last block clipped to the end.
 }}
 
 \item{date}{<\code{\link[dplyr:dplyr_tidy_select]{tidy-select}}> the date column used
 to derive the year range when \code{x} is a data frame. Default \code{date}.}
 
 \item{width}{Window length in years for \code{"first_vs_last_decade"}. Default 10.}
+
+\item{labels}{How to name the windows: \code{"span"} (default) the actual year
+span, e.g. \code{"1991-2000"}; \code{"role"} the position, \code{"first"} / \code{"last"}
+(falls back to the span for \code{"decade_per_decade"}, which has no such
+roles); \code{"both"}, e.g. \code{"first (1991-2000)"}. The names become the
+\code{period} factor levels in \code{\link[=lap_indicator_change]{lap_indicator_change()}}, so they show up on
+facet strips and legends.}
 }
 \value{
 A named list of \code{c(start_year, end_year)} integer pairs in
-chronological order (\code{first} before \code{last}), validated for
+chronological order (earliest first), validated for
 \code{\link[=lap_indicator_change]{lap_indicator_change()}} (overlaps allowed).
 }
 \description{
@@ -50,6 +57,7 @@ of its labels to \code{\link[=lap_indicator_delta]{lap_indicator_delta()}}. The 
 \examples{
 data(gems_ger_sample, package = "lapidary", envir = environment())
 lap_period_windows(gems_ger_sample, "first_vs_last_decade")
+lap_period_windows(gems_ger_sample, "first_vs_last_decade", labels = "both")
 lap_period_windows(c(1991, 2022), "decade_per_decade")
 lap_indicator_change(
   gems_ger_sample, c("amplitude", "trend"),

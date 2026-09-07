@@ -33,15 +33,20 @@ lap_reference_periods <- function() {
 #'     \item `"first_vs_last_decade"` - the first and last `width` years;
 #'     \item `"first_vs_last_half"` - the record split at its midpoint;
 #'     \item `"decade_per_decade"` - one window per 10-year block from the first
-#'       year of the record, the last block clipped to the end. Names are the
-#'       actual spans, e.g. `"1991-2000"`.
+#'       year of the record, the last block clipped to the end.
 #'   }
 #' @param date <[`tidy-select`][dplyr::dplyr_tidy_select]> the date column used
 #'   to derive the year range when `x` is a data frame. Default `date`.
 #' @param width Window length in years for `"first_vs_last_decade"`. Default 10.
+#' @param labels How to name the windows: `"span"` (default) the actual year
+#'   span, e.g. `"1991-2000"`; `"role"` the position, `"first"` / `"last"`
+#'   (falls back to the span for `"decade_per_decade"`, which has no such
+#'   roles); `"both"`, e.g. `"first (1991-2000)"`. The names become the
+#'   `period` factor levels in [lap_indicator_change()], so they show up on
+#'   facet strips and legends.
 #'
 #' @return A named list of `c(start_year, end_year)` integer pairs in
-#'   chronological order (`first` before `last`), validated for
+#'   chronological order (earliest first), validated for
 #'   [lap_indicator_change()] (overlaps allowed).
 #'
 #' @details `"decade_per_decade"` can return more than two windows; pass any two
@@ -55,6 +60,7 @@ lap_reference_periods <- function() {
 #' @examples
 #' data(gems_ger_sample, package = "lapidary", envir = environment())
 #' lap_period_windows(gems_ger_sample, "first_vs_last_decade")
+#' lap_period_windows(gems_ger_sample, "first_vs_last_decade", labels = "both")
 #' lap_period_windows(c(1991, 2022), "decade_per_decade")
 #' lap_indicator_change(
 #'   gems_ger_sample, c("amplitude", "trend"),
@@ -67,13 +73,15 @@ lap_period_windows <- function(x,
                                  "decade_per_decade"
                                ),
                                date = "date",
-                               width = 10L) {
+                               width = 10L,
+                               labels = c("span", "role", "both")) {
   scheme <- rlang::arg_match(scheme)
+  labels <- rlang::arg_match(labels)
   yr <- period_window_year_range(x, rlang::enquo(date))
   y0 <- yr[[1]]
   y1 <- yr[[2]]
 
-  periods <- switch(scheme,
+  built <- switch(scheme,
     first_vs_last_decade = {
       w <- as.integer(width)
       if (length(w) != 1L || is.na(w) || w < 1L) {
@@ -81,24 +89,41 @@ lap_period_windows <- function(x,
       }
       if (y1 - y0 + 1L < 2L * w) {
         cli::cli_inform(c(
-          i = "Record spans {y1 - y0 + 1L} yr; {.val first} and {.val last} \\
-               windows overlap."
+          i = "Record spans {y1 - y0 + 1L} yr; first and last windows overlap."
         ))
       }
-      list(first = c(y0, y0 + w - 1L), last = c(y1 - w + 1L, y1))
+      list(
+        wins = list(c(y0, y0 + w - 1L), c(y1 - w + 1L, y1)),
+        role = c("first", "last")
+      )
     },
     first_vs_last_half = {
       mid <- (y0 + y1) %/% 2L
-      list(first = c(y0, mid), last = c(mid + 1L, y1))
+      list(wins = list(c(y0, mid), c(mid + 1L, y1)), role = c("first", "last"))
     },
     decade_per_decade = {
       starts <- seq(y0, y1, by = 10L)
-      wins <- lapply(starts, function(s) c(s, min(s + 9L, y1)))
-      nm <- vapply(wins, function(w) paste(w[[1]], w[[2]], sep = "-"), character(1))
-      stats::setNames(wins, nm)
+      list(
+        wins = lapply(starts, function(s) c(s, min(s + 9L, y1))),
+        role = NULL
+      )
     }
   )
+
+  periods <- name_period_windows(built$wins, built$role, labels)
   validate_periods(periods, allow_overlap = TRUE)
+}
+
+# Name a list of c(y0, y1) windows per `labels` ("span" / "role" / "both").
+# `role` is NULL for schemes without first/last positions.
+name_period_windows <- function(wins, role, labels) {
+  span <- vapply(wins, function(w) paste(w[[1]], w[[2]], sep = "-"), character(1))
+  nm <- switch(labels,
+    span = span,
+    role = role %||% span,
+    both = if (is.null(role)) span else paste0(role, " (", span, ")")
+  )
+  stats::setNames(wins, nm)
 }
 
 # c(first_year, last_year) from a data frame's date column, or a length-2
