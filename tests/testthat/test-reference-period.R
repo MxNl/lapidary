@@ -31,18 +31,38 @@ test_that("year_col is used when supplied", {
 test_that("lap_period_windows: first_vs_last_decade honours width and range", {
   df <- data.frame(date = as.Date(paste0(1991:2022, "-06-15")))
   w <- lap_period_windows(df, "first_vs_last_decade")
-  expect_identical(w$first, c(1991L, 2000L))
-  expect_identical(w$last, c(2013L, 2022L))
+  # named by span by default
+  expect_identical(names(w), c("1991-2000", "2013-2022"))
+  expect_identical(w[["1991-2000"]], c(1991L, 2000L))
+  expect_identical(w[["2013-2022"]], c(2013L, 2022L))
   expect_identical(
-    lap_period_windows(df, "first_vs_last_decade", width = 5)$last,
+    unname(lap_period_windows(df, "first_vs_last_decade", width = 5)[[2]]),
     c(2018L, 2022L)
+  )
+})
+
+test_that("lap_period_windows: labels controls the window names", {
+  df <- data.frame(date = as.Date(paste0(1991:2022, "-06-15")))
+  expect_identical(
+    names(lap_period_windows(df, "first_vs_last_decade", labels = "role")),
+    c("first", "last")
+  )
+  expect_identical(
+    names(lap_period_windows(df, "first_vs_last_decade", labels = "both")),
+    c("first (1991-2000)", "last (2013-2022)")
+  )
+  # decade_per_decade has no first/last role -> "role" falls back to span
+  expect_identical(
+    names(lap_period_windows(c(1991, 2010), "decade_per_decade", labels = "role")),
+    c("1991-2000", "2001-2010")
   )
 })
 
 test_that("lap_period_windows: first_vs_last_half splits at the midpoint", {
   w <- lap_period_windows(c(1991, 2022), "first_vs_last_half")
-  expect_identical(w$first, c(1991L, 2006L))
-  expect_identical(w$last, c(2007L, 2022L))
+  expect_identical(names(w), c("1991-2006", "2007-2022"))
+  expect_identical(w[["1991-2006"]], c(1991L, 2006L))
+  expect_identical(w[["2007-2022"]], c(2007L, 2022L))
 })
 
 test_that("lap_period_windows: decade_per_decade is record-aligned and clipped", {

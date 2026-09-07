@@ -71,7 +71,10 @@ tidyselect helpers).
 * `lap_period_windows()` derives a `periods` list from a record's date range
   (`first_vs_last_decade`, `first_vs_last_half`, `decade_per_decade`, or from a
   `c(first_year, last_year)` vector) to feed `lap_indicator_change()` /
-  `lap_add_reference_period()` without hand-writing year pairs.
+  `lap_add_reference_period()` without hand-writing year pairs. All schemes now
+  name the windows by their year span (`"1991-2000"`) by default, so the
+  `period` factor reads on facet strips and legends; `labels = "role"` restores
+  the `"first"` / `"last"` names and `labels = "both"` gives `"first (1991-2000)"`.
 * `lap_summarise_wells()` (in-memory or pushed down to DuckDB),
   `lap_wells_with_coverage()`.
 * `.funs = "all"` is data-aware: besides the always-on indicators it runs the
