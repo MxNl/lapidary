@@ -208,10 +208,10 @@ hand-write year pairs:
 ``` r
 
 lap_period_windows(gems_ger_sample, "first_vs_last_decade")
-#> $first
+#> $`1991-2000`
 #> [1] 1991 2000
 #> 
-#> $last
+#> $`2013-2022`
 #> [1] 2013 2022
 lap_period_windows(gems_ger_sample, "decade_per_decade")
 #> $`1991-2000`

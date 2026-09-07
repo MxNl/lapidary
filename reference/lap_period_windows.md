@@ -16,7 +16,8 @@ lap_period_windows(
   x,
   scheme = c("first_vs_last_decade", "first_vs_last_half", "decade_per_decade"),
   date = "date",
-  width = 10L
+  width = 10L,
+  labels = c("span", "role", "both")
 )
 ```
 
@@ -36,8 +37,7 @@ lap_period_windows(
   - `"first_vs_last_half"` - the record split at its midpoint;
 
   - `"decade_per_decade"` - one window per 10-year block from the first
-    year of the record, the last block clipped to the end. Names are the
-    actual spans, e.g. `"1991-2000"`.
+    year of the record, the last block clipped to the end.
 
 - date:
 
@@ -49,10 +49,20 @@ lap_period_windows(
 
   Window length in years for `"first_vs_last_decade"`. Default 10.
 
+- labels:
+
+  How to name the windows: `"span"` (default) the actual year span, e.g.
+  `"1991-2000"`; `"role"` the position, `"first"` / `"last"` (falls back
+  to the span for `"decade_per_decade"`, which has no such roles);
+  `"both"`, e.g. `"first (1991-2000)"`. The names become the `period`
+  factor levels in
+  [`lap_indicator_change()`](https://mxnl.github.io/lapidary/reference/lap_indicator_change.md),
+  so they show up on facet strips and legends.
+
 ## Value
 
 A named list of `c(start_year, end_year)` integer pairs in chronological
-order (`first` before `last`), validated for
+order (earliest first), validated for
 [`lap_indicator_change()`](https://mxnl.github.io/lapidary/reference/lap_indicator_change.md)
 (overlaps allowed).
 
@@ -76,10 +86,17 @@ The non-overlapping schemes (`"first_vs_last_half"` and
 ``` r
 data(gems_ger_sample, package = "lapidary", envir = environment())
 lap_period_windows(gems_ger_sample, "first_vs_last_decade")
-#> $first
+#> $`1991-2000`
 #> [1] 1991 2000
 #> 
-#> $last
+#> $`2013-2022`
+#> [1] 2013 2022
+#> 
+lap_period_windows(gems_ger_sample, "first_vs_last_decade", labels = "both")
+#> $`first (1991-2000)`
+#> [1] 1991 2000
+#> 
+#> $`last (2013-2022)`
 #> [1] 2013 2022
 #> 
 lap_period_windows(c(1991, 2022), "decade_per_decade")
@@ -100,18 +117,18 @@ lap_indicator_change(
   periods = lap_period_windows(gems_ger_sample, "first_vs_last_half")
 )
 #> # A tibble: 80 × 6
-#>    well_id period ind_amplitude ind_trend_slope ind_trend_p_value
-#>    <chr>   <ord>          <dbl>           <dbl>             <dbl>
-#>  1 MW_1039 first          2.03        -0.000657             0.893
-#>  2 MW_1051 first          1.69        -0.00685              0.392
-#>  3 MW_1105 first          0.830        0.00693              0.300
-#>  4 MW_1230 first          0.830        0.00169              0.558
-#>  5 MW_1249 first          1.49         0.0159               0.163
-#>  6 MW_1268 first          2.67         0.0108               0.192
-#>  7 MW_1325 first          2.02        -0.00413              0.344
-#>  8 MW_1333 first          2.05        -0.000553             0.964
-#>  9 MW_1342 first          2.34         0.0109               0.300
-#> 10 MW_1419 first         21.9          0.146                0.822
+#>    well_id period    ind_amplitude ind_trend_slope ind_trend_p_value
+#>    <chr>   <ord>             <dbl>           <dbl>             <dbl>
+#>  1 MW_1039 1991-2006         2.03        -0.000657             0.893
+#>  2 MW_1051 1991-2006         1.69        -0.00685              0.392
+#>  3 MW_1105 1991-2006         0.830        0.00693              0.300
+#>  4 MW_1230 1991-2006         0.830        0.00169              0.558
+#>  5 MW_1249 1991-2006         1.49         0.0159               0.163
+#>  6 MW_1268 1991-2006         2.67         0.0108               0.192
+#>  7 MW_1325 1991-2006         2.02        -0.00413              0.344
+#>  8 MW_1333 1991-2006         2.05        -0.000553             0.964
+#>  9 MW_1342 1991-2006         2.34         0.0109               0.300
+#> 10 MW_1419 1991-2006        21.9          0.146                0.822
 #> # ℹ 70 more rows
 #> # ℹ 1 more variable: ind_trend_significant <lgl>
 ```

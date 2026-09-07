@@ -61,7 +61,8 @@ the data.</p>
 <span>  <span class="va">x</span>,</span>
 <span>  scheme <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"first_vs_last_decade"</span>, <span class="st">"first_vs_last_half"</span>, <span class="st">"decade_per_decade"</span><span class="op">)</span>,</span>
 <span>  date <span class="op">=</span> <span class="st">"date"</span>,</span>
-<span>  width <span class="op">=</span> <span class="fl">10L</span></span>
+<span>  width <span class="op">=</span> <span class="fl">10L</span>,</span>
+<span>  labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"span"</span>, <span class="st">"role"</span>, <span class="st">"both"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -78,8 +79,7 @@ the data.</p>
 <dd><p>One of:</p><ul><li><p><code>"first_vs_last_decade"</code> - the first and last <code>width</code> years;</p></li>
 <li><p><code>"first_vs_last_half"</code> - the record split at its midpoint;</p></li>
 <li><p><code>"decade_per_decade"</code> - one window per 10-year block from the first
-year of the record, the last block clipped to the end. Names are the
-actual spans, e.g. <code>"1991-2000"</code>.</p></li>
+year of the record, the last block clipped to the end.</p></li>
 </ul></dd>
 
 
@@ -91,11 +91,20 @@ to derive the year range when <code>x</code> is a data frame. Default <code>date
 <dt id="arg-width">width<a class="anchor" aria-label="anchor" href="#arg-width"></a></dt>
 <dd><p>Window length in years for <code>"first_vs_last_decade"</code>. Default 10.</p></dd>
 
+
+<dt id="arg-labels">labels<a class="anchor" aria-label="anchor" href="#arg-labels"></a></dt>
+<dd><p>How to name the windows: <code>"span"</code> (default) the actual year
+span, e.g. <code>"1991-2000"</code>; <code>"role"</code> the position, <code>"first"</code> / <code>"last"</code>
+(falls back to the span for <code>"decade_per_decade"</code>, which has no such
+roles); <code>"both"</code>, e.g. <code>"first (1991-2000)"</code>. The names become the
+<code>period</code> factor levels in <code><a href="lap_indicator_change.html">lap_indicator_change()</a></code>, so they show up on
+facet strips and legends.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A named list of <code>c(start_year, end_year)</code> integer pairs in
-chronological order (<code>first</code> before <code>last</code>), validated for
+chronological order (earliest first), validated for
 <code><a href="lap_indicator_change.html">lap_indicator_change()</a></code> (overlaps allowed).</p>
     </div>
     <div class="section level2">
@@ -115,10 +124,17 @@ of its labels to <code><a href="lap_indicator_delta.html">lap_indicator_delta()<
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">gems_ger_sample</span>, package <span class="op">=</span> <span class="st">"lapidary"</span>, envir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/environment.html" class="external-link">environment</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">lap_period_windows</span><span class="op">(</span><span class="va">gems_ger_sample</span>, <span class="st">"first_vs_last_decade"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $first</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`1991-2000`</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1991 2000</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $last</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`2013-2022`</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 2013 2022</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-in"><span><span class="fu">lap_period_windows</span><span class="op">(</span><span class="va">gems_ger_sample</span>, <span class="st">"first_vs_last_decade"</span>, labels <span class="op">=</span> <span class="st">"both"</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`first (1991-2000)`</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1991 2000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $`last (2013-2022)`</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 2013 2022</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="fu">lap_period_windows</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1991</span>, <span class="fl">2022</span><span class="op">)</span>, <span class="st">"decade_per_decade"</span><span class="op">)</span></span></span>
@@ -139,18 +155,18 @@ of its labels to <code><a href="lap_indicator_delta.html">lap_indicator_delta()<
 <span class="r-in"><span>  periods <span class="op">=</span> <span class="fu">lap_period_windows</span><span class="op">(</span><span class="va">gems_ger_sample</span>, <span class="st">"first_vs_last_half"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 80 × 6</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    well_id period ind_amplitude ind_trend_slope ind_trend_p_value</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;ord&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> MW_1039 first          2.03        -<span style="color: #BB0000;">0.000</span><span style="color: #BB0000; text-decoration: underline;">657</span>             0.893</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> MW_1051 first          1.69        -<span style="color: #BB0000;">0.006</span><span style="color: #BB0000; text-decoration: underline;">85</span>              0.392</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> MW_1105 first          0.830        0.006<span style="text-decoration: underline;">93</span>              0.300</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> MW_1230 first          0.830        0.001<span style="text-decoration: underline;">69</span>              0.558</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> MW_1249 first          1.49         0.015<span style="text-decoration: underline;">9</span>               0.163</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> MW_1268 first          2.67         0.010<span style="text-decoration: underline;">8</span>               0.192</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> MW_1325 first          2.02        -<span style="color: #BB0000;">0.004</span><span style="color: #BB0000; text-decoration: underline;">13</span>              0.344</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> MW_1333 first          2.05        -<span style="color: #BB0000;">0.000</span><span style="color: #BB0000; text-decoration: underline;">553</span>             0.964</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> MW_1342 first          2.34         0.010<span style="text-decoration: underline;">9</span>               0.300</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> MW_1419 first         21.9          0.146                0.822</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    well_id period    ind_amplitude ind_trend_slope ind_trend_p_value</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;ord&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> MW_1039 1991-2006         2.03        -<span style="color: #BB0000;">0.000</span><span style="color: #BB0000; text-decoration: underline;">657</span>             0.893</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> MW_1051 1991-2006         1.69        -<span style="color: #BB0000;">0.006</span><span style="color: #BB0000; text-decoration: underline;">85</span>              0.392</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> MW_1105 1991-2006         0.830        0.006<span style="text-decoration: underline;">93</span>              0.300</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> MW_1230 1991-2006         0.830        0.001<span style="text-decoration: underline;">69</span>              0.558</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> MW_1249 1991-2006         1.49         0.015<span style="text-decoration: underline;">9</span>               0.163</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> MW_1268 1991-2006         2.67         0.010<span style="text-decoration: underline;">8</span>               0.192</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> MW_1325 1991-2006         2.02        -<span style="color: #BB0000;">0.004</span><span style="color: #BB0000; text-decoration: underline;">13</span>              0.344</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> MW_1333 1991-2006         2.05        -<span style="color: #BB0000;">0.000</span><span style="color: #BB0000; text-decoration: underline;">553</span>             0.964</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> MW_1342 1991-2006         2.34         0.010<span style="text-decoration: underline;">9</span>               0.300</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> MW_1419 1991-2006        21.9          0.146                0.822</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 70 more rows</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 1 more variable: ind_trend_significant &lt;lgl&gt;</span></span>
 </code></pre></div>

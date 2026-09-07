@@ -131,7 +131,11 @@ strings, or tidyselect helpers).
   [`lap_indicator_change()`](https://mxnl.github.io/lapidary/reference/lap_indicator_change.md)
   /
   [`lap_add_reference_period()`](https://mxnl.github.io/lapidary/reference/lap_add_reference_period.md)
-  without hand-writing year pairs.
+  without hand-writing year pairs. All schemes now name the windows by
+  their year span (`"1991-2000"`) by default, so the `period` factor
+  reads on facet strips and legends; `labels = "role"` restores the
+  `"first"` / `"last"` names and `labels = "both"` gives
+  `"first (1991-2000)"`.
 - [`lap_summarise_wells()`](https://mxnl.github.io/lapidary/reference/lap_summarise_wells.md)
   (in-memory or pushed down to DuckDB),
   [`lap_wells_with_coverage()`](https://mxnl.github.io/lapidary/reference/lap_wells_with_coverage.md).
