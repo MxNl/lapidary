@@ -55,8 +55,14 @@ strings, or tidyselect helpers).
     `delta_kind = "none"` column (a p-value, a year) gets a pointed
     error.
   - [`lap_plot_period_ridges()`](https://mxnl.github.io/lapidary/reference/lap_plot_period_ridges.md)
-    — one density ridge per period, stacked, each filled by its median
-    on the map palette.
+    — one density ridge per period, stacked earliest-on-top so reading
+    down the plot follows time, each filled with the continuous palette
+    *along the value axis* and outlined in the background colour so
+    overlapping ridges stay legible (via , a Suggests). `overlap` tunes
+    the stacking. When the plotted `ind_*` column is in a new
+    interpretation registry the value axis is labelled with what a low
+    vs a high value means (`"<low> ← Indicator → <high>"`); `low_label`
+    / `high_label` set or override it for any column.
   - [`lap_plot_change_scatter()`](https://mxnl.github.io/lapidary/reference/lap_plot_change_scatter.md)
     — a well’s starting value against its change, with a zero line and
     an `lm` fit, to see whether the change is level-dependent.
@@ -72,7 +78,9 @@ strings, or tidyselect helpers).
   (`options(lapidary.variant = )` / `LAPIDARY_VARIANT`).
 - [`theme_lapidary()`](https://mxnl.github.io/lapidary/reference/theme_lapidary.md)
   gains `panel = c("map", "xy", "ridge", "polar")` (`map = TRUE/FALSE`
-  kept as a deprecated alias).
+  kept as a deprecated alias). The framed panels (`"xy"`, `"ridge"`,
+  `"polar"`) now carry a small `plot.margin` so axis text and the how-to
+  caption are not clipped; `"map"` stays edge-to-edge.
 - [`lap_na_guide()`](https://mxnl.github.io/lapidary/reference/lap_na_guide.md)
   /
   [`lap_coloursteps_guide()`](https://mxnl.github.io/lapidary/reference/lap_coloursteps_guide.md)

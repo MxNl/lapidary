@@ -58,7 +58,7 @@
 <ul><li>
 <code><a href="../reference/lap_plot_delta_map.html">lap_plot_delta_map()</a></code> — the per-hexagon change in one indicator between two periods: <code>display = "change"</code> a divergent choropleth about zero (also takes <code>margin =</code>), <code>"paired"</code> two shared-scale period maps (<code>patchwork</code>), <code>"arrow"</code> a per-hexagon glyph. Resolves the <code>_&lt;from&gt;</code> / <code>_&lt;to&gt;</code> / <code>_change</code> columns from the base indicator name; a <code>delta_kind = "none"</code> column (a p-value, a year) gets a pointed error.</li>
 <li>
-<code><a href="../reference/lap_plot_period_ridges.html">lap_plot_period_ridges()</a></code> — one density ridge per period, stacked, each filled by its median on the map palette.</li>
+<code><a href="../reference/lap_plot_period_ridges.html">lap_plot_period_ridges()</a></code> — one density ridge per period, stacked earliest-on-top so reading down the plot follows time, each filled with the continuous palette <em>along the value axis</em> and outlined in the background colour so overlapping ridges stay legible (via , a Suggests). <code>overlap</code> tunes the stacking. When the plotted <code>ind_*</code> column is in a new interpretation registry the value axis is labelled with what a low vs a high value means (<code>"&lt;low&gt; ← Indicator → &lt;high&gt;"</code>); <code>low_label</code> / <code>high_label</code> set or override it for any column.</li>
 <li>
 <code><a href="../reference/lap_plot_change_scatter.html">lap_plot_change_scatter()</a></code> — a well’s starting value against its change, with a zero line and an <code>lm</code> fit, to see whether the change is level-dependent.</li>
 </ul></li>
@@ -66,7 +66,7 @@
 <li>
 <code><a href="../reference/lap_variant.html">lap_variant()</a></code> — light/dark resolver mirroring <code><a href="../reference/lap_lang.html">lap_lang()</a></code> (<code>options(lapidary.variant = )</code> / <code>LAPIDARY_VARIANT</code>).</li>
 <li>
-<code><a href="../reference/theme_lapidary.html">theme_lapidary()</a></code> gains <code>panel = c("map", "xy", "ridge", "polar")</code> (<code>map = TRUE/FALSE</code> kept as a deprecated alias).</li>
+<code><a href="../reference/theme_lapidary.html">theme_lapidary()</a></code> gains <code>panel = c("map", "xy", "ridge", "polar")</code> (<code>map = TRUE/FALSE</code> kept as a deprecated alias). The framed panels (<code>"xy"</code>, <code>"ridge"</code>, <code>"polar"</code>) now carry a small <code>plot.margin</code> so axis text and the how-to caption are not clipped; <code>"map"</code> stays edge-to-edge.</li>
 <li>
 <code><a href="../reference/lap_na_guide.html">lap_na_guide()</a></code> / <code><a href="../reference/lap_coloursteps_guide.html">lap_coloursteps_guide()</a></code> gain a <code>variant</code> argument (they previously always resolved light-variant token colours).</li>
 <li>
