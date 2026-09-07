@@ -28,6 +28,10 @@ builder_inputs <- local({
   )
 })
 
+# A builder may hard-require one Suggests package; the contract loop skips it
+# when that package is absent (the builder's own test file skips too).
+builder_optional_pkg <- list(lap_plot_period_ridges = "ggridges")
+
 # Is a scale one of the *_lapidary colour / fill scales (or a lap_na_guide shape)?
 is_lap_scale <- function(s) {
   aes <- s$aesthetics
@@ -43,6 +47,9 @@ test_that("every lap_plot_* builder follows the contract", {
   expect_setequal(builders, names(builder_inputs))
 
   for (nm in builders) {
+    dep <- builder_optional_pkg[[nm]]
+    if (!is.null(dep) && !requireNamespace(dep, quietly = TRUE)) next
+
     fn <- get(nm, envir = asNamespace("lapidary"))
     fmls <- names(formals(fn))
     expect_true(

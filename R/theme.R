@@ -88,6 +88,14 @@ theme_lapidary <- function(variant = lap_variant(),
     )
   )
 
+  # Framed panels (axis text, a caption) need breathing room the edge-to-edge
+  # map panel does not; `plot_margin` alone is tuned to 0 for maps.
+  framed_margin <- ggplot2::theme(
+    plot.margin = ggplot2::margin(
+      base_size / 2, base_size / 2, base_size / 2, base_size / 2
+    )
+  )
+
   t <- t + switch(panel,
     map = ggplot2::theme(
       axis.title = ggplot2::element_blank(),
@@ -95,17 +103,17 @@ theme_lapidary <- function(variant = lap_variant(),
       axis.ticks = ggplot2::element_blank(),
       panel.grid = ggplot2::element_blank()
     ),
-    xy = ggplot2::theme(
+    xy = framed_margin + ggplot2::theme(
       panel.grid.minor = ggplot2::element_blank(),
       panel.grid.major.x = ggplot2::element_blank()
     ),
-    ridge = ggplot2::theme(
+    ridge = framed_margin + ggplot2::theme(
       panel.grid = ggplot2::element_blank(),
       panel.grid.major.x = ggplot2::element_line(colour = col$grid, linewidth = 0.3),
       axis.ticks.y = ggplot2::element_blank(),
       axis.line.x = ggplot2::element_line(colour = col$grid, linewidth = 0.3)
     ),
-    polar = ggplot2::theme(
+    polar = framed_margin + ggplot2::theme(
       axis.title = ggplot2::element_blank(),
       axis.ticks = ggplot2::element_blank(),
       axis.text.y = ggplot2::element_blank(),
