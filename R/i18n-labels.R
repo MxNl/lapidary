@@ -72,6 +72,15 @@ lap_labels <- list(
     en = "Wells per hexagon",
     de = "Messstellen pro Wabe"
   ),
+  gwl_class_labels = list(
+    en = c(
+      "Very low", "Low", "Below normal", "Normal", "Above normal", "High", "Very high"
+    ),
+    de = c(
+      "Sehr niedrig", "Niedrig", "Unterdurchschnittlich", "Normal",
+      "\u00dcberdurchschnittlich", "Hoch", "Sehr hoch"
+    )
+  ),
   no_data = list(en = "no data", de = "keine Daten"),
 
   # --- how to read (per builder) ------------------------------------
@@ -164,6 +173,17 @@ lap_labels <- list(
       "Ein Punkt je Messstelle: Ausgangswert gegen Ver\u00e4nderung. Eine geneigte",
       "Punktwolke hei\u00dft, hoch startende Messstellen haben sich anders",
       "ver\u00e4ndert als niedrig startende."
+    )
+  ),
+  howto_stream = list(
+    en = paste(
+      "Each band is the share of wells in one category; every column always",
+      "adds up to 100%. A widening band means more wells were in that state."
+    ),
+    de = paste(
+      "Jedes Band ist der Anteil der Messstellen in einer Kategorie; jede",
+      "Spalte summiert sich immer zu 100 %. Ein breiter werdendes Band hei\u00dft,",
+      "mehr Messstellen befanden sich in diesem Zustand."
     )
   )
 )

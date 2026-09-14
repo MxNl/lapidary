@@ -59,6 +59,8 @@ reference:
   - lap_summarise_wells
   - lap_wells_with_coverage
   - lap_normalise_gwl
+  - lap_add_quantile_class
+  - lap_summarise_composition
   - lap_gw_trend
   - lap_circular_mean_month
 
