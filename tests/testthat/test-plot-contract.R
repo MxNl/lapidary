@@ -13,6 +13,9 @@ builder_inputs <- local({
   )
   dl <- lap_indicator_delta(chg, "reference", "recent")
   hex_dl <- lap_aggregate_to_hex(gems_ger_wells_sample, dl)
+  comp <- lap_summarise_composition(
+    lap_add_quantile_class(gems_ger_sample[1:1000, ]), gwl_class
+  )
   list(
     lap_plot_hex_map = function() lap_plot_hex_map(germany_hex_sample, mean_gwl),
     lap_plot_point_map = function() {
@@ -24,7 +27,8 @@ builder_inputs <- local({
     },
     lap_plot_delta_map = function() lap_plot_delta_map(hex_dl, ind_amplitude),
     lap_plot_period_ridges = function() lap_plot_period_ridges(chg, ind_amplitude),
-    lap_plot_change_scatter = function() lap_plot_change_scatter(dl, ind_amplitude)
+    lap_plot_change_scatter = function() lap_plot_change_scatter(dl, ind_amplitude),
+    lap_plot_stream = function() lap_plot_stream(comp, gwl_class)
   )
 })
 
@@ -39,7 +43,7 @@ is_lap_scale <- function(s) {
     return(TRUE)
   }
   any(c("fill", "colour") %in% aes) &&
-    (inherits(s, "ScaleBinned") || inherits(s, "ScaleContinuous"))
+    (inherits(s, "ScaleBinned") || inherits(s, "ScaleContinuous") || inherits(s, "ScaleDiscrete"))
 }
 
 test_that("every lap_plot_* builder follows the contract", {

@@ -112,6 +112,21 @@ infrastructure for later builders. Framed panels (`panel = "xy" / "ridge" /
 "polar"`) carry a non-zero `plot.margin` — only the edge-to-edge map panel
 wants zero.
 
+### Composition-over-time: classify -> summarise -> plot
+
+`lap_plot_stream()` consumes a documented shape (`x`, `category`, `n`) rather
+than raw rows, the same separation-of-concerns as `lap_aggregate_to_hex()`
+feeding `lap_plot_hex_map()`: a specific per-well classifier
+(`lap_add_quantile_class()`, the German "Grundwasserstandsklassen" percentile
+bands, `R/quantile-class.R`) produces row-level categorical data; a generic
+summariser (`lap_summarise_composition()`, `R/composition.R` - any category +
+date column, not gwl-class-specific) turns it into a share-per-time-bucket
+table; the builder only draws. `ggstream` (the obvious CRAN package for this)
+was archived 2025-11-07, so the "proportional" stream is hand-rolled with
+`ggplot2::geom_area(position = position_fill(reverse = TRUE))` - a 100%-stacked
+area *is* what `type = "proportional"` drew - rather than take on an
+unmaintained dependency. No `DESCRIPTION` change.
+
 ## Consequences
 
 - Every builder is testable at three levels: cheap assertions (run everywhere),
