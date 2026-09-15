@@ -66,6 +66,36 @@ strings, or tidyselect helpers).
   - [`lap_plot_change_scatter()`](https://mxnl.github.io/lapidary/reference/lap_plot_change_scatter.md)
     — a well’s starting value against its change, with a zero line and
     an `lm` fit, to see whether the change is level-dependent.
+- Composition-over-time:
+  [`lap_add_quantile_class()`](https://mxnl.github.io/lapidary/reference/lap_add_quantile_class.md)
+  tags every row with which percentile band of *that well’s own*
+  distribution it falls into (5th, 10th, 25th, 75th, 90th, 95th splits
+  by default - the German hydrological-service
+  “Grundwasserstandsklassen” used in weekly LfU / BGR / HLNUG
+  bulletins); `reference = c(start_year, end_year)` fixes the
+  breakpoints to a window while still classifying every row, like a
+  climate normal.
+  [`lap_summarise_composition()`](https://mxnl.github.io/lapidary/reference/lap_summarise_composition.md)
+  turns any row-level categorical + date column into a
+  share-of-wells-per-time-bucket table (`"week"` / `"month"` / `"year"`,
+  deduplicated so a well counts once per bucket regardless of input
+  resolution) - generic, not gwl-class-specific.
+  [`lap_plot_stream()`](https://mxnl.github.io/lapidary/reference/lap_plot_stream.md)
+  draws it as a 100%-stacked area chart (`role = "anomaly"` by default,
+  `direction = -1` so the low end reads as the warm/dry colour and the
+  high end as the cool/wet one - the hydrological drought-index
+  convention). `curve = TRUE` (default) spline-interpolates each band
+  onto a finer grid so the stream’s edges are a smooth curve rather than
+  the straight segments a plain stacked area draws between buckets;
+  `smooth =` additionally dampens real bucket-to-bucket noise with a
+  rolling mean before that. `border_colour = NA` by default (no seam
+  between bands); set it to draw one. The fill legend defaults to
+  `guide_legend(reverse = TRUE)` so it reads low-to-high bottom-to-top
+  too, matching the stack. No new dependency: `ggstream` (the obvious
+  choice) was archived from CRAN, so this is plain
+  `ggplot2::geom_area(position = "fill")` plus
+  [`stats::spline()`](https://rdrr.io/r/stats/splinefun.html) under the
+  hood.
 - Every builder appends a localised “how to read this chart” explainer
   to `plot.caption` (`annotate = "caption"` default; `"callout"` /`NA` /
   a string; `options(lapidary.annotate = )`).

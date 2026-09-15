@@ -125,6 +125,10 @@ Parquet-artifact / DuckDB-engine backend and the dataset readers.
   : Keep only wells with enough temporal coverage
 - [`lap_normalise_gwl()`](https://mxnl.github.io/lapidary/reference/lap_normalise_gwl.md)
   : Normalise groundwater levels for cross-region comparison
+- [`lap_add_quantile_class()`](https://mxnl.github.io/lapidary/reference/lap_add_quantile_class.md)
+  : Classify groundwater levels into per-well percentile bands
+- [`lap_summarise_composition()`](https://mxnl.github.io/lapidary/reference/lap_summarise_composition.md)
+  : Share of wells in each category, per time bucket
 - [`lap_gw_trend()`](https://mxnl.github.io/lapidary/reference/lap_gw_trend.md)
   : Non-parametric trend of groundwater time series
 - [`lap_circular_mean_month()`](https://mxnl.github.io/lapidary/reference/lap_circular_mean_month.md)
@@ -208,6 +212,8 @@ patchwork), themed and annotated, ready to compose.
   : lapidary map builders
 - [`lap_plot_period_ridges()`](https://mxnl.github.io/lapidary/reference/lap_plot_period_ridges.md)
   : Stacked period distributions (ridgelines)
+- [`lap_plot_stream()`](https://mxnl.github.io/lapidary/reference/lap_plot_stream.md)
+  : Proportional streamgraph of a composition over time
 - [`lap_attach_margin()`](https://mxnl.github.io/lapidary/reference/lap_attach_margin.md)
   : Attach a marginal distribution to a plot
 - [`lap_annotate_howto()`](https://mxnl.github.io/lapidary/reference/lap_annotate_howto.md)

@@ -19,6 +19,7 @@
 <url><loc>https://mxnl.github.io/lapidary/reference/index.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_accents.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_add_indicators.html</loc></url>
+<url><loc>https://mxnl.github.io/lapidary/reference/lap_add_quantile_class.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_add_reference_period.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_aggregate_to_hex.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_annotate_howto.html</loc></url>
@@ -82,6 +83,7 @@
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_plot_indicator_scatter.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_plot_map.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_plot_period_ridges.html</loc></url>
+<url><loc>https://mxnl.github.io/lapidary/reference/lap_plot_stream.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_preset.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_preset_names.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_prettify_label.html</loc></url>
@@ -91,6 +93,7 @@
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_read_gems_ger_wells.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_read_gwl.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_reference_periods.html</loc></url>
+<url><loc>https://mxnl.github.io/lapidary/reference/lap_summarise_composition.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_summarise_wells.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_tokens.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_tr.html</loc></url>
