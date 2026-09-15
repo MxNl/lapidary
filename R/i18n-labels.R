@@ -185,5 +185,15 @@ lap_labels <- list(
       "Spalte summiert sich immer zu 100 %. Ein breiter werdendes Band hei\u00dft,",
       "mehr Messstellen befanden sich in diesem Zustand."
     )
+  ),
+  howto_calendar = list(
+    en = paste(
+      "Each tile is one month, coloured by its value for that month.",
+      "Reading down follows time, earliest year at the top."
+    ),
+    de = paste(
+      "Jede Kachel ist ein Monat, eingef\u00e4rbt nach ihrem Wert in diesem Monat.",
+      "Von oben nach unten verl\u00e4uft die Zeit, das fr\u00fcheste Jahr steht oben."
+    )
   )
 )

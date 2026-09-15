@@ -61,6 +61,8 @@ reference:
   - lap_normalise_gwl
   - lap_add_quantile_class
   - lap_summarise_composition
+  - lap_add_record_flags
+  - lap_summarise_calendar
   - lap_gw_trend
   - lap_circular_mean_month
 

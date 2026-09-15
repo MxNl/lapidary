@@ -36,3 +36,44 @@ test_that("wrong data shape errors", {
     "date|column"
   )
 })
+
+# --- lap_summarise_calendar --------------------------------------------
+
+test_that("lap_summarise_calendar sums event columns into a long year x unit table", {
+  df <- data.frame(
+    date = as.Date("2020-01-01") + (0:59) * 7,
+    is_new_min = rep(c(TRUE, FALSE, FALSE, FALSE), length.out = 60),
+    is_new_max = rep(c(FALSE, FALSE, TRUE, FALSE), length.out = 60)
+  )
+  cal <- lap_summarise_calendar(df, is_new_min, is_new_max)
+  expect_setequal(names(cal), c("year", "unit", "name", "n"))
+  expect_setequal(cal$name, c("new_min", "new_max")) # "is_" prefix stripped
+  expect_true(all(cal$n >= 0))
+  expect_equal(sum(cal$n[cal$name == "new_min"]), sum(df$is_new_min))
+  expect_equal(sum(cal$n[cal$name == "new_max"]), sum(df$is_new_max))
+})
+
+test_that("a bucket with data but no event still gets a real n = 0", {
+  df <- data.frame(
+    date = as.Date(c("2020-01-01", "2020-01-08")),
+    is_new_min = c(FALSE, FALSE)
+  )
+  cal <- lap_summarise_calendar(df, is_new_min)
+  expect_equal(nrow(cal), 1L) # both weeks fall in Jan 2020 -> one bucket
+  expect_equal(cal$n, 0L)
+})
+
+test_that("period = 'week' pairs ISO week with its ISO week-year", {
+  # 2021-01-01 is a Friday in ISO week 53 of 2020
+  df <- data.frame(date = as.Date("2021-01-01"), is_new_min = TRUE)
+  cal <- lap_summarise_calendar(df, is_new_min, period = "week")
+  expect_equal(cal$year, 2020)
+  expect_equal(cal$unit, 53)
+})
+
+test_that("lap_summarise_calendar requires at least one column to sum", {
+  expect_error(
+    lap_summarise_calendar(data.frame(date = Sys.Date())),
+    "at least one column"
+  )
+})

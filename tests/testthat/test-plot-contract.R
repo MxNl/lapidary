@@ -16,6 +16,9 @@ builder_inputs <- local({
   comp <- lap_summarise_composition(
     lap_add_quantile_class(gems_ger_sample[1:1000, ]), gwl_class
   )
+  cal <- lap_summarise_calendar(
+    lap_add_record_flags(gems_ger_sample[1:1000, ]), is_new_min, is_new_max
+  )
   list(
     lap_plot_hex_map = function() lap_plot_hex_map(germany_hex_sample, mean_gwl),
     lap_plot_point_map = function() {
@@ -28,7 +31,8 @@ builder_inputs <- local({
     lap_plot_delta_map = function() lap_plot_delta_map(hex_dl, ind_amplitude),
     lap_plot_period_ridges = function() lap_plot_period_ridges(chg, ind_amplitude),
     lap_plot_change_scatter = function() lap_plot_change_scatter(dl, ind_amplitude),
-    lap_plot_stream = function() lap_plot_stream(comp, gwl_class)
+    lap_plot_stream = function() lap_plot_stream(comp, gwl_class),
+    lap_plot_calendar = function() lap_plot_calendar(cal, n, facet = name)
   )
 })
 

@@ -66,6 +66,33 @@ tidyselect helpers).
   dependency: `ggstream` (the obvious choice) was archived from CRAN, so this
   is plain `ggplot2::geom_area(position = "fill")` plus `stats::spline()`
   under the hood.
+* Record-events calendar: `lap_add_record_flags()` tags, for each well, the
+  one timestep of a calendar *year* that is its annual min/max - but only
+  when that annual extreme itself is a new all-time record, beating every
+  prior year's (so a well sets at most one new-low and one new-high record
+  per year, possibly both, possibly neither; ties don't count, the first year
+  never does). It does not correct for a growing well network or
+  short-history wells looking record-prone in their own early years - feed it
+  a stable well panel if that matters for your comparison. It also adds
+  `record_balance` (`is_new_max - is_new_min`, `+1`/`-1`/`0`), so summing that
+  one column in [lap_summarise_calendar()] gives the *net* balance of highs
+  vs lows per bucket directly (summation is linear - identical to summing the
+  two flags separately and subtracting).
+  `lap_summarise_calendar()` sums any event columns (e.g. `record_balance`, or
+  `is_new_min` / `is_new_max` kept separate) into a `year | unit | name | n`
+  table by month or ISO week.
+  `lap_plot_calendar()` draws a year x month/week tile heatmap from it - one
+  divergent panel from `record_balance` (`role = "anomaly", direction = -1,
+  midpoint = 0, binned = FALSE`; more new lows reads warm, more new highs
+  reads cool, the same dry/wet convention as the stream builder) is the
+  recommended way to see both series at once, or `facet =` stacks separate
+  sequential panels (e.g. new-low counts above new-high counts) if you want
+  each series' own magnitude instead. Month labels are automatic via
+  `months_short`. `binned = FALSE` matters for a divergent scale: the
+  package's binned-by-default scale picks its breaks from the data range
+  with no awareness of `midpoint`, so a bucket worth exactly `0` can land on
+  a bin edge and inherit that bin's (non-neutral) colour; the smooth path
+  doesn't have that ambiguity.
 * Every builder appends a localised "how to read this chart" explainer to
   `plot.caption` (`annotate = "caption"` default; `"callout"` /`NA` / a string;
   `options(lapidary.annotate = )`). `lap_howto()` / `lap_annotate_howto()`.

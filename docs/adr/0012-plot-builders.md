@@ -127,6 +127,21 @@ was archived 2025-11-07, so the "proportional" stream is hand-rolled with
 area *is* what `type = "proportional"` drew - rather than take on an
 unmaintained dependency. No `DESCRIPTION` change.
 
+### Record-events calendar: the same classify -> summarise -> plot split
+
+`lap_plot_calendar()` realises the taxonomy's generic "calendar heatmap (year
+x week/month), for a well or an aggregate" via a specific use case: counting
+new all-time low/high records. `lap_add_record_flags()` (`R/records.R`) is
+the per-well classifier (a running extreme, row-preserving, deliberately
+*not* corrected for network-growth or short-history confounds - that's the
+caller's job, by feeding a stable well panel); `lap_summarise_calendar()`
+(added to `R/composition.R`, a second generic time-bucket summariser
+alongside `lap_summarise_composition()`) sums arbitrary event columns into a
+`year | unit | name | n` table; `lap_plot_calendar()` draws it as one or more
+(`facet =`) tile grids on one shared scale. A future single-well raw-series
+calendar feeds the same builder from its own small aggregation - no changes
+to `lap_plot_calendar()` needed.
+
 ## Consequences
 
 - Every builder is testable at three levels: cheap assertions (run everywhere),
