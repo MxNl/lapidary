@@ -23,7 +23,7 @@ lap_plot_distribution(
   rug = FALSE,
   variant = lap_variant(),
   lang = NULL,
-  annotate = getOption("lapidary.annotate", "caption"),
+  annotate = getOption("lapidary.annotate", NA),
   base_size = NULL,
   preset = NULL,
   title = NULL,

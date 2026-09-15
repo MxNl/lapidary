@@ -25,7 +25,7 @@ lap_plot_hex_map(
   margin_side = c("bottom", "right"),
   variant = lap_variant(),
   lang = NULL,
-  annotate = getOption("lapidary.annotate", "caption"),
+  annotate = getOption("lapidary.annotate", NA),
   base_size = NULL,
   preset = NULL,
   title = NULL,
@@ -45,7 +45,7 @@ lap_plot_point_map(
   basemap = TRUE,
   variant = lap_variant(),
   lang = NULL,
-  annotate = getOption("lapidary.annotate", "caption"),
+  annotate = getOption("lapidary.annotate", NA),
   base_size = NULL,
   preset = NULL,
   title = NULL,
@@ -118,9 +118,11 @@ lap_plot_point_map(
 
 - annotate:
 
-  How-to-read explainer: `"caption"` (default), `"callout"`, `NA` to
+  How-to-read explainer: `"caption"`, `"callout"`, `NA` (default) to
   suppress, or a literal string. Default
-  `getOption("lapidary.annotate", "caption")`.
+  `getOption("lapidary.annotate", NA)` - opt in per call with
+  `annotate = "caption"`, or package-wide with
+  `options(lapidary.annotate = "caption")`.
 
 - base_size, preset:
 
@@ -162,9 +164,9 @@ when `lap_plot_hex_map(margin = )` is set.
 Both return a bare
 [ggplot2::ggplot](https://ggplot2.tidyverse.org/reference/ggplot.html);
 both end with
-[`theme_lapidary()`](https://mxnl.github.io/lapidary/reference/theme_lapidary.md),
-a single `scale_*_lapidary_c()` and a how-to-read `plot.caption` (see
-`annotate`).
+[`theme_lapidary()`](https://mxnl.github.io/lapidary/reference/theme_lapidary.md)
+and a single `scale_*_lapidary_c()`. An optional how-to-read
+`plot.caption` is available (off by default - see `annotate`).
 
 ## See also
 

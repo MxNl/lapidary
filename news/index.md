@@ -96,12 +96,91 @@ strings, or tidyselect helpers).
   `ggplot2::geom_area(position = "fill")` plus
   [`stats::spline()`](https://rdrr.io/r/stats/splinefun.html) under the
   hood.
-- Every builder appends a localised “how to read this chart” explainer
-  to `plot.caption` (`annotate = "caption"` default; `"callout"` /`NA` /
-  a string; `options(lapidary.annotate = )`).
+- Record-events calendar:
+  [`lap_add_record_flags()`](https://mxnl.github.io/lapidary/reference/lap_add_record_flags.md)
+  tags, for each well, the one timestep of a calendar *year* that is its
+  annual min/max - but only when that annual extreme itself is a new
+  all-time record, beating every prior year’s (so a well sets at most
+  one new-low and one new-high record per year, possibly both, possibly
+  neither; ties don’t count). A well’s *first* year is not evaluated for
+  records at all - there is no real prior year to compare against, so
+  its `is_new_min` / `is_new_max` / `record_balance` are `NA` for that
+  year (not `FALSE`/`0`, which would look identical to a genuine
+  non-record year), and \[lap_summarise_calendar()\] excludes rather
+  than zero-fills `NA` contributions - a bucket where every contributing
+  row is `NA` (e.g. a well’s first year) produces no row at all, so a
+  well’s first year draws no tile in \[lap_plot_calendar()\] instead of
+  a misleading blank/neutral one. (Columns from the same
+  \[lap_summarise_calendar()\] call can drop independently per bucket.)
+  It does not correct for a growing well network or short-history wells
+  looking record-prone in their own early years - feed it a stable well
+  panel if that matters for your comparison. It also adds
+  `record_balance` (`is_new_max - is_new_min`, `+1`/`-1`/`0`/`NA`), so
+  summing that one column in \[lap_summarise_calendar()\] gives the
+  *net* balance of highs vs lows per bucket directly (summation is
+  linear - identical to summing the two flags separately and
+  subtracting).
+  [`lap_summarise_calendar()`](https://mxnl.github.io/lapidary/reference/lap_summarise_calendar.md)
+  sums any event columns (e.g. `record_balance`, or `is_new_min` /
+  `is_new_max` kept separate) into a `year | unit | name | n` table by
+  month or ISO week.
+  [`lap_plot_calendar()`](https://mxnl.github.io/lapidary/reference/lap_plot_calendar.md)
+  draws a year x month/week tile heatmap from it - one divergent panel
+  from `record_balance`
+  (`role = "anomaly", direction = -1, midpoint = 0`; more new lows reads
+  warm, more new highs reads cool, the same dry/wet convention as the
+  stream builder) is the recommended way to see both series at once, or
+  `facet =` stacks separate sequential panels (e.g. new-low counts above
+  new-high counts) if you want each series’ own magnitude instead. Month
+  labels are automatic via `months_short`. Setting `midpoint` swaps in a
+  bespoke, always-smooth scale built from the *full* `role` palette (255
+  scico stops, not just its two end colours - the richer, perceptually
+  non-linear colour path scico is chosen for) with only the exact centre
+  stop forced to the variant’s own background colour - genuinely
+  neutral, not just the palette’s native (and not necessarily neutral)
+  centre - and paired with the matching
+  [`lap_colourbar_guide()`](https://mxnl.github.io/lapidary/reference/lap_colourbar_guide.md)
+  (a tall/narrow smooth-scale analogue of
+  [`lap_coloursteps_guide()`](https://mxnl.github.io/lapidary/reference/lap_coloursteps_guide.md))
+  instead of the package’s usual binned scale: binning picks its breaks
+  from the data range with no awareness of `midpoint`, so a bucket worth
+  exactly `0` could land on a bin edge and inherit that bin’s
+  (non-neutral) colour, an ambiguity the smooth path doesn’t have. A new
+  `robust` argument (as on the other scale-backed builders) squishes
+  values beyond a data-aware quantile threshold onto the same end
+  colour, so a few extreme buckets don’t wash out the variation in the
+  rest of the grid. `low_label` / `high_label` weave a “what does a
+  high/low value mean” explanation into the automatic explanatory text,
+  e.g. `low_label = "more new lows", high_label = "more new highs"` -
+  with a generic “a low/high value” fallback when they’re not supplied.
+  Unlike every other `lap_plot_*()` builder, this explanatory text goes
+  in the plot **subtitle**, not the caption - it reads better directly
+  above the panel (a deliberate, builder-local deviation, not a change
+  to the shared `annotate` contract; `annotate = "callout"` still places
+  the same content in an on-panel box instead, and a fully custom
+  `annotate = "..."` string also now goes to the subtitle for this
+  builder specifically). The text itself leads with what the coloured
+  value actually is (bolded via markdown, e.g. “Colour shows **N** for
+  each time bucket…”) rather than the tile mechanics, and a divergent
+  scale’s explanation now names the actual rendered colours (“Red tiles
+  mean…; blue tiles mean…”, each coloured to match via inline markdown
+  spans) instead of talking about the “midpoint”. Month/week labels are
+  drawn at the top of the panel instead of the bottom. Fixed a bug along
+  the way: `annotate = FALSE` previously still leaked the
+  `low_label`/`high_label` sentence into the caption regardless - it’s
+  now correctly suppressed like every other how-to text.
+- Every builder can append a localised “how to read this chart”
+  explainer to `plot.caption` (`"caption"`; `"callout"` places an
+  on-panel box instead; a literal string overrides the text) via
+  `annotate` - **off by default** (`NA`; opt in per call with
+  `annotate = "caption"`, or package-wide with
+  `options(lapidary.annotate = "caption")`).
   [`lap_howto()`](https://mxnl.github.io/lapidary/reference/lap_howto.md)
   /
   [`lap_annotate_howto()`](https://mxnl.github.io/lapidary/reference/lap_annotate_howto.md).
+  (Defaulted *on* through milestone 2’s development; switched to off by
+  default once poster work showed the auto-generated text reads better
+  added in post-production than baked into every render.)
 - [`lap_variant()`](https://mxnl.github.io/lapidary/reference/lap_variant.md)
   — light/dark resolver mirroring
   [`lap_lang()`](https://mxnl.github.io/lapidary/reference/lap_lang.md)

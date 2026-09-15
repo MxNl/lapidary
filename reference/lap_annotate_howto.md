@@ -3,9 +3,9 @@
 Places a short explainer either in `plot.caption` (default) or as an
 on-panel corner box. The
 [lap_plot_map](https://mxnl.github.io/lapidary/reference/lap_plot_map.md)
-builders call this for their default `annotate = "caption"`; call it
-directly to override placement or add an explainer to a plot the
-builders did not make.
+builders call this when their `annotate` argument opts in (`"caption"`
+or `"callout"` - `NA` by default); call it directly to override
+placement or add an explainer to a plot the builders did not make.
 
 ## Usage
 

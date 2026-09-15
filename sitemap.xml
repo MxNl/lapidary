@@ -20,6 +20,7 @@
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_accents.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_add_indicators.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_add_quantile_class.html</loc></url>
+<url><loc>https://mxnl.github.io/lapidary/reference/lap_add_record_flags.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_add_reference_period.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_aggregate_to_hex.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_annotate_howto.html</loc></url>
@@ -28,6 +29,7 @@
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_cache_info.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_cache_source_dir.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_circular_mean_month.html</loc></url>
+<url><loc>https://mxnl.github.io/lapidary/reference/lap_colourbar_guide.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_coloursteps_guide.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_correctiv_build_parquet.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_correctiv_download.html</loc></url>
@@ -77,6 +79,7 @@
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_pal_roles.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_parquet_dir.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_period_windows.html</loc></url>
+<url><loc>https://mxnl.github.io/lapidary/reference/lap_plot_calendar.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_plot_change_scatter.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_plot_delta_map.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_plot_distribution.html</loc></url>
@@ -93,6 +96,7 @@
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_read_gems_ger_wells.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_read_gwl.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_reference_periods.html</loc></url>
+<url><loc>https://mxnl.github.io/lapidary/reference/lap_summarise_calendar.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_summarise_composition.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_summarise_wells.html</loc></url>
 <url><loc>https://mxnl.github.io/lapidary/reference/lap_tokens.html</loc></url>

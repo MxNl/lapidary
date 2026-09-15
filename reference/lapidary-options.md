@@ -26,8 +26,8 @@ option-only.
 - `lapidary.annotate`:
 
   Default for the `annotate` argument of the plot builders: `"caption"`
-  (a how-to-read explainer in `plot.caption`), `"callout"`, or `NA` to
-  suppress. Option-only.
+  (a how-to-read explainer in `plot.caption`), `"callout"`, or `NA` (the
+  builders' own default) to suppress it. Option-only.
 
 - `lapidary.scale_range`:
 

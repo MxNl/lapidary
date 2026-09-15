@@ -129,6 +129,10 @@ Parquet-artifact / DuckDB-engine backend and the dataset readers.
   : Classify groundwater levels into per-well percentile bands
 - [`lap_summarise_composition()`](https://mxnl.github.io/lapidary/reference/lap_summarise_composition.md)
   : Share of wells in each category, per time bucket
+- [`lap_add_record_flags()`](https://mxnl.github.io/lapidary/reference/lap_add_record_flags.md)
+  : Flag new all-time annual low / high records
+- [`lap_summarise_calendar()`](https://mxnl.github.io/lapidary/reference/lap_summarise_calendar.md)
+  : Sum event columns into a year x month/week calendar grid
 - [`lap_gw_trend()`](https://mxnl.github.io/lapidary/reference/lap_gw_trend.md)
   : Non-parametric trend of groundwater time series
 - [`lap_circular_mean_month()`](https://mxnl.github.io/lapidary/reference/lap_circular_mean_month.md)
@@ -199,6 +203,8 @@ for the long-form guide.
 Reusable ggplot2 chart builders. Each returns a bare ggplot (or
 patchwork), themed and annotated, ready to compose.
 
+- [`lap_plot_calendar()`](https://mxnl.github.io/lapidary/reference/lap_plot_calendar.md)
+  : Calendar heatmap
 - [`lap_plot_change_scatter()`](https://mxnl.github.io/lapidary/reference/lap_plot_change_scatter.md)
   : Starting value against its change
 - [`lap_plot_delta_map()`](https://mxnl.github.io/lapidary/reference/lap_plot_delta_map.md)
@@ -234,6 +240,8 @@ patchwork), themed and annotated, ready to compose.
   : lapidary continuous fill / colour scales
 - [`lap_coloursteps_guide()`](https://mxnl.github.io/lapidary/reference/lap_coloursteps_guide.md)
   : A long, thin colour-steps legend guide
+- [`lap_colourbar_guide()`](https://mxnl.github.io/lapidary/reference/lap_colourbar_guide.md)
+  : A long, thin smooth colour-bar legend guide
 - [`lap_na_guide()`](https://mxnl.github.io/lapidary/reference/lap_na_guide.md)
   : Add a "no data" key for NA regions
 - [`lap_prettify_label()`](https://mxnl.github.io/lapidary/reference/lap_prettify_label.md)
