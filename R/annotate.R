@@ -3,9 +3,10 @@
 #' Add a "how to read this chart" explainer to a plot
 #'
 #' Places a short explainer either in `plot.caption` (default) or as an
-#' on-panel corner box. The [lap_plot_map] builders call this for their default
-#' `annotate = "caption"`; call it directly to override placement or add an
-#' explainer to a plot the builders did not make.
+#' on-panel corner box. The [lap_plot_map] builders call this when their
+#' `annotate` argument opts in (`"caption"` or `"callout"` - `NA` by default);
+#' call it directly to override placement or add an explainer to a plot the
+#' builders did not make.
 #'
 #' @param plot A ggplot object.
 #' @param key Builder name without the `lap_plot_` prefix (e.g. `"hex_map"`),

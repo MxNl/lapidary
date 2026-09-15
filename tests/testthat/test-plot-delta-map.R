@@ -10,7 +10,7 @@ dl <- lap_indicator_delta(chg, "reference", "recent")
 hex_dl <- lap_aggregate_to_hex(gems_ger_wells_sample, dl)
 
 test_that("display = 'change' is a divergent choropleth of the _change column", {
-  p <- lap_plot_delta_map(hex_dl, ind_amplitude)
+  p <- lap_plot_delta_map(hex_dl, ind_amplitude, annotate = "caption")
   expect_s3_class(p, "ggplot")
   expect_no_error(ggplot_build(p))
 

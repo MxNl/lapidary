@@ -66,7 +66,7 @@ lap_plot_stream <- function(data, category, x = date, ...,
                             border_colour = NA,
                             role = "anomaly", direction = -1,
                             variant = lap_variant(), lang = NULL,
-                            annotate = getOption("lapidary.annotate", "caption"),
+                            annotate = getOption("lapidary.annotate", NA),
                             base_size = NULL, preset = NULL,
                             title = NULL, subtitle = NULL, caption = NULL) {
   rlang::check_installed("ggplot2", "for `lap_plot_stream()`")

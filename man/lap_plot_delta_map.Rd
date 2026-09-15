@@ -22,7 +22,7 @@ lap_plot_delta_map(
   margin_side = c("bottom", "right"),
   variant = lap_variant(),
   lang = NULL,
-  annotate = getOption("lapidary.annotate", "caption"),
+  annotate = getOption("lapidary.annotate", NA),
   base_size = NULL,
   preset = NULL,
   title = NULL,

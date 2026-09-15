@@ -9,7 +9,7 @@ comp <- local({
 })
 
 test_that("lap_plot_stream builds a 100%-stacked area with one lapidary scale", {
-  p <- lap_plot_stream(comp, gwl_class)
+  p <- lap_plot_stream(comp, gwl_class, annotate = "caption")
   expect_s3_class(p, "ggplot")
   expect_no_error(ggplot_build(p))
 

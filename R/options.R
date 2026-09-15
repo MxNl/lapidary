@@ -14,7 +14,8 @@
 #'     Defaults to `"light"`.}
 #'   \item{`lapidary.annotate`}{Default for the `annotate` argument of the plot
 #'     builders: `"caption"` (a how-to-read explainer in `plot.caption`),
-#'     `"callout"`, or `NA` to suppress. Option-only.}
+#'     `"callout"`, or `NA` (the builders' own default) to suppress it.
+#'     Option-only.}
 #'   \item{`lapidary.scale_range`}{Logical, default `FALSE`. When `TRUE` the
 #'     continuous `scale_*_lapidary_c()` scales append a mapped `ind_*` column's
 #'     theoretical range to the legend title (same as `range = TRUE`).}

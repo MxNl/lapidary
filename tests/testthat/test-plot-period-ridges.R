@@ -10,7 +10,7 @@ chg <- lap_indicator_change(gems_ger_sample, "amplitude", periods = periods)
 
 test_that("lap_plot_period_ridges draws a gradient ridge per period, earliest on top", {
   skip_if_not_installed("ggridges")
-  p <- lap_plot_period_ridges(chg, ind_amplitude)
+  p <- lap_plot_period_ridges(chg, ind_amplitude, annotate = "caption")
   expect_s3_class(p, "ggplot")
   expect_no_error(ggplot_build(p))
 

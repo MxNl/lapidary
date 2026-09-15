@@ -61,6 +61,8 @@ reference:
   - lap_normalise_gwl
   - lap_add_quantile_class
   - lap_summarise_composition
+  - lap_add_record_flags
+  - lap_summarise_calendar
   - lap_gw_trend
   - lap_circular_mean_month
 
@@ -97,6 +99,7 @@ reference:
   - theme_lapidary
   - starts_with("scale_")
   - lap_coloursteps_guide
+  - lap_colourbar_guide
   - lap_na_guide
   - lap_prettify_label
   - lap_tokens

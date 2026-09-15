@@ -18,7 +18,7 @@ lap_plot_period_ridges(
   range = getOption("lapidary.scale_range", FALSE),
   variant = lap_variant(),
   lang = NULL,
-  annotate = getOption("lapidary.annotate", "caption"),
+  annotate = getOption("lapidary.annotate", NA),
   base_size = NULL,
   preset = NULL,
   title = NULL,

@@ -14,19 +14,28 @@ test_that("lap_plot_hex_map returns a themed ggplot with one lapidary scale", {
   expect_length(fill_scales, 1L)
   expect_s3_class(fill_scales[[1]], "ScaleBinned")
 
-  # the how-to caption is on by default
-  expect_match(p$labels$caption, "hexagon", ignore.case = TRUE)
+  # the how-to caption is off by default
+  expect_null(p$labels$caption)
   expect_equal(p$labels$fill, "Mean GWL")
 })
 
 test_that("annotate controls the how-to caption", {
   expect_null(lap_plot_hex_map(germany_hex_sample, mean_gwl, annotate = NA)$labels$caption)
+  expect_match(
+    lap_plot_hex_map(germany_hex_sample, mean_gwl, annotate = "caption")$labels$caption,
+    "hexagon",
+    ignore.case = TRUE
+  )
   expect_identical(
     lap_plot_hex_map(germany_hex_sample, mean_gwl, annotate = "custom text")$labels$caption,
     "custom text"
   )
-  withr::local_options(lapidary.annotate = NA)
-  expect_null(lap_plot_hex_map(germany_hex_sample, mean_gwl)$labels$caption)
+  withr::local_options(lapidary.annotate = "caption")
+  expect_match(
+    lap_plot_hex_map(germany_hex_sample, mean_gwl)$labels$caption,
+    "hexagon",
+    ignore.case = TRUE
+  )
 })
 
 test_that("variant swaps the panel background and is honoured from the option", {

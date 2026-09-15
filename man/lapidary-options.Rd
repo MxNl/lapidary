@@ -19,7 +19,8 @@ labels, one of \code{"en"} or \code{"de"}. Defaults to \code{"en"}.}
 Defaults to \code{"light"}.}
 \item{\code{lapidary.annotate}}{Default for the \code{annotate} argument of the plot
 builders: \code{"caption"} (a how-to-read explainer in \code{plot.caption}),
-\code{"callout"}, or \code{NA} to suppress. Option-only.}
+\code{"callout"}, or \code{NA} (the builders' own default) to suppress it.
+Option-only.}
 \item{\code{lapidary.scale_range}}{Logical, default \code{FALSE}. When \code{TRUE} the
 continuous \verb{scale_*_lapidary_c()} scales append a mapped \verb{ind_*} column's
 theoretical range to the legend title (same as \code{range = TRUE}).}

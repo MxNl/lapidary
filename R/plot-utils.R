@@ -61,25 +61,47 @@ check_hex_layer <- function(data, arg = "data", call = rlang::caller_env()) {
   invisible(data)
 }
 
-# `plot.caption` element for the how-to annotation: markdown-aware, wraps to
-# the plot width, muted, left-aligned, in the body font of `tokens`.
-howto_caption_element <- function(tokens) {
+# A markdown-aware, wrapping, muted-body-font text element - the shared
+# mechanism behind both howto_caption_element() and howto_subtitle_element().
+howto_text_element <- function(tokens, size, margin, halign = 0) {
   fam <- resolve_family(tokens$font$body, tokens$font$fallback_body)
   if (requireNamespace("ggtext", quietly = TRUE)) {
     ggtext::element_textbox_simple(
-      family = fam, size = ggplot2::rel(tokens$size$caption),
+      family = fam, size = ggplot2::rel(size),
       colour = tokens$colour$ink_muted, lineheight = 1.3,
-      halign = 0, width = grid::unit(1, "npc"),
-      margin = ggplot2::margin(
-        t = tokens$size$caption * 5, b = tokens$size$caption * 3
-      )
+      halign = halign, width = grid::unit(1, "npc"),
+      margin = margin
     )
   } else {
     ggplot2::element_text(
-      family = fam, size = ggplot2::rel(tokens$size$caption),
-      colour = tokens$colour$ink_muted, hjust = 0
+      family = fam, size = ggplot2::rel(size),
+      colour = tokens$colour$ink_muted, hjust = halign
     )
   }
+}
+
+# `plot.caption` element for the how-to annotation: wraps to the plot width,
+# left-aligned.
+howto_caption_element <- function(tokens) {
+  howto_text_element(
+    tokens, tokens$size$caption,
+    ggplot2::margin(t = tokens$size$caption * 5, b = tokens$size$caption * 3)
+  )
+}
+
+# `plot.subtitle` equivalent, for builders (e.g. lap_plot_calendar()) that
+# place their how-to explanation above the panel instead of below it.
+howto_subtitle_element <- function(tokens) {
+  howto_text_element(
+    tokens, tokens$size$subtitle,
+    ggplot2::margin(t = tokens$size$subtitle, b = tokens$size$subtitle * 3)
+  )
+}
+
+# TRUE unless `annotate` opts out (FALSE / NA) - shared by howto_text() and
+# by builders that assemble their own explanatory text locally.
+annotate_enabled <- function(annotate) {
+  !(length(annotate) != 1L || is.na(annotate) || isFALSE(annotate))
 }
 
 # Resolve `annotate` to the explainer string (or NULL for "no annotation"):
@@ -87,7 +109,7 @@ howto_caption_element <- function(tokens) {
 #   "caption" / "callout" / TRUE -> lap_howto(builder)
 #   any other string -> that string
 howto_text <- function(annotate, builder, lang, variant) {
-  if (length(annotate) != 1L || is.na(annotate) || isFALSE(annotate)) {
+  if (!annotate_enabled(annotate)) {
     return(NULL)
   }
   if (isTRUE(annotate) || annotate %in% c("caption", "callout")) {

@@ -39,9 +39,10 @@ on-panel box).}
 }
 \description{
 Places a short explainer either in \code{plot.caption} (default) or as an
-on-panel corner box. The \link{lap_plot_map} builders call this for their default
-\code{annotate = "caption"}; call it directly to override placement or add an
-explainer to a plot the builders did not make.
+on-panel corner box. The \link{lap_plot_map} builders call this when their
+\code{annotate} argument opts in (\code{"caption"} or \code{"callout"} - \code{NA} by default);
+call it directly to override placement or add an explainer to a plot the
+builders did not make.
 }
 \examples{
 \dontrun{

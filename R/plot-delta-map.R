@@ -54,7 +54,7 @@ lap_plot_delta_map <- function(data, value, ...,
                                margin = c("none", "histogram", "density", "raincloud"),
                                margin_side = c("bottom", "right"),
                                variant = lap_variant(), lang = NULL,
-                               annotate = getOption("lapidary.annotate", "caption"),
+                               annotate = getOption("lapidary.annotate", NA),
                                base_size = NULL, preset = NULL,
                                title = NULL, subtitle = NULL, caption = NULL) {
   rlang::check_installed(c("ggplot2", "sf"), "for `lap_plot_delta_map()`")

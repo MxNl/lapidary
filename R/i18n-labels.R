@@ -5,9 +5,10 @@
 # lap_howto()). Extend this list as builders and captions are added.
 #
 # `howto_<builder>` entries are the "how to read this chart" explainers the
-# plot builders append to `plot.caption` by default (annotate = "caption").
-# They may carry <span style='color:...'> markup, injected by lap_howto()
-# and rendered by ggtext in theme_lapidary().
+# plot builders can append to `plot.caption` (off by default - opt in with
+# annotate = "caption" per call, or options(lapidary.annotate = "caption")
+# package-wide). They may carry <span style='color:...'> markup, injected by
+# lap_howto() and rendered by ggtext in theme_lapidary().
 
 lap_labels <- list(
   # --- app / attribution -------------------------------------------------
@@ -184,6 +185,39 @@ lap_labels <- list(
       "Jedes Band ist der Anteil der Messstellen in einer Kategorie; jede",
       "Spalte summiert sich immer zu 100 %. Ein breiter werdendes Band hei\u00dft,",
       "mehr Messstellen befanden sich in diesem Zustand."
+    )
+  ),
+  howto_calendar = list(
+    en = paste(
+      "Colour shows **{value_label}** for each time bucket (a month or a",
+      "week); earliest year at the top."
+    ),
+    de = paste(
+      "Farbe zeigt **{value_label}** je Zeitabschnitt (Monat oder Woche);",
+      "das fr\u00fcheste Jahr steht oben."
+    )
+  ),
+  howto_calendar_divergent = list(
+    en = paste(
+      "<span style='color:{low_colour}'>Red</span> tiles mean {low_label};",
+      "<span style='color:{high_colour}'>blue</span> tiles mean {high_label}."
+    ),
+    de = paste(
+      "<span style='color:{low_colour}'>Rote</span> Kacheln bedeuten",
+      "{low_label}; <span style='color:{high_colour}'>blaue</span>",
+      "bedeuten {high_label}."
+    )
+  ),
+  calendar_low_generic = list(en = "a low value", de = "einen niedrigen Wert"),
+  calendar_high_generic = list(en = "a high value", de = "einen hohen Wert"),
+  howto_calendar_squished = list(
+    en = paste(
+      "The **most extreme** values share one colour, so smaller",
+      "differences stay visible in the rest of the grid."
+    ),
+    de = paste(
+      "Die **extremsten** Werte teilen sich eine Farbe, damit kleinere",
+      "Unterschiede im \u00fcbrigen Raster sichtbar bleiben."
     )
   )
 )
