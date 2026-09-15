@@ -11,9 +11,9 @@
 #'   passed it dispatches to `lap_plot_point_map()`.
 #' * `lap_plot_point_map()` - one coloured mark per monitoring well.
 #'
-#' Both return a bare [ggplot2::ggplot]; both end with [theme_lapidary()], a
-#' single `scale_*_lapidary_c()` and a how-to-read `plot.caption` (see
-#' `annotate`).
+#' Both return a bare [ggplot2::ggplot]; both end with [theme_lapidary()] and
+#' a single `scale_*_lapidary_c()`. An optional how-to-read `plot.caption` is
+#' available (off by default - see `annotate`).
 #'
 #' @param data For `lap_plot_hex_map()` an `sf` polygon layer (a hex grid); for
 #'   `lap_plot_point_map()` an `sf` POINT layer with the value column.
@@ -40,9 +40,11 @@
 #' @param border_colour (`hex_map`) Hex border colour; default the background.
 #' @param variant `"light"` / `"dark"`; defaults to [lap_variant()].
 #' @param lang Language code; defaults to [lap_lang()].
-#' @param annotate How-to-read explainer: `"caption"` (default), `"callout"`,
-#'   `NA` to suppress, or a literal string. Default
-#'   `getOption("lapidary.annotate", "caption")`.
+#' @param annotate How-to-read explainer: `"caption"`, `"callout"`, `NA`
+#'   (default) to suppress, or a literal string. Default
+#'   `getOption("lapidary.annotate", NA)` - opt in per call with
+#'   `annotate = "caption"`, or package-wide with
+#'   `options(lapidary.annotate = "caption")`.
 #' @param base_size,preset Base font size, or a [lap_preset_names()] value that
 #'   supplies it (e.g. `preset = "a1"` for poster-size text).
 #' @param title,subtitle,caption Plot labels; `NULL` leaves them unset.
@@ -71,7 +73,7 @@ lap_plot_hex_map <- function(data, value, ...,
                              margin = c("none", "histogram", "density", "raincloud"),
                              margin_side = c("bottom", "right"),
                              variant = lap_variant(), lang = NULL,
-                             annotate = getOption("lapidary.annotate", "caption"),
+                             annotate = getOption("lapidary.annotate", NA),
                              base_size = NULL, preset = NULL,
                              title = NULL, subtitle = NULL, caption = NULL) {
   rlang::check_installed(c("ggplot2", "sf"), "for `lap_plot_hex_map()`")
@@ -173,7 +175,7 @@ lap_plot_point_map <- function(data, value, ...,
                                range = getOption("lapidary.scale_range", FALSE),
                                basemap = TRUE,
                                variant = lap_variant(), lang = NULL,
-                               annotate = getOption("lapidary.annotate", "caption"),
+                               annotate = getOption("lapidary.annotate", NA),
                                base_size = NULL, preset = NULL,
                                title = NULL, subtitle = NULL, caption = NULL) {
   rlang::check_installed(c("ggplot2", "sf"), "for `lap_plot_point_map()`")

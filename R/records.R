@@ -10,7 +10,16 @@
 #' Aggregate the flags across wells (see [lap_summarise_calendar()]) to see
 #' whether record-setting years cluster in particular periods.
 #'
-#' A well's first year is never a record (there is no prior year to beat).
+#' A well's first year is not evaluated for records at all: there is no real
+#' prior year to compare against, so flagging its own annual min/max would
+#' either look like a genuine record (misleading) or, left `FALSE`, look
+#' identical to a genuine non-record year (also misleading - indistinguishable
+#' from "no baseline yet"). Its `into_min` / `into_max` / `into_balance` are
+#' `NA` instead for every row of that year, and [lap_summarise_calendar()]
+#' excludes (does not zero-fill) `NA` contributions - so a well's first year
+#' produces no tile at all in a [lap_plot_calendar()] grid, rather than a
+#' misleading blank/neutral one. The first year's own min/max still silently
+#' seed the running record that its second year is compared against.
 #' Ties are not records - a year's annual extreme equal to the running record
 #' neither sets nor breaks it, mirroring the usual "record broken" vs "record
 #' tied" distinction. If a year's own annual extreme is tied across more than
@@ -89,7 +98,14 @@ lap_add_record_flags <- function(x,
       rows <- which(y == this_year & ok) # chronologically ordered already
       year_min <- min(z[rows])
       year_max <- max(z[rows])
-      if (!is.na(running_min)) {
+      if (is.na(running_min)) {
+        # first year for this well: nothing prior to compare against - not a
+        # real record either way, and leaving it FALSE would look identical
+        # to a genuine non-record year, so mark it NA instead (see
+        # lap_summarise_calendar(), which excludes rather than zero-fills NA)
+        min_flag[rows] <- NA
+        max_flag[rows] <- NA
+      } else {
         if (year_min < running_min) min_flag[rows[which.min(z[rows])]] <- TRUE
         if (year_max > running_max) max_flag[rows[which.max(z[rows])]] <- TRUE
       }

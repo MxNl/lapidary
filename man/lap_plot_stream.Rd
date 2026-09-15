@@ -17,7 +17,7 @@ lap_plot_stream(
   direction = -1,
   variant = lap_variant(),
   lang = NULL,
-  annotate = getOption("lapidary.annotate", "caption"),
+  annotate = getOption("lapidary.annotate", NA),
   base_size = NULL,
   preset = NULL,
   title = NULL,

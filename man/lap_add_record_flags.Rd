@@ -50,7 +50,16 @@ Aggregate the flags across wells (see \code{\link[=lap_summarise_calendar]{lap_s
 whether record-setting years cluster in particular periods.
 }
 \details{
-A well's first year is never a record (there is no prior year to beat).
+A well's first year is not evaluated for records at all: there is no real
+prior year to compare against, so flagging its own annual min/max would
+either look like a genuine record (misleading) or, left \code{FALSE}, look
+identical to a genuine non-record year (also misleading - indistinguishable
+from "no baseline yet"). Its \code{into_min} / \code{into_max} / \code{into_balance} are
+\code{NA} instead for every row of that year, and \code{\link[=lap_summarise_calendar]{lap_summarise_calendar()}}
+excludes (does not zero-fill) \code{NA} contributions - so a well's first year
+produces no tile at all in a \code{\link[=lap_plot_calendar]{lap_plot_calendar()}} grid, rather than a
+misleading blank/neutral one. The first year's own min/max still silently
+seed the running record that its second year is compared against.
 Ties are not records - a year's annual extreme equal to the running record
 neither sets nor breaks it, mirroring the usual "record broken" vs "record
 tied" distinction. If a year's own annual extreme is tied across more than

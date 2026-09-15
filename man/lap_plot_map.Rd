@@ -25,7 +25,7 @@ lap_plot_hex_map(
   margin_side = c("bottom", "right"),
   variant = lap_variant(),
   lang = NULL,
-  annotate = getOption("lapidary.annotate", "caption"),
+  annotate = getOption("lapidary.annotate", NA),
   base_size = NULL,
   preset = NULL,
   title = NULL,
@@ -45,7 +45,7 @@ lap_plot_point_map(
   basemap = TRUE,
   variant = lap_variant(),
   lang = NULL,
-  annotate = getOption("lapidary.annotate", "caption"),
+  annotate = getOption("lapidary.annotate", NA),
   base_size = NULL,
   preset = NULL,
   title = NULL,
@@ -87,9 +87,11 @@ mapped values (\code{"histogram"} / \code{"density"} / \code{"raincloud"}) on th
 
 \item{lang}{Language code; defaults to \code{\link[=lap_lang]{lap_lang()}}.}
 
-\item{annotate}{How-to-read explainer: \code{"caption"} (default), \code{"callout"},
-\code{NA} to suppress, or a literal string. Default
-\code{getOption("lapidary.annotate", "caption")}.}
+\item{annotate}{How-to-read explainer: \code{"caption"}, \code{"callout"}, \code{NA}
+(default) to suppress, or a literal string. Default
+\code{getOption("lapidary.annotate", NA)} - opt in per call with
+\code{annotate = "caption"}, or package-wide with
+\code{options(lapidary.annotate = "caption")}.}
 
 \item{base_size, preset}{Base font size, or a \code{\link[=lap_preset_names]{lap_preset_names()}} value that
 supplies it (e.g. \code{preset = "a1"} for poster-size text).}
@@ -117,9 +119,9 @@ passed it dispatches to \code{lap_plot_point_map()}.
 \item \code{lap_plot_point_map()} - one coloured mark per monitoring well.
 }
 
-Both return a bare \link[ggplot2:ggplot]{ggplot2::ggplot}; both end with \code{\link[=theme_lapidary]{theme_lapidary()}}, a
-single \verb{scale_*_lapidary_c()} and a how-to-read \code{plot.caption} (see
-\code{annotate}).
+Both return a bare \link[ggplot2:ggplot]{ggplot2::ggplot}; both end with \code{\link[=theme_lapidary]{theme_lapidary()}} and
+a single \verb{scale_*_lapidary_c()}. An optional how-to-read \code{plot.caption} is
+available (off by default - see \code{annotate}).
 }
 \examples{
 \dontrun{

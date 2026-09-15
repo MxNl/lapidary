@@ -63,6 +63,29 @@ test_that("a bucket with data but no event still gets a real n = 0", {
   expect_equal(cal$n, 0L)
 })
 
+test_that("a bucket where every contributing value is NA produces no row at all", {
+  df <- data.frame(
+    date = as.Date(c("2020-01-01", "2020-01-08", "2020-02-01")),
+    is_new_min = c(NA, NA, FALSE) # Jan: all NA (e.g. a first-year well);
+    # Feb: a real, non-NA zero
+  )
+  cal <- lap_summarise_calendar(df, is_new_min)
+  expect_equal(nrow(cal), 1L) # January is dropped entirely, not zero-filled
+  expect_equal(cal$unit, 2L)
+  expect_equal(cal$n, 0L)
+})
+
+test_that("columns from the same call drop independently per bucket", {
+  df <- data.frame(
+    date = as.Date(c("2020-01-01", "2020-01-08")),
+    is_new_min = c(NA, NA),
+    is_new_max = c(TRUE, FALSE)
+  )
+  cal <- lap_summarise_calendar(df, is_new_min, is_new_max)
+  expect_setequal(cal$name, "new_max") # new_min's all-NA January row is dropped
+  expect_equal(cal$n[cal$name == "new_max"], 1L)
+})
+
 test_that("period = 'week' pairs ISO week with its ISO week-year", {
   # 2021-01-01 is a Friday in ISO week 53 of 2020
   df <- data.frame(date = as.Date("2021-01-01"), is_new_min = TRUE)

@@ -65,16 +65,24 @@ lap_plot_xxx(data, ..., variant = lap_variant(), lang = NULL,
 - `preset` (a `lap_preset_names()` value) supplies `base_size` for standalone
   poster-size use; a later `lap_poster()` re-themes patches to the canvas size.
 
-### How-to-read annotations — default on
+### How-to-read annotations — off by default
 
-The `annotate` argument defaults to `"caption"`: the builder appends a
-localised `howto_<builder>` registry string to `plot.caption` (markdown-aware,
-wraps to the plot width via `ggtext::element_textbox_simple`). `"callout"` puts
-it in an on-panel corner box; `NA` / `FALSE` suppresses; any other string is
-used verbatim. `options(lapidary.annotate = NA)` sets the default globally.
-`lap_howto()` fills `{recharge}` / `{discharge}` / `{below}` / `{above}` colour
-placeholders from the tokens so the prose colour-matches the plot.
-`lap_annotate_howto()` is the standalone post-hoc helper.
+The `annotate` argument defaults to `NA` (suppressed): pass `"caption"` to
+have the builder append a localised `howto_<builder>` registry string to
+`plot.caption` (markdown-aware, wraps to the plot width via
+`ggtext::element_textbox_simple`). `"callout"` puts it in an on-panel corner
+box instead; any other string is used verbatim. `options(lapidary.annotate =
+"caption")` opts in globally. `lap_howto()` fills `{recharge}` /
+`{discharge}` / `{below}` / `{above}` colour placeholders from the tokens so
+the prose colour-matches the plot. `lap_annotate_howto()` is the standalone
+post-hoc helper.
+
+(Defaulted *on* through most of milestone 2's development - see the PR
+sequence below for the builders that were designed and reviewed against that
+default. Switched to off once poster work with the shipped builders showed
+the auto-generated text read better added in post-production (e.g. Inkscape)
+than baked into every render by default; opting in per call or globally is
+unchanged.)
 
 ### Supporting changes
 
@@ -134,13 +142,62 @@ x week/month), for a well or an aggregate" via a specific use case: counting
 new all-time low/high records. `lap_add_record_flags()` (`R/records.R`) is
 the per-well classifier (a running extreme, row-preserving, deliberately
 *not* corrected for network-growth or short-history confounds - that's the
-caller's job, by feeding a stable well panel); `lap_summarise_calendar()`
+caller's job, by feeding a stable well panel). A well's first year is not
+evaluated for records at all - there is no real prior year to compare
+against, so flagging it either way (`TRUE` or `FALSE`) would misrepresent it
+(a genuine record, or indistinguishable from a genuine non-record year). Its
+flags are `NA` for every row of that year instead, and `lap_summarise_calendar()`
 (added to `R/composition.R`, a second generic time-bucket summariser
-alongside `lap_summarise_composition()`) sums arbitrary event columns into a
-`year | unit | name | n` table; `lap_plot_calendar()` draws it as one or more
-(`facet =`) tile grids on one shared scale. A future single-well raw-series
-calendar feeds the same builder from its own small aggregation - no changes
-to `lap_plot_calendar()` needed.
+alongside `lap_summarise_composition()`) tracks per-column-per-bucket
+validity (`sum(!is.na(v))` alongside `sum(v, na.rm = TRUE)`) and drops a
+`(year, unit, name)` row entirely when its column had zero non-`NA`
+contributions in that bucket, rather than zero-filling it - so a well's
+first year produces no tile in [lap_plot_calendar()] at all, not a
+blank/neutral one that would misleadingly read as "no record activity"
+rather than "no baseline yet." Columns from the same call can drop
+independently per bucket. `lap_plot_calendar()` draws the result as one or
+more (`facet =`) tile grids on one shared scale. A future single-well
+raw-series calendar feeds the same builder from its own small aggregation -
+no changes to `lap_plot_calendar()` needed.
+
+`lap_plot_calendar()`'s `midpoint` argument is the one builder-contract
+exception that swaps its fill scale for something other than
+`scale_*_lapidary_c()`/`_d()`: a bespoke `ggplot2::continuous_scale()` built
+from 255 stops of the *full* `role` scico palette (not just its two end
+colours), with only the exact centre stop swapped for the variant's own
+background colour, not the palette's native centre. This is deliberate, not
+an oversight - the package's binned-by-default scale has no notion of a
+`midpoint` when it picks its breaks, so an exact-midpoint value can land on a
+bin edge and inherit an adjacent bin's (non-neutral) colour; a bespoke
+always-smooth gradient sidesteps that entirely and guarantees the midpoint
+reads as genuinely neutral, while still showing scico's own non-linear
+colour path rather than a flat 2-colour blend. It pairs with the
+`lap_colourbar_guide()` (`R/scales.R`), a tall/narrow `guide_colourbar()`
+analogue to `lap_coloursteps_guide()`, for the same legend styling on a
+smooth (non-binned) scale, and reuses `lapidary_scale_c()`'s existing
+`robust`/`scales::oob_squish` machinery (`resolve_robust_probs()`,
+`lap_robust_limits()`, and the shared `lap_mid_rescaler()` helper extracted
+from `lapidary_scale_c()` for this purpose) for the same "squish extreme
+values onto one end colour" behaviour other scale-backed builders have -
+computed eagerly from the builder's own already-in-hand data frame rather
+than `lapidary_scale_c()`'s deferred ggproto `train()` machinery, which only
+exists there because that function is called standalone without a
+pre-known dataset.
+
+`lap_plot_calendar()` is also the first builder to place its default how-to
+explanation in `plot.subtitle` rather than `plot.caption` - a deliberate,
+builder-local deviation, not a change to the shared `annotate` contract in
+`R/annotate.R`/`R/plot-utils.R` (`apply_howto()` is untouched and still used,
+unchanged, for every other builder, and for this one too when
+`annotate = "callout"`). The reasoning: this builder's explanatory text is
+longer and more dynamic than other builders' (it names the actual rendered
+colours and weaves in caller-supplied `low_label`/`high_label` text), and
+reads better directly above the panel it describes - especially now that the
+month/week axis labels also sit at the top. The text is built once,
+regardless of destination (`subtitle`, `callout`, or a caller's custom
+`annotate = "..."` string), then routed to the right placement - a fix
+during this same round for a bug where routing-then-building would have
+silently dropped the dynamic content from the `callout` path.
 
 ## Consequences
 

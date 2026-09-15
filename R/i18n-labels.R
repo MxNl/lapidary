@@ -5,9 +5,10 @@
 # lap_howto()). Extend this list as builders and captions are added.
 #
 # `howto_<builder>` entries are the "how to read this chart" explainers the
-# plot builders append to `plot.caption` by default (annotate = "caption").
-# They may carry <span style='color:...'> markup, injected by lap_howto()
-# and rendered by ggtext in theme_lapidary().
+# plot builders can append to `plot.caption` (off by default - opt in with
+# annotate = "caption" per call, or options(lapidary.annotate = "caption")
+# package-wide). They may carry <span style='color:...'> markup, injected by
+# lap_howto() and rendered by ggtext in theme_lapidary().
 
 lap_labels <- list(
   # --- app / attribution -------------------------------------------------
@@ -188,12 +189,35 @@ lap_labels <- list(
   ),
   howto_calendar = list(
     en = paste(
-      "Each tile is one month, coloured by its value for that month.",
-      "Reading down follows time, earliest year at the top."
+      "Colour shows **{value_label}** for each time bucket (a month or a",
+      "week); earliest year at the top."
     ),
     de = paste(
-      "Jede Kachel ist ein Monat, eingef\u00e4rbt nach ihrem Wert in diesem Monat.",
-      "Von oben nach unten verl\u00e4uft die Zeit, das fr\u00fcheste Jahr steht oben."
+      "Farbe zeigt **{value_label}** je Zeitabschnitt (Monat oder Woche);",
+      "das fr\u00fcheste Jahr steht oben."
+    )
+  ),
+  howto_calendar_divergent = list(
+    en = paste(
+      "<span style='color:{low_colour}'>Red</span> tiles mean {low_label};",
+      "<span style='color:{high_colour}'>blue</span> tiles mean {high_label}."
+    ),
+    de = paste(
+      "<span style='color:{low_colour}'>Rote</span> Kacheln bedeuten",
+      "{low_label}; <span style='color:{high_colour}'>blaue</span>",
+      "bedeuten {high_label}."
+    )
+  ),
+  calendar_low_generic = list(en = "a low value", de = "einen niedrigen Wert"),
+  calendar_high_generic = list(en = "a high value", de = "einen hohen Wert"),
+  howto_calendar_squished = list(
+    en = paste(
+      "The **most extreme** values share one colour, so smaller",
+      "differences stay visible in the rest of the grid."
+    ),
+    de = paste(
+      "Die **extremsten** Werte teilen sich eine Farbe, damit kleinere",
+      "Unterschiede im \u00fcbrigen Raster sichtbar bleiben."
     )
   )
 )

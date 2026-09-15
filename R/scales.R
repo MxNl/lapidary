@@ -92,6 +92,16 @@ lap_robust_limits <- function(values, probs, midpoint = NULL) {
   q
 }
 
+# A rescaler that independently maps each side of `midpoint` to [0, 0.5] /
+# [0.5, 1] (via scales::rescale_mid()), so the midpoint value always lands on
+# the palette's own centre regardless of how asymmetric the trained range is.
+lap_mid_rescaler <- function(midpoint) {
+  force(midpoint)
+  function(x, to = c(0, 1), from = base::range(x, na.rm = TRUE)) {
+    scales::rescale_mid(x, to, from, mid = midpoint)
+  }
+}
+
 # Prefix a "<=" / ">=" glyph to the label of whichever break sits on a clipped
 # limit, but only when the data actually extends past that limit. Glyphs built
 # at runtime so the source stays ASCII.
@@ -307,13 +317,7 @@ lapidary_scale_c <- function(aesthetic, role, ..., name, na.value, binned, bins,
   }
 
   cols <- scico::scico(256, palette = pal, begin = begin, end = end, direction = direction)
-  rescaler <- if (is.null(midpoint)) {
-    scales::rescale
-  } else {
-    function(x, to = c(0, 1), from = base::range(x, na.rm = TRUE)) {
-      scales::rescale_mid(x, to, from, mid = midpoint)
-    }
-  }
+  rescaler <- if (is.null(midpoint)) scales::rescale else lap_mid_rescaler(midpoint)
 
   set_robust_fields <- function(sc) {
     if (!is.null(probs)) {
@@ -404,6 +408,46 @@ lap_coloursteps_guide <- function(length = 18, thickness = 0.55,
       )
     ),
     show.limits = TRUE,
+    order = order,
+    ...
+  )
+}
+
+#' A long, thin smooth colour-bar legend guide
+#'
+#' The [lap_coloursteps_guide()] styling (tall, narrow, framed, ticked) for a
+#' smooth (non-binned) scale - [ggplot2::guide_colourbar()] instead of
+#' [ggplot2::guide_coloursteps()]. Use it when a scale is built with
+#' `binned = FALSE`, or for a bespoke continuous scale such as
+#' [lap_plot_calendar()]'s divergent mode.
+#'
+#' @inheritParams lap_coloursteps_guide
+#' @param ... Passed to [ggplot2::guide_colourbar()].
+#'
+#' @return A ggplot2 guide.
+#' @export
+lap_colourbar_guide <- function(length = 18, thickness = 0.55,
+                                title_gap = 0.9, label_gap = 1.0,
+                                tick_length = 0.2, order = 1,
+                                variant = NULL, ...) {
+  rlang::check_installed("ggplot2", "for `lap_colourbar_guide()`")
+  grid_col <- lap_tokens(lap_variant(variant))$colour$grid
+  ggplot2::guide_colourbar(
+    theme = ggplot2::theme(
+      legend.key.width = grid::unit(thickness, "lines"),
+      legend.key.height = grid::unit(length, "lines"),
+      legend.title = ggplot2::element_text(
+        margin = ggplot2::margin(b = title_gap, unit = "lines")
+      ),
+      legend.text = ggplot2::element_text(
+        margin = ggplot2::margin(l = label_gap, unit = "lines")
+      ),
+      legend.ticks.length = grid::unit(tick_length, "lines"),
+      legend.ticks = ggplot2::element_line(colour = grid_col, linewidth = 0.4),
+      legend.frame = ggplot2::element_rect(
+        colour = grid_col, fill = NA, linewidth = 0.3
+      )
+    ),
     order = order,
     ...
   )

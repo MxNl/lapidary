@@ -56,7 +56,7 @@ test_that("border_colour defaults to the background colour and is overridable", 
 })
 
 test_that("a single divergent panel works from the record_balance shortcut", {
-  p <- lap_plot_calendar(cal_balance, n, role = "anomaly", direction = -1, midpoint = 0, binned = FALSE)
+  p <- lap_plot_calendar(cal_balance, n, role = "anomaly", direction = -1, midpoint = 0)
   expect_s3_class(p, "ggplot")
   expect_no_error(ggplot_build(p))
   expect_null(p$facet$params$facets %||% NULL) # no faceting - one panel
@@ -70,16 +70,109 @@ test_that("a single divergent panel works from the record_balance shortcut", {
   )
 })
 
-test_that("binned = FALSE gives value 0 the palette's true neutral colour", {
-  # the package's binned-by-default scale has no notion of `midpoint` when it
-  # picks its breaks, so 0 can land on a bin edge and inherit a non-neutral
-  # bin's colour instead - binned = FALSE is a genuinely continuous gradient
-  # and doesn't have that ambiguity
-  p <- lap_plot_calendar(cal_balance, n, role = "anomaly", direction = -1, midpoint = 0, binned = FALSE)
+test_that("midpoint gives value 0 the variant's true neutral colour", {
+  # binned_scale() has no notion of `midpoint` when it picks its breaks, so 0
+  # can land on a bin edge and inherit a non-neutral bin's colour instead -
+  # the bespoke continuous_scale() path built when `midpoint` is given forces
+  # the exact centre stop to the variant's own background colour, and
+  # doesn't have that ambiguity
+  p <- lap_plot_calendar(cal_balance, n, role = "anomaly", direction = -1, midpoint = 0)
   built <- ggplot_build(p)
   fill_at_zero <- unique(built$data[[1]]$fill[p$data$n == 0])
-  neutral <- unique(scico::scico(3, palette = "vik", direction = -1))[[2]]
-  expect_identical(fill_at_zero, neutral)
+  neutral <- lap_tokens("light")$colour$background
+  expect_identical(toupper(fill_at_zero), toupper(neutral))
+})
+
+test_that("robust squishes extreme values onto one end colour on the divergent scale", {
+  p <- lap_plot_calendar(
+    cal_balance, n,
+    role = "anomaly", direction = -1, midpoint = 0, robust = TRUE
+  )
+  built <- ggplot_build(p)
+  fill_scale <- Filter(function(s) "fill" %in% s$aesthetics, p$scales$scales)[[1]]
+  limits <- fill_scale$get_limits()
+  above_limit <- p$data$n > limits[[2]]
+  skip_if(!any(above_limit), "fixture has no value above the robust limit")
+  fills_above <- unique(built$data[[1]]$fill[above_limit])
+  # every value beyond the squish threshold renders as the same end colour
+  expect_length(fills_above, 1L)
+})
+
+test_that("robust doesn't error when the value column is all-NA", {
+  all_na <- cal_balance
+  all_na$n <- NA_integer_
+  expect_no_error(
+    ggplot_build(lap_plot_calendar(
+      all_na, n,
+      role = "anomaly", direction = -1, midpoint = 0, robust = TRUE
+    ))
+  )
+})
+
+test_that("annotate = FALSE suppresses the divergent/squish subtitle hints too", {
+  p <- lap_plot_calendar(
+    cal_balance, n,
+    role = "anomaly", direction = -1, midpoint = 0, robust = TRUE,
+    annotate = FALSE
+  )
+  expect_true(is.null(p$labels$subtitle) || inherits(p$labels$subtitle, "waiver"))
+})
+
+test_that("annotate = FALSE suppresses everything, even with low_label/high_label set", {
+  p <- lap_plot_calendar(
+    cal_balance, n,
+    role = "anomaly", direction = -1, midpoint = 0,
+    low_label = "more new lows", high_label = "more new highs",
+    annotate = FALSE
+  )
+  expect_true(is.null(p$labels$subtitle) || inherits(p$labels$subtitle, "waiver"))
+  expect_true(is.null(p$labels$caption) || inherits(p$labels$caption, "waiver"))
+})
+
+test_that("low_label/high_label are woven into the subtitle", {
+  p <- lap_plot_calendar(
+    cal_balance, n,
+    role = "anomaly", direction = -1, midpoint = 0,
+    low_label = "more new lows", high_label = "more new highs",
+    annotate = "caption"
+  )
+  expect_true(grepl("more new lows", p$labels$subtitle, fixed = TRUE))
+  expect_true(grepl("more new highs", p$labels$subtitle, fixed = TRUE))
+
+  p_one <- lap_plot_calendar(
+    cal_balance, n,
+    midpoint = 0, low_label = "lo", annotate = "caption"
+  )
+  expect_false(grepl("^lo$", p_one$labels$subtitle %||% ""))
+})
+
+test_that("the subtitle names the value and doesn't mention midpoint", {
+  p <- lap_plot_calendar(
+    cal_balance, n,
+    role = "anomaly", direction = -1, midpoint = 0, annotate = "caption"
+  )
+  expect_true(grepl("**N**", p$labels$subtitle, fixed = TRUE))
+  expect_false(grepl("midpoint", p$labels$subtitle, fixed = TRUE))
+})
+
+test_that("annotate = 'callout' carries the full divergent/squish content, not just the base text", {
+  p <- lap_plot_calendar(
+    cal_balance, n,
+    role = "anomaly", direction = -1, midpoint = 0, robust = TRUE,
+    low_label = "more new lows", high_label = "more new highs",
+    annotate = "callout"
+  )
+  callout_layer <- p$layers[[length(p$layers)]]
+  callout_text <- callout_layer$data$.howto
+  expect_true(grepl("more new lows", callout_text, fixed = TRUE))
+  expect_true(grepl("more new highs", callout_text, fixed = TRUE))
+  expect_false(grepl("{value_label}", callout_text, fixed = TRUE))
+})
+
+test_that("the x-axis is drawn at the top of the panel", {
+  p <- lap_plot_calendar(cal, n)
+  x_scale <- Filter(function(s) "x" %in% s$aesthetics, p$scales$scales)[[1]]
+  expect_identical(x_scale$position, "top")
 })
 
 test_that("wrong data shape errors toward lap_summarise_calendar", {

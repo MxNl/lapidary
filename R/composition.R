@@ -83,8 +83,14 @@ lap_summarise_composition <- function(x, category, date = "date",
 #'
 #' @return A tibble: `year`, `unit`, `name` (the summed column, with a
 #'   leading `is_` stripped for a cleaner label) and `n` (its sum in that
-#'   bucket). A `(year, unit)` only appears if `x` has at least one row then;
-#'   a bucket with rows but no flagged event still gets a real `n = 0`.
+#'   bucket). A `(year, unit, name)` row only appears when at least one row
+#'   contributed a non-`NA` value for that column in that bucket; a bucket
+#'   with rows but no flagged event still gets a real `n = 0`, distinct from
+#'   a bucket where every contributing row was `NA` (e.g. every well's first
+#'   year, see [lap_add_record_flags()]), which produces no row at all.
+#'   Columns from the same call can drop independently - if one column is
+#'   all-`NA` in a bucket but another isn't, only the all-`NA` column's row
+#'   is omitted.
 #' @seealso [lap_add_record_flags()], [lap_plot_calendar()]
 #' @export
 #' @examples
@@ -116,14 +122,19 @@ lap_summarise_calendar <- function(x, ..., date = "date",
     dplyr::mutate(.year = yr, .unit = unit) |>
     dplyr::group_by(.data$.year, .data$.unit) |>
     dplyr::summarise(
-      dplyr::across(dplyr::all_of(cols), \(v) sum(v, na.rm = TRUE)),
+      dplyr::across(
+        dplyr::all_of(cols),
+        list(total = \(v) sum(v, na.rm = TRUE), valid = \(v) sum(!is.na(v))),
+        .names = "{.col}__{.fn}"
+      ),
       .groups = "drop"
     )
 
   out <- do.call(rbind, lapply(cols, function(nm) {
+    keep <- agg[[paste0(nm, "__valid")]] > 0
     data.frame(
-      year = agg[[".year"]], unit = agg[[".unit"]],
-      name = sub("^is_", "", nm), n = agg[[nm]]
+      year = agg[[".year"]][keep], unit = agg[[".unit"]][keep],
+      name = rep(sub("^is_", "", nm), sum(keep)), n = agg[[paste0(nm, "__total")]][keep]
     )
   }))
   out <- out[order(out$year, out$unit, out$name), ]

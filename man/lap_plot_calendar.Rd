@@ -15,9 +15,13 @@ lap_plot_calendar(
   border_colour = NULL,
   role = "magnitude",
   direction = 1,
+  midpoint = NULL,
+  robust = getOption("lapidary.scale_robust", FALSE),
+  low_label = NULL,
+  high_label = NULL,
   variant = lap_variant(),
   lang = NULL,
-  annotate = getOption("lapidary.annotate", "caption"),
+  annotate = getOption("lapidary.annotate", NA),
   base_size = NULL,
   preset = NULL,
   title = NULL,
@@ -40,7 +44,9 @@ produces, whether \code{unit} holds months or ISO weeks).}
 stack separate calendars by (one grid per level, \code{ncol = 1}), sharing one
 fill scale.}
 
-\item{...}{Passed to the underlying \code{scale_fill_lapidary_c()}.}
+\item{...}{Passed to the underlying fill scale - \code{scale_fill_lapidary_c()}
+when \code{midpoint} is \code{NULL}, or a bespoke \code{\link[ggplot2:continuous_scale]{ggplot2::continuous_scale()}}
+built from the full \code{role} palette when a \code{midpoint} is given.}
 
 \item{unit_labels}{Labels for the \code{unit} axis. \code{NULL} (default) uses
 localised month abbreviations when \code{unit}'s values are all \verb{<= 12}
@@ -51,15 +57,31 @@ weeks).}
 variant's background colour (a visible gap, unlike \code{\link[=lap_plot_stream]{lap_plot_stream()}}'s
 seamless default) - pass \code{NA} for none.}
 
-\item{role, direction}{Passed to the fill scale. Default \code{role = "magnitude"} (sequential, for a count); pass \verb{role = "anomaly", direction = -1, midpoint = 0} yourself for a divergent net-balance calendar (see
-examples) - \code{direction = -1} reads a negative value warm and a positive
-one cool, the hydrological low/dry-high/wet convention used elsewhere in
-the package. For a divergent scale, also pass \code{binned = FALSE}: the
-package's binned-by-default scale picks its round-number breaks from the
-data range with no awareness of \code{midpoint}, so a value of exactly
-\code{midpoint} can land on a bin edge and inherit that bin's non-neutral
-colour instead of the palette's true neutral one - \code{binned = FALSE}'s
-smooth gradient doesn't have that ambiguity.}
+\item{role, direction, robust}{Passed to the fill scale. Default \code{role = "magnitude"} (sequential, for a count). \code{robust} squishes values beyond
+a data-aware quantile threshold onto the same end colour, so a few
+extreme buckets don't wash out the variation in the rest of the grid.}
+
+\item{midpoint}{\code{NULL} (default) draws a sequential \code{role = "magnitude"}
+scale for a count. Set it (e.g. \code{0}) for a \strong{divergent} scale instead -
+a smooth gradient built from the full \code{role} palette (not just its two
+end colours), with only the exact centre colour swapped for the
+variant's own background colour - genuinely neutral, and blends into the
+page in light mode / the panel in dark mode. Built as a bespoke smooth
+scale rather than the package's usual binned steps, because binning has
+no notion of \code{midpoint}: a value of exactly \code{midpoint} could land on a
+bin edge and inherit that bin's colour instead of the true neutral one.
+\code{direction = -1} puts the low end of the palette on the high value (see
+examples) - the hydrological low/dry-high/wet convention used elsewhere
+in the package.}
+
+\item{low_label, high_label}{Words for what a low / a high value means
+(e.g. \code{"more new lows"} / \code{"more new highs"}). With \code{midpoint} set, these
+are woven into a sentence naming the actual rendered colours (assumes
+the \code{"anomaly"}/vik convention of low = red, high = blue - the package's
+only divergent role today; revisit this wording if a second divergent
+role is ever added), with a generic "a low/high value" fallback when
+they're not supplied. Without \code{midpoint}, a plain arrow sentence is
+appended only when both are given.}
 
 \item{variant, lang, annotate, base_size, preset, title, subtitle, caption}{See
 \link{lap_plot_map}.}
@@ -73,13 +95,25 @@ output of \code{\link[=lap_summarise_calendar]{lap_summarise_calendar()}} (how m
 month), one tile per bucket. \code{facet} draws several such grids stacked on
 one shared scale instead, e.g. new-low counts above new-high counts.
 }
+\details{
+Unlike most \verb{lap_plot_*()} builders, the default how-to explanation is
+placed in the plot \strong{subtitle}, not the caption - it reads better directly
+above the panel it describes, especially with the month/week labels also
+at the top of the panel. \code{annotate = "callout"} still places it in an
+on-panel box instead; the user's own \code{caption} argument is unaffected
+either way.
+}
 \examples{
 \dontrun{
 # one divergent panel: the balance of new-high vs new-low record years
 cal <- gems_ger_sample |>
   lap_add_record_flags() |>
   lap_summarise_calendar(record_balance)
-lap_plot_calendar(cal, n, role = "anomaly", direction = -1, midpoint = 0, binned = FALSE)
+lap_plot_calendar(
+  cal, n,
+  role = "anomaly", direction = -1, midpoint = 0, robust = TRUE,
+  low_label = "more new lows", high_label = "more new highs"
+)
 
 # or two sequential panels, one per series' own magnitude
 cal2 <- gems_ger_sample |>

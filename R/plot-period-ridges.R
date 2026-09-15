@@ -54,7 +54,7 @@ lap_plot_period_ridges <- function(data, value, ...,
                                    robust = getOption("lapidary.scale_robust", FALSE),
                                    range = getOption("lapidary.scale_range", FALSE),
                                    variant = lap_variant(), lang = NULL,
-                                   annotate = getOption("lapidary.annotate", "caption"),
+                                   annotate = getOption("lapidary.annotate", NA),
                                    base_size = NULL, preset = NULL,
                                    title = NULL, subtitle = NULL, caption = NULL) {
   rlang::check_installed("ggplot2", "for `lap_plot_period_ridges()`")

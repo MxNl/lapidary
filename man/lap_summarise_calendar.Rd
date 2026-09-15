@@ -22,8 +22,14 @@ week-53 edge case lands in the right year).}
 \value{
 A tibble: \code{year}, \code{unit}, \code{name} (the summed column, with a
 leading \code{is_} stripped for a cleaner label) and \code{n} (its sum in that
-bucket). A \verb{(year, unit)} only appears if \code{x} has at least one row then;
-a bucket with rows but no flagged event still gets a real \code{n = 0}.
+bucket). A \verb{(year, unit, name)} row only appears when at least one row
+contributed a non-\code{NA} value for that column in that bucket; a bucket
+with rows but no flagged event still gets a real \code{n = 0}, distinct from
+a bucket where every contributing row was \code{NA} (e.g. every well's first
+year, see \code{\link[=lap_add_record_flags]{lap_add_record_flags()}}), which produces no row at all.
+Columns from the same call can drop independently - if one column is
+all-\code{NA} in a bucket but another isn't, only the all-\code{NA} column's row
+is omitted.
 }
 \description{
 Turns one or more row-level numeric or logical columns (e.g.

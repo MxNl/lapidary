@@ -39,7 +39,7 @@ lap_plot_distribution <- function(data, value, ...,
                                   range = getOption("lapidary.scale_range", FALSE),
                                   rug = FALSE,
                                   variant = lap_variant(), lang = NULL,
-                                  annotate = getOption("lapidary.annotate", "caption"),
+                                  annotate = getOption("lapidary.annotate", NA),
                                   base_size = NULL, preset = NULL,
                                   title = NULL, subtitle = NULL, caption = NULL) {
   rlang::check_installed("ggplot2", "for `lap_plot_distribution()`")
