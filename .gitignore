@@ -26,6 +26,7 @@ renv/staging/
 
 # scratch / playground scripts (not part of the package)
 /playground*
+poster_ideas.yml
 
 # OS
 .DS_Store
